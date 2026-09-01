@@ -1,0 +1,92 @@
+{
+ "actions": [],
+ "allow_bulk_edit": 1,
+ "allow_rename": 1,
+ "autoname": "field:hotel_profile_name",
+ "creation": "2026-08-30 19:47:51.158911",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "hotel_profile_name",
+  "section_break_kidp",
+  "income_account",
+  "column_break_qutq",
+  "warehouse",
+  "section_break_bibp",
+  "default_service"
+ ],
+ "fields": [
+  {
+   "fieldname": "hotel_profile_name",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Hotel Profile Name",
+   "reqd": 1,
+   "unique": 1
+  },
+  {
+   "fieldname": "section_break_kidp",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "income_account",
+   "fieldtype": "Link",
+   "label": "Income Account",
+   "link_filters": "[\r\n  [\r\n      \"Account\",\r\n      \"account_type\",\r\n      \"in\",\r\n      [\r\n        \"Cash\",\r\n        \"Bank\"\r\n      ]\r\n  ],\r\n  [\r\n      \"Account\",\r\n      \"disabled\",\r\n      \"=\",\r\n      0\r\n  ]\r\n]",
+   "options": "Account",
+   "reqd": 1
+  },
+  {
+   "fieldname": "column_break_qutq",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "warehouse",
+   "fieldtype": "Link",
+   "label": "Warehouse",
+   "link_filters": "[\n  [\n    \"Warehouse\",\n    \"disabled\",\n    \"=\",\n    0\n  ]\n]",
+   "options": "Warehouse",
+   "reqd": 1
+  },
+  {
+   "fieldname": "section_break_bibp",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "default_service",
+   "fieldtype": "Link",
+   "label": "Default Service",
+   "link_filters": "[\r\n  [\r\n    \"Item\",\r\n    \"is_stock_item\",\r\n    \"=\",\r\n    0\r\n  ],\r\n  [\r\n    \"Item\",\r\n    \"disabled\",\r\n    \"=\",\r\n    0\r\n  ]\r\n]",
+   "options": "Item",
+   "reqd": 1
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2026-08-30 20:19:24.977671",
+ "modified_by": "Administrator",
+ "module": "Hotel Management",
+ "name": "Hotel Profile",
+ "naming_rule": "By fieldname",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "rows_threshold_for_grid_search": 20,
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": []
+}

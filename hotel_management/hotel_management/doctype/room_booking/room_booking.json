@@ -1,0 +1,273 @@
+{
+ "actions": [],
+ "allow_bulk_edit": 1,
+ "allow_rename": 1,
+ "autoname": "naming_series:naming_series",
+ "creation": "2026-08-30 18:34:53.948310",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "naming_series",
+  "column_break_subq",
+  "company",
+  "section_break_kbxh",
+  "customer",
+  "hotel_profile",
+  "column_break_ukqj",
+  "room",
+  "room_rate",
+  "section_break_aucj",
+  "check_in",
+  "column_break_wunz",
+  "check_out",
+  "section_break_uvau",
+  "items_and_service",
+  "section_break_revz",
+  "guests",
+  "section_break_pzpp",
+  "rate_by_hour",
+  "total_hours",
+  "column_break_fydx",
+  "amount",
+  "items_and_serivce_amount",
+  "total_amount",
+  "section_break_kslf",
+  "status",
+  "column_break_cjoi",
+  "pay_status",
+  "sales_invoice",
+  "section_break_gpfe",
+  "amended_from"
+ ],
+ "fields": [
+  {
+   "fieldname": "section_break_gpfe",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "amended_from",
+   "fieldtype": "Link",
+   "label": "Amended From",
+   "no_copy": 1,
+   "options": "Room Booking",
+   "print_hide": 1,
+   "read_only": 1,
+   "search_index": 1
+  },
+  {
+   "fieldname": "naming_series",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Naming Series",
+   "mandatory_depends_on": "eval:doc.pay_status=='Paid' || doc.status!='Booking'",
+   "options": "BOOK-.YYYY.-.#####",
+   "reqd": 1
+  },
+  {
+   "fieldname": "column_break_subq",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "company",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Company",
+   "mandatory_depends_on": "eval:doc.pay_status=='Paid' || doc.status!='Booking'",
+   "options": "Company",
+   "reqd": 1
+  },
+  {
+   "fieldname": "section_break_kbxh",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "customer",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Customer",
+   "mandatory_depends_on": "eval:doc.pay_status=='Paid' || doc.status!='Booking'",
+   "options": "Customer",
+   "reqd": 1
+  },
+  {
+   "fieldname": "column_break_ukqj",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "room",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Room",
+   "mandatory_depends_on": "eval:doc.pay_status=='Paid' || doc.status!='Booking'",
+   "options": "Hotel Room",
+   "reqd": 1
+  },
+  {
+   "depends_on": "eval:doc.room",
+   "fieldname": "room_rate",
+   "fieldtype": "Link",
+   "label": "Room Rate",
+   "mandatory_depends_on": "eval:doc.pay_status=='Paid' || doc.status!='Booking'",
+   "options": "Room Rate",
+   "reqd": 1
+  },
+  {
+   "fieldname": "section_break_aucj",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "check_in",
+   "fieldtype": "Datetime",
+   "label": "Check In",
+   "mandatory_depends_on": "eval:doc.pay_status=='Paid' || doc.status!='Booking'",
+   "reqd": 1
+  },
+  {
+   "fieldname": "column_break_wunz",
+   "fieldtype": "Column Break"
+  },
+  {
+   "allow_on_submit": 1,
+   "fieldname": "check_out",
+   "fieldtype": "Datetime",
+   "label": "Check Out",
+   "read_only_depends_on": "eval:doc.pay_status=='Paid' || doc.status=='Checked Out' || doc.status=='Completed'",
+   "reqd": 1
+  },
+  {
+   "fieldname": "section_break_pzpp",
+   "fieldtype": "Section Break"
+  },
+  {
+   "allow_on_submit": 1,
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "label": "Status",
+   "options": "Booking\nChecked In\nChecked Out\nCompleted\nCancelled",
+   "read_only": 1
+  },
+  {
+   "fieldname": "rate_by_hour",
+   "fieldtype": "Currency",
+   "label": "Rate by Hour",
+   "read_only": 1
+  },
+  {
+   "allow_on_submit": 1,
+   "fieldname": "total_hours",
+   "fieldtype": "Float",
+   "label": "Total Hours",
+   "read_only": 1
+  },
+  {
+   "allow_on_submit": 1,
+   "fieldname": "amount",
+   "fieldtype": "Currency",
+   "label": "Amount",
+   "read_only": 1
+  },
+  {
+   "fieldname": "section_break_uvau",
+   "fieldtype": "Section Break"
+  },
+  {
+   "allow_on_submit": 1,
+   "fieldname": "items_and_service",
+   "fieldtype": "Table",
+   "label": "Items and Serivce",
+   "options": "Room Booking Item",
+   "read_only_depends_on": "eval:doc.pay_status=='Paid' || doc.status=='Completed'"
+  },
+  {
+   "fieldname": "section_break_kslf",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "column_break_fydx",
+   "fieldtype": "Column Break"
+  },
+  {
+   "allow_on_submit": 1,
+   "fieldname": "items_and_serivce_amount",
+   "fieldtype": "Currency",
+   "label": "Items and Service Amount",
+   "read_only": 1
+  },
+  {
+   "allow_on_submit": 1,
+   "fieldname": "total_amount",
+   "fieldtype": "Currency",
+   "label": "Total Amount",
+   "read_only": 1
+  },
+  {
+   "fieldname": "section_break_revz",
+   "fieldtype": "Section Break"
+  },
+  {
+   "allow_on_submit": 1,
+   "fieldname": "guests",
+   "fieldtype": "Table",
+   "label": "Guests",
+   "options": "Room Booking Guest"
+  },
+  {
+   "fieldname": "hotel_profile",
+   "fieldtype": "Link",
+   "label": "Hotel Profile",
+   "mandatory_depends_on": "eval:doc.pay_status=='Paid' || doc.status!='Booking'",
+   "options": "Hotel Profile",
+   "reqd": 1
+  },
+  {
+   "fieldname": "column_break_cjoi",
+   "fieldtype": "Column Break"
+  },
+  {
+   "allow_on_submit": 1,
+   "fieldname": "pay_status",
+   "fieldtype": "Select",
+   "label": "Pay Status",
+   "options": "Unpaid\nPaid",
+   "read_only": 1
+  },
+  {
+   "allow_on_submit": 1,
+   "fieldname": "sales_invoice",
+   "fieldtype": "Link",
+   "label": "Sales Invoice",
+   "options": "Sales Invoice",
+   "read_only": 1
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "is_submittable": 1,
+ "links": [],
+ "modified": "2026-08-31 09:21:43.742028",
+ "modified_by": "Administrator",
+ "module": "Hotel Management",
+ "name": "Room Booking",
+ "naming_rule": "By \"Naming Series\" field",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "submit": 1,
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "rows_threshold_for_grid_search": 20,
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": []
+}

@@ -5,6 +5,41 @@ app_description = "App for Hotel Management"
 app_email = "umarr.devv@outlook.com"
 app_license = "mit"
 
+fixtures = [
+    {
+        "dt": "Role",
+        "filters": [["name", "in", ["Hotel Manager"]]],
+    },
+    {
+        "dt": "Workflow",
+        "filters": [["name", "in", ["Room Booking"]]],
+    },
+    {
+        "dt": "Workflow Action Master",
+        "filters": [["name", "in", ["Check In", "Check Out", "Complete"]]],
+    },
+    {
+        "dt": "Workflow State",
+        "filters": [["name", "in", ["Booking", "Checked In", "Checked Out", "Completed"]]],
+    },
+    {
+        "dt": "Server Script",
+        "filters": [["module", "=", "Hotel Management"]],
+    },
+    {
+        "dt": "Client Script",
+        "filters": [["module", "=", "Hotel Management"]],
+    },
+    {
+        "dt": "Workspace Sidebar",
+        "filters": [["module", "=", "Hotel Management"]],
+    },
+    {
+        "dt": "Desktop Icon",
+        "filters": [["name", "=", "Hotel"]],
+    },
+]
+
 # Apps
 # ------------------
 
