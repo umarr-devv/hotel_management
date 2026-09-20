@@ -805,6 +805,16 @@
 					.catch(() => []),
 			]);
 
+			const si = doc.sales_invoice
+				? (
+						await frappe.db.get_value("Sales Invoice", doc.sales_invoice, [
+							"docstatus",
+							"outstanding_amount",
+							"customer",
+						])
+				  ).message
+				: null;
+
 			const guest_ids = (doc.guests || []).map((g) => g.guest).filter(Boolean);
 			const guest_names = guest_ids.length
 				? await frappe.db.get_list("Customer", {
@@ -824,7 +834,7 @@
 			this.booking_dialog = dialog;
 			dialog.$wrapper.addClass("rc-booking-dialog");
 			dialog.fields_dict.body.$wrapper.html(
-				this.booking_card_html(doc, b, guest_ids.map((id) => guest_map[id] || id))
+				this.booking_card_html(doc, b, guest_ids.map((id) => guest_map[id] || id), si)
 			);
 
 			const open_form = () => {
@@ -845,10 +855,23 @@
 				dialog.set_primary_action(__("Open Full Form"), open_form);
 			}
 
+			// счёт и оплата — в зависимости от статуса оплаты
+			if (doc.pay_status !== "Paid") {
+				if (si && si.docstatus === 1 && flt(si.outstanding_amount) > 0) {
+					dialog.add_custom_action(`${ICONS.unpaid} ${__("Pay")}`, () => this.make_payment(doc, si), "rcb-action");
+				} else if (!si || si.docstatus !== 1) {
+					dialog.add_custom_action(
+						`${ICONS.add} ${__("Create Payment Invoice")}`,
+						() => this.create_invoice(doc),
+						"rcb-action"
+					);
+				}
+			}
+
 			dialog.show();
 		}
 
-		booking_card_html(doc, b, guests) {
+		booking_card_html(doc, b, guests, si) {
 			const esc = (v) => frappe.utils.escape_html(v == null ? "" : String(v));
 			const currency = b.currency || frappe.defaults.get_default("currency");
 			const money = (v) => format_currency(v || 0, currency);
@@ -913,8 +936,129 @@
 						${services ? `<div class="rcb-services">${services}</div>` : ""}
 						${services ? row(__("Items and Services"), money(doc.items_and_serivce_amount)) : ""}
 						<div class="rcb-total">${row(__("Total"), money(doc.total_amount))}</div>
+						${
+							si && si.docstatus === 1 && flt(si.outstanding_amount) > 0
+								? `<div class="rcb-due">${row(__("Outstanding Amount"), money(si.outstanding_amount))}</div>`
+								: ""
+						}
 					</div>
 				</div>`;
+		}
+
+		// ------------------------------------------------------------ счёт и оплата
+
+		create_invoice(doc) {
+			frappe.call({
+				method: "make_sales_invoice_from_booking",
+				args: { room_booking: doc.name },
+				freeze: true,
+				freeze_message: __("Creating Sales Invoice..."),
+				callback: async (r) => {
+					if (!r.message) return;
+					frappe.show_alert({ message: __("Sales Invoice {0} created", [r.message]), indicator: "green" });
+					await this.load_bookings_now();
+					this.show_booking(doc.name);
+				},
+			});
+		}
+
+		async make_payment(doc, si) {
+			// если способ оплаты один — подставляем его
+			const modes = await frappe.db.get_list("Mode of Payment", { filters: { enabled: 1 }, limit: 2 });
+
+			const dialog = new frappe.ui.Dialog({
+				title: __("Payment"),
+				fields: [
+					{
+						fieldname: "payment_type",
+						label: __("Payment Type"),
+						fieldtype: "Data",
+						read_only: 1,
+						default: __("Incoming"),
+					},
+					{
+						fieldname: "customer",
+						label: __("Customer"),
+						fieldtype: "Link",
+						options: "Customer",
+						read_only: 1,
+						default: si.customer,
+					},
+					{ fieldtype: "Column Break" },
+					{
+						fieldname: "sales_invoice",
+						label: __("Sales Invoice"),
+						fieldtype: "Link",
+						options: "Sales Invoice",
+						read_only: 1,
+						default: doc.sales_invoice,
+					},
+					{
+						fieldname: "outstanding_amount",
+						label: __("Outstanding Amount"),
+						fieldtype: "Currency",
+						read_only: 1,
+						default: si.outstanding_amount,
+					},
+					{ fieldtype: "Section Break" },
+					{
+						fieldname: "mode_of_payment",
+						label: __("Mode of Payment"),
+						fieldtype: "Link",
+						options: "Mode of Payment",
+						reqd: 1,
+						default: modes.length === 1 ? modes[0].name : undefined,
+					},
+					{
+						fieldname: "amount",
+						label: __("Paid Amount"),
+						fieldtype: "Currency",
+						reqd: 1,
+						default: si.outstanding_amount,
+					},
+					{ fieldtype: "Column Break" },
+					{
+						fieldname: "posting_date",
+						label: __("Posting Date"),
+						fieldtype: "Date",
+						reqd: 1,
+						default: frappe.datetime.get_today(),
+					},
+					{
+						fieldname: "reference_no",
+						label: __("Reference No"),
+						fieldtype: "Data",
+						description: __("For bank payments; defaults to the booking number"),
+					},
+				],
+				primary_action_label: __("Pay"),
+				primary_action: (values) => {
+					frappe.call({
+						method: "hotel_management.api.make_booking_payment",
+						args: {
+							room_booking: doc.name,
+							mode_of_payment: values.mode_of_payment,
+							amount: values.amount,
+							posting_date: values.posting_date,
+							reference_no: values.reference_no,
+						},
+						freeze: true,
+						freeze_message: __("Creating Payment Entry..."),
+						callback: async (r) => {
+							if (!r.message) return;
+							dialog.hide();
+							frappe.show_alert({
+								message: __("Payment Entry {0} created", [r.message]),
+								indicator: "green",
+							});
+							await this.load_bookings_now();
+							this.show_booking(doc.name);
+						},
+					});
+				},
+			});
+			this.booking_dialog && this.booking_dialog.hide();
+			dialog.show();
 		}
 
 		apply_action(doc, action) {

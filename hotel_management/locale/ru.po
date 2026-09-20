@@ -478,3 +478,79 @@ msgstr "Товары и услуги"
 #: hotel_management/hotel_management/page/room_chessboard/room_chessboard.js
 msgid "Apply action {0}?"
 msgstr "Выполнить действие {0}?"
+
+#: hotel_management/hotel_management/page/room_chessboard/room_chessboard.js
+msgid "Pay"
+msgstr "Оплатить"
+
+#: hotel_management/hotel_management/page/room_chessboard/room_chessboard.js
+msgid "Create Payment Invoice"
+msgstr "Создать счёт на оплату"
+
+#: hotel_management/hotel_management/page/room_chessboard/room_chessboard.js
+msgid "Payment"
+msgstr "Оплата"
+
+#: hotel_management/hotel_management/page/room_chessboard/room_chessboard.js
+msgid "Payment Type"
+msgstr "Тип платежа"
+
+#: hotel_management/hotel_management/page/room_chessboard/room_chessboard.js
+msgid "Incoming"
+msgstr "Приход"
+
+#: hotel_management/hotel_management/page/room_chessboard/room_chessboard.js
+msgid "Outstanding Amount"
+msgstr "К оплате"
+
+#: hotel_management/hotel_management/page/room_chessboard/room_chessboard.js
+msgid "Mode of Payment"
+msgstr "Способ оплаты"
+
+#: hotel_management/hotel_management/page/room_chessboard/room_chessboard.js
+msgid "Paid Amount"
+msgstr "Сумма оплаты"
+
+#: hotel_management/hotel_management/page/room_chessboard/room_chessboard.js
+msgid "Posting Date"
+msgstr "Дата проводки"
+
+#: hotel_management/hotel_management/page/room_chessboard/room_chessboard.js
+msgid "Reference No"
+msgstr "Номер документа"
+
+#: hotel_management/hotel_management/page/room_chessboard/room_chessboard.js
+msgid "For bank payments; defaults to the booking number"
+msgstr "Для банковских платежей; по умолчанию — номер брони"
+
+#: hotel_management/hotel_management/page/room_chessboard/room_chessboard.js
+msgid "Creating Sales Invoice..."
+msgstr "Создание счёта..."
+
+#: hotel_management/hotel_management/page/room_chessboard/room_chessboard.js
+msgid "Sales Invoice {0} created"
+msgstr "Счёт {0} создан"
+
+#: hotel_management/hotel_management/page/room_chessboard/room_chessboard.js
+msgid "Creating Payment Entry..."
+msgstr "Проведение оплаты..."
+
+#: hotel_management/hotel_management/page/room_chessboard/room_chessboard.js
+msgid "Payment Entry {0} created"
+msgstr "Оплата {0} проведена"
+
+#: hotel_management/api.py
+msgid "Create a Sales Invoice for this booking first"
+msgstr "Сначала создайте счёт для этой брони"
+
+#: hotel_management/api.py
+msgid "Sales Invoice {0} is not submitted"
+msgstr "Счёт {0} не проведён"
+
+#: hotel_management/api.py
+msgid "Sales Invoice {0} is already paid"
+msgstr "Счёт {0} уже оплачен"
+
+#: hotel_management/api.py
+msgid "Amount must be greater than zero"
+msgstr "Сумма должна быть больше нуля"

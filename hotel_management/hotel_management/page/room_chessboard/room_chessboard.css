@@ -669,3 +669,24 @@
 .rcb-total .rcb-value {
 	font-weight: 700;
 }
+
+.rcb-due .rcb-row {
+	border-bottom: none;
+	color: var(--text-on-red, var(--red-500));
+	font-weight: 600;
+}
+
+.rc-booking-dialog .rcb-action {
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+}
+
+.rc-booking-dialog .rcb-action .rc-icon {
+	width: 15px;
+	height: 15px;
+}
+
+.rcb-value a {
+	white-space: nowrap;
+}
