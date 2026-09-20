@@ -14,8 +14,6 @@
   "floor_number",
   "column_break_lbwu",
   "room_type",
-  "media_section",
-  "gallery",
   "section_break_ddjn",
   "notes"
  ],
@@ -79,23 +77,13 @@
    "fieldtype": "Int",
    "label": "Floor Number",
    "read_only": 1
-  },
-  {
-   "fieldname": "gallery",
-   "fieldtype": "Attachment Gallery",
-   "label": "Gallery"
-  },
-  {
-   "fieldname": "media_section",
-   "fieldtype": "Section Break",
-   "label": "Media"
   }
  ],
  "grid_page_length": 50,
  "image_field": "image",
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-08-30 19:41:23.087363",
+ "modified": "2026-09-20 18:34:13.854093",
  "modified_by": "Administrator",
  "module": "Hotel Management",
  "name": "Hotel Room",

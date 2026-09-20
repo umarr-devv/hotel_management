@@ -12,8 +12,6 @@
   "image",
   "rate_section",
   "room_type_rate",
-  "section_break_raeb",
-  "gallery",
   "information_section",
   "max_occupancy",
   "room_size",
@@ -79,23 +77,13 @@
   {
    "fieldname": "column_break_tvyx",
    "fieldtype": "Column Break"
-  },
-  {
-   "fieldname": "section_break_raeb",
-   "fieldtype": "Section Break",
-   "label": "Media"
-  },
-  {
-   "fieldname": "gallery",
-   "fieldtype": "Attachment Gallery",
-   "label": "Gallery"
   }
  ],
  "grid_page_length": 50,
  "image_field": "image",
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-09-20 12:38:18.053832",
+ "modified": "2026-09-20 18:33:47.757261",
  "modified_by": "Administrator",
  "module": "Hotel Management",
  "name": "Room Type",

@@ -12,7 +12,6 @@
   "image",
   "section_break_cyar",
   "address",
-  "warehouse",
   "description"
  ],
  "fields": [
@@ -47,19 +46,13 @@
    "fieldname": "description",
    "fieldtype": "Small Text",
    "label": "Description"
-  },
-  {
-   "fieldname": "warehouse",
-   "fieldtype": "Link",
-   "label": "Warehouse",
-   "options": "Warehouse"
   }
  ],
  "grid_page_length": 50,
  "image_field": "image",
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-08-30 19:38:38.463262",
+ "modified": "2026-09-20 18:30:06.330439",
  "modified_by": "Administrator",
  "module": "Hotel Management",
  "name": "Hotel Building",

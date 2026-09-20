@@ -8,10 +8,8 @@
  "engine": "InnoDB",
  "field_order": [
   "room_amenity_name",
-  "section_break_ctsx",
+  "column_break_kwws",
   "icon",
-  "column_break_tkmy",
-  "color",
   "section_break_cfmp",
   "description"
  ],
@@ -25,23 +23,10 @@
    "unique": 1
   },
   {
-   "fieldname": "section_break_ctsx",
-   "fieldtype": "Section Break"
-  },
-  {
    "fieldname": "icon",
    "fieldtype": "Icon",
    "in_list_view": 1,
    "label": "Icon"
-  },
-  {
-   "fieldname": "column_break_tkmy",
-   "fieldtype": "Column Break"
-  },
-  {
-   "fieldname": "color",
-   "fieldtype": "Color",
-   "label": "Color"
   },
   {
    "fieldname": "section_break_cfmp",
@@ -51,12 +36,16 @@
    "fieldname": "description",
    "fieldtype": "Small Text",
    "label": "Description"
+  },
+  {
+   "fieldname": "column_break_kwws",
+   "fieldtype": "Column Break"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-08-30 19:42:32.442344",
+ "modified": "2026-09-20 18:31:29.660998",
  "modified_by": "Administrator",
  "module": "Hotel Management",
  "name": "Room Amenity",

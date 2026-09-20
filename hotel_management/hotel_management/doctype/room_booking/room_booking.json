@@ -20,10 +20,6 @@
   "check_in",
   "column_break_wunz",
   "check_out",
-  "section_break_uvau",
-  "items_and_service",
-  "section_break_revz",
-  "guests",
   "section_break_pzpp",
   "rate_by_hour",
   "total_hours",
@@ -31,13 +27,18 @@
   "amount",
   "items_and_serivce_amount",
   "total_amount",
+  "items_and_services_tab",
+  "section_break_revz",
+  "items_and_service",
+  "other_tab",
+  "section_break_gpfe",
+  "guests",
+  "amended_from",
   "section_break_kslf",
   "status",
   "column_break_cjoi",
   "pay_status",
-  "sales_invoice",
-  "section_break_gpfe",
-  "amended_from"
+  "sales_invoice"
  ],
  "fields": [
   {
@@ -167,10 +168,6 @@
    "read_only": 1
   },
   {
-   "fieldname": "section_break_uvau",
-   "fieldtype": "Section Break"
-  },
-  {
    "allow_on_submit": 1,
    "fieldname": "items_and_service",
    "fieldtype": "Table",
@@ -238,13 +235,23 @@
    "label": "Sales Invoice",
    "options": "Sales Invoice",
    "read_only": 1
+  },
+  {
+   "fieldname": "items_and_services_tab",
+   "fieldtype": "Tab Break",
+   "label": "Items and Services"
+  },
+  {
+   "fieldname": "other_tab",
+   "fieldtype": "Tab Break",
+   "label": "Other"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2026-08-31 09:21:43.742028",
+ "modified": "2026-09-20 18:38:28.717263",
  "modified_by": "Administrator",
  "module": "Hotel Management",
  "name": "Room Booking",
