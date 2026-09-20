@@ -57,8 +57,7 @@
   },
   {
    "fieldname": "rate_section",
-   "fieldtype": "Section Break",
-   "label": "Rate"
+   "fieldtype": "Section Break"
   },
   {
    "fieldname": "room_type_rate",
@@ -96,7 +95,7 @@
  "image_field": "image",
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-08-30 19:40:34.111731",
+ "modified": "2026-09-20 12:38:18.053832",
  "modified_by": "Administrator",
  "module": "Hotel Management",
  "name": "Room Type",

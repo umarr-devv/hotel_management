@@ -232,10 +232,6 @@ msgid "Floor Number"
 msgstr "Номер этажа"
 
 #: hotel_management/hotel_management/doctype/room_booking_item/room_booking_item.json
-msgid "Item"
-msgstr "Номенклатура"
-
-#: hotel_management/hotel_management/doctype/room_booking_item/room_booking_item.json
 msgid "Price List"
 msgstr "Прайс-лист"
 
