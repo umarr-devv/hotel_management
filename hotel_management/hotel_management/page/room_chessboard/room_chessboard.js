@@ -300,8 +300,12 @@
 		available_height() {
 			const el = this.$timeline && this.$timeline.get(0);
 			const top = el && el.offsetParent ? el.getBoundingClientRect().top : 240;
-			const legend = this.$body ? this.$body.find(".rc-legend").outerHeight(true) || 0 : 0;
-			return Math.max(300, window.innerHeight - top - legend - 16 - 20);
+			// высота легенды БЕЗ внешних отступов: у неё margin-top: auto (прижата к низу),
+			// и outerHeight(true) вернул бы всё свободное место
+			const legend = this.$body ? this.$body.find(".rc-legend").outerHeight() || 0 : 0;
+			const scrollbar = 16;
+			const gaps = 16 + 16; // отступ над легендой + нижний отступ страницы
+			return Math.max(240, window.innerHeight - top - legend - scrollbar - gaps);
 		}
 
 		// ------------------------------------------------------------ data

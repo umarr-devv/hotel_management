@@ -6,8 +6,8 @@
 	--rc-section-h: 34px;
 	--rc-line: var(--border-color);
 	--rc-line-soft: color-mix(in srgb, var(--border-color) 60%, transparent);
-	--rc-weekend: color-mix(in srgb, var(--text-muted) 7%, transparent);
-	--rc-section: var(--subtle-fg);
+	--rc-weekend: color-mix(in srgb, var(--text-muted) 3%, transparent);
+	--rc-section: color-mix(in srgb, var(--subtle-fg) 45%, transparent);
 	--rc-today: var(--blue-500);
 	--rc-months-h: 28px;
 	display: flex;
@@ -272,7 +272,7 @@
 
 .rc-timeline .vis-foreground .vis-group.rc-group-section,
 .rc-timeline .vis-foreground .vis-group.rc-group-subsection {
-	background: color-mix(in srgb, var(--subtle-fg) 70%, transparent);
+	background: var(--rc-section);
 }
 
 /* свой шеврон вместо стандартного треугольника vis */
