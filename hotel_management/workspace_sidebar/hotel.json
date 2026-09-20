@@ -1,7 +1,9 @@
 {
  "app": "hotel_management",
+ "creation": "2026-09-20 18:55:33.531667",
  "docstatus": 0,
  "doctype": "Workspace Sidebar",
+ "idx": 0,
  "items": [
   {
    "child": 0,
@@ -12,6 +14,18 @@
    "label": "Hotel",
    "link_to": "Hotel",
    "link_type": "Workspace",
+   "show_arrow": 0,
+   "type": "Link"
+  },
+  {
+   "child": 0,
+   "collapsible": 1,
+   "icon": "calendar-days",
+   "indent": 0,
+   "keep_closed": 0,
+   "label": "Chessboard",
+   "link_to": "room-chessboard",
+   "link_type": "Page",
    "show_arrow": 0,
    "type": "Link"
   },
@@ -30,18 +44,6 @@
   {
    "child": 0,
    "collapsible": 1,
-   "icon": "calendar-days",
-   "indent": 0,
-   "keep_closed": 0,
-   "label": "Room Chessboard",
-   "link_to": "room-chessboard",
-   "link_type": "Page",
-   "show_arrow": 0,
-   "type": "Link"
-  },
-  {
-   "child": 0,
-   "collapsible": 1,
    "indent": 0,
    "keep_closed": 0,
    "label": "Setups",
@@ -50,16 +52,14 @@
    "type": "Section Break"
   },
   {
-   "child": 1,
+   "child": 0,
    "collapsible": 1,
-   "icon": "component",
    "indent": 0,
    "keep_closed": 0,
-   "label": "Room Type",
-   "link_to": "Room Type",
+   "label": "Hotel Rooms",
    "link_type": "DocType",
    "show_arrow": 0,
-   "type": "Link"
+   "type": "Section Break"
   },
   {
    "child": 1,
@@ -76,11 +76,11 @@
   {
    "child": 1,
    "collapsible": 1,
-   "icon": "building-2",
+   "icon": "component",
    "indent": 0,
    "keep_closed": 0,
-   "label": "Hotel Building",
-   "link_to": "Hotel Building",
+   "label": "Room Type",
+   "link_to": "Room Type",
    "link_type": "DocType",
    "show_arrow": 0,
    "type": "Link"
@@ -93,6 +93,18 @@
    "keep_closed": 0,
    "label": "Hotel Floor",
    "link_to": "Hotel Floor",
+   "link_type": "DocType",
+   "show_arrow": 0,
+   "type": "Link"
+  },
+  {
+   "child": 1,
+   "collapsible": 1,
+   "icon": "building-2",
+   "indent": 0,
+   "keep_closed": 0,
+   "label": "Hotel Building",
+   "link_to": "Hotel Building",
    "link_type": "DocType",
    "show_arrow": 0,
    "type": "Link"
@@ -122,6 +134,29 @@
    "type": "Link"
   },
   {
+   "child": 0,
+   "collapsible": 1,
+   "icon": "database",
+   "indent": 0,
+   "keep_closed": 0,
+   "label": "Setup",
+   "link_type": "DocType",
+   "show_arrow": 0,
+   "type": "Section Break"
+  },
+  {
+   "child": 1,
+   "collapsible": 1,
+   "icon": "user-round",
+   "indent": 0,
+   "keep_closed": 0,
+   "label": "Customer",
+   "link_to": "Customer",
+   "link_type": "DocType",
+   "show_arrow": 0,
+   "type": "Link"
+  },
+  {
    "child": 1,
    "collapsible": 1,
    "icon": "settings-2",
@@ -132,11 +167,78 @@
    "link_type": "DocType",
    "show_arrow": 0,
    "type": "Link"
+  },
+  {
+   "child": 0,
+   "collapsible": 1,
+   "indent": 0,
+   "keep_closed": 1,
+   "label": "Reports",
+   "link_type": "DocType",
+   "show_arrow": 0,
+   "type": "Section Break"
+  },
+  {
+   "child": 1,
+   "collapsible": 1,
+   "indent": 0,
+   "keep_closed": 0,
+   "label": "Profit and Loss Statement",
+   "link_to": "Profit and Loss Statement",
+   "link_type": "Report",
+   "show_arrow": 0,
+   "type": "Link"
+  },
+  {
+   "child": 1,
+   "collapsible": 1,
+   "indent": 0,
+   "keep_closed": 0,
+   "label": "Customer Ledger Summary",
+   "link_to": "Customer Ledger Summary",
+   "link_type": "Report",
+   "show_arrow": 0,
+   "type": "Link"
+  },
+  {
+   "child": 1,
+   "collapsible": 1,
+   "indent": 0,
+   "keep_closed": 0,
+   "label": "Accounts Receivable Summary",
+   "link_to": "Accounts Receivable Summary",
+   "link_type": "Report",
+   "show_arrow": 0,
+   "type": "Link"
+  },
+  {
+   "child": 1,
+   "collapsible": 1,
+   "indent": 0,
+   "keep_closed": 0,
+   "label": "Item-wise Sales Register",
+   "link_to": "Item-wise Sales Register",
+   "link_type": "Report",
+   "show_arrow": 0,
+   "type": "Link"
+  },
+  {
+   "child": 1,
+   "collapsible": 1,
+   "indent": 0,
+   "keep_closed": 0,
+   "label": "Sales Analytics",
+   "link_to": "Sales Analytics",
+   "link_type": "Report",
+   "show_arrow": 0,
+   "type": "Link"
   }
  ],
- "modified": "2026-09-20 21:00:00.000000",
+ "modified": "2026-09-20 21:59:47.611194",
+ "modified_by": "Administrator",
  "module": "Hotel Management",
  "name": "Hotel",
+ "owner": "Administrator",
  "standard": 1,
  "title": "Hotel"
 }

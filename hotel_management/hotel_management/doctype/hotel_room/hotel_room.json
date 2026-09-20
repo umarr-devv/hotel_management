@@ -2,7 +2,7 @@
  "actions": [],
  "allow_bulk_edit": 1,
  "allow_rename": 1,
- "autoname": "format:{room_type} {room_number}",
+ "autoname": "format:{room_type} - {room_number}",
  "creation": "2026-08-30 17:57:01.615351",
  "doctype": "DocType",
  "engine": "InnoDB",
@@ -11,9 +11,9 @@
   "image",
   "hotel_building",
   "hotel_floor",
-  "floor_number",
   "column_break_lbwu",
   "room_type",
+  "location",
   "section_break_ddjn",
   "notes"
  ],
@@ -72,18 +72,17 @@
    "reqd": 1
   },
   {
-   "fetch_from": "hotel_floor.floor_number",
-   "fieldname": "floor_number",
-   "fieldtype": "Int",
-   "label": "Floor Number",
-   "read_only": 1
+   "fieldname": "location",
+   "fieldtype": "Link",
+   "label": "Location",
+   "options": "Location"
   }
  ],
  "grid_page_length": 50,
  "image_field": "image",
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-09-20 21:00:00.000000",
+ "modified": "2026-09-20 22:01:42.323404",
  "modified_by": "Administrator",
  "module": "Hotel Management",
  "name": "Hotel Room",
