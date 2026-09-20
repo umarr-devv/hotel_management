@@ -610,3 +610,11 @@ msgstr "Нет цены для {0} в прайс-листе {1}"
 #: hotel_management/public/js/room_booking_quick_entry.js
 msgid "Select a room first"
 msgstr "Сначала выберите номер"
+
+#: hotel_management/public/js/room_booking_quick_entry.js
+msgid "Missing Fields"
+msgstr "Не заполнены поля"
+
+#: hotel_management/public/js/room_booking_quick_entry.js
+msgid "Mandatory fields required: {0}"
+msgstr "Заполните обязательные поля: {0}"

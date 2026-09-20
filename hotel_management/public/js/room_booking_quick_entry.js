@@ -29,6 +29,7 @@ frappe.ui.form.RoomBookingQuickEntryForm = class RoomBookingQuickEntryForm exten
 				fieldtype: "Link",
 				options: "Customer",
 				reqd: 1,
+				bold: 1,
 			},
 			{ fieldtype: "Section Break" },
 			{
@@ -147,13 +148,47 @@ frappe.ui.form.RoomBookingQuickEntryForm = class RoomBookingQuickEntryForm exten
 		const field = this.fields_dict.room_rate;
 		if (!field) return;
 		field.df.options = [""].concat(names).join("\n");
-		field.df.read_only = names.length ? 0 : 1;
+		// поле не блокируем: у заблокированного поля Frappe не показывает отметку обязательности
+		field.df.reqd = 1;
 		field.df.description = this.get_value("room")
 			? names.length
 				? ""
 				: __("No active rates for this room type")
 			: __("Select a room first");
 		field.refresh();
+	}
+
+	// явная проверка обязательных полей перед сохранением
+	insert() {
+		const required = [
+			["customer", __("Customer")],
+			["room", __("Room")],
+			["room_rate", __("Room Rate")],
+			["check_in", __("Check In")],
+			["check_out", __("Check Out")],
+			["company", __("Company")],
+			["hotel_profile", __("Hotel Profile")],
+		];
+		const missing = required.filter(([field]) => !this.get_value(field)).map(([, label]) => label);
+
+		if (missing.length) {
+			this.working = false; // иначе Frappe заблокирует повторное нажатие «Сохранить»
+			missing.forEach((label) => {
+				const f = Object.values(this.fields_dict).find((c) => c.df && __(c.df.label) === label);
+				f && f.refresh_input && f.refresh_input();
+			});
+			if (!this.get_value("company") || !this.get_value("hotel_profile")) {
+				const section = this.fields_dict.company && this.fields_dict.company.section;
+				section && section.collapse && section.collapse(false);
+			}
+			frappe.msgprint({
+				title: __("Missing Fields"),
+				message: __("Mandatory fields required: {0}", [missing.map((l) => `<b>${l}</b>`).join(", ")]),
+				indicator: "red",
+			});
+			return new Promise(() => {}); // сохранение не выполняем
+		}
+		return super.insert();
 	}
 
 	update_summary() {
