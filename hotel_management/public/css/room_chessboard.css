@@ -1,0 +1,268 @@
+/* Room Chessboard — цвета через CSS-переменные Frappe, поэтому работает и тёмная тема */
+
+.rc-wrapper {
+	padding: var(--padding-sm, 8px) 0;
+}
+
+.rc-toolbar {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 8px 16px;
+	margin-bottom: 12px;
+}
+
+.rc-period {
+	font-weight: 600;
+	color: var(--text-color);
+}
+
+.rc-legend {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 6px 14px;
+	margin-left: auto;
+	font-size: var(--text-sm);
+	color: var(--text-muted);
+}
+
+.rc-legend-swatch {
+	display: inline-block;
+	width: 12px;
+	height: 12px;
+	margin-right: 5px;
+	border-radius: 3px;
+	border: 1px solid transparent;
+	vertical-align: -2px;
+}
+
+.rc-legend-unpaid {
+	background: var(--bg-color);
+	box-shadow: inset 3px 0 0 var(--red-500);
+	border-color: var(--border-color);
+}
+
+.rc-legend-draft {
+	background: var(--bg-color);
+	border: 1px dashed var(--text-muted);
+}
+
+.rc-hint {
+	margin-top: 8px;
+	font-size: var(--text-xs);
+}
+
+.rc-empty {
+	padding: 48px 16px;
+	text-align: center;
+	color: var(--text-muted);
+	border: 1px dashed var(--border-color);
+	border-radius: var(--border-radius-md);
+}
+
+/* --- timeline frame ------------------------------------------------------ */
+
+.rc-timeline .vis-timeline {
+	font-family: inherit;
+	border: 1px solid var(--border-color);
+	border-radius: var(--border-radius-md);
+	background: var(--card-bg);
+	color: var(--text-color);
+}
+
+.rc-timeline .vis-panel.vis-center,
+.rc-timeline .vis-panel.vis-left,
+.rc-timeline .vis-panel.vis-top,
+.rc-timeline .vis-panel.vis-bottom,
+.rc-timeline .vis-labelset .vis-label,
+.rc-timeline .vis-foreground .vis-group {
+	border-color: var(--border-color);
+}
+
+.rc-timeline .vis-time-axis .vis-text {
+	color: var(--text-muted);
+	font-size: var(--text-xs);
+}
+
+.rc-timeline .vis-time-axis .vis-text.vis-major {
+	color: var(--text-color);
+	font-weight: 600;
+}
+
+.rc-timeline .vis-time-axis .vis-grid.vis-minor,
+.rc-timeline .vis-time-axis .vis-grid.vis-major {
+	border-color: var(--border-color);
+}
+
+.rc-timeline .vis-time-axis .vis-grid.vis-today {
+	background: none;
+}
+
+/* выходные затеняем только когда на шкале дни, а не часы */
+.rc-timeline:not(.rc-hourly) .vis-time-axis .vis-grid.vis-saturday,
+.rc-timeline:not(.rc-hourly) .vis-time-axis .vis-grid.vis-sunday {
+	background: var(--subtle-fg);
+}
+
+.rc-timeline .vis-current-time {
+	width: 2px;
+	background-color: var(--red-500);
+}
+
+/* --- group labels (здание → этаж → номер) ---------------------------------- */
+
+.rc-timeline .vis-labelset .vis-label {
+	color: var(--text-color);
+}
+
+.rc-timeline .vis-label.rc-group-building,
+.rc-timeline .vis-label.rc-group-floor {
+	background: var(--subtle-fg);
+}
+
+.rc-timeline .vis-foreground .vis-group.rc-group-building,
+.rc-timeline .vis-foreground .vis-group.rc-group-floor {
+	background: var(--subtle-fg);
+}
+
+.rc-group-label {
+	display: flex;
+	align-items: baseline;
+	gap: 8px;
+	min-width: 150px;
+	padding-right: 8px;
+}
+
+.rc-group-label-building .rc-group-title {
+	font-weight: 700;
+}
+
+.rc-group-label-floor .rc-group-title {
+	font-weight: 600;
+	color: var(--text-muted);
+	font-size: var(--text-sm);
+}
+
+.rc-group-label-room .rc-group-title {
+	font-weight: 600;
+}
+
+.rc-group-sub {
+	color: var(--text-muted);
+	font-size: var(--text-xs);
+	white-space: nowrap;
+}
+
+.rc-timeline .vis-label.vis-nested-group.vis-group-level-2 .vis-inner {
+	padding-left: 36px;
+}
+
+/* --- bookings ------------------------------------------------------------ */
+
+.rc-timeline .vis-item.rc-item {
+	border-width: 1px;
+	border-radius: 6px;
+	font-size: var(--text-sm);
+	cursor: pointer;
+}
+
+.rc-timeline .vis-item.rc-item .vis-item-content {
+	padding: 3px 8px;
+}
+
+.rc-item-content {
+	display: flex;
+	gap: 6px;
+	align-items: baseline;
+	overflow: hidden;
+}
+
+.rc-item-title {
+	font-weight: 600;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+.rc-item-sub {
+	opacity: 0.75;
+	font-size: var(--text-xs);
+}
+
+.rc-legend-swatch.rc-status-booking,
+.rc-timeline .vis-item.rc-item.rc-status-booking {
+	background-color: var(--bg-blue);
+	border-color: var(--text-on-blue);
+	color: var(--text-on-blue);
+}
+
+.rc-legend-swatch.rc-status-checked-in,
+.rc-timeline .vis-item.rc-item.rc-status-checked-in {
+	background-color: var(--bg-green);
+	border-color: var(--text-on-green);
+	color: var(--text-on-green);
+}
+
+.rc-legend-swatch.rc-status-checked-out,
+.rc-timeline .vis-item.rc-item.rc-status-checked-out {
+	background-color: var(--bg-orange);
+	border-color: var(--text-on-orange);
+	color: var(--text-on-orange);
+}
+
+.rc-legend-swatch.rc-status-completed,
+.rc-timeline .vis-item.rc-item.rc-status-completed {
+	background-color: var(--bg-gray);
+	border-color: var(--text-on-gray);
+	color: var(--text-on-gray);
+}
+
+.rc-timeline .vis-item.rc-item.rc-unpaid {
+	box-shadow: inset 4px 0 0 var(--red-500);
+}
+
+.rc-timeline .vis-item.rc-item.rc-draft {
+	border-style: dashed;
+	opacity: 0.85;
+}
+
+.rc-timeline .vis-item.rc-item.vis-selected.vis-selected {
+	border-width: 2px;
+	z-index: 2;
+}
+
+/* --- tooltip ------------------------------------------------------------- */
+
+.vis-tooltip:has(.rc-tooltip) {
+	padding: 10px 12px;
+	min-width: 220px;
+	font-family: inherit;
+	font-size: var(--text-sm);
+	color: var(--text-color);
+	background: var(--popover-bg, var(--card-bg));
+	border: 1px solid var(--border-color);
+	border-radius: var(--border-radius-md);
+	box-shadow: var(--shadow-md);
+	white-space: normal;
+}
+
+.rc-tooltip-title {
+	font-size: var(--text-base);
+}
+
+.rc-tooltip-sub {
+	margin-bottom: 6px;
+	color: var(--text-muted);
+	font-size: var(--text-xs);
+}
+
+.rc-tooltip-row {
+	display: flex;
+	justify-content: space-between;
+	gap: 16px;
+	padding: 1px 0;
+}
+
+.rc-tooltip-row span:first-child {
+	color: var(--text-muted);
+}

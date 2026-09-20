@@ -340,3 +340,81 @@ msgstr "Создать счёт продажи"
 #: hotel_management/fixtures/client_script.json
 msgid "Recreate Sales Invoice"
 msgstr "Пересоздать счёт продажи"
+
+# Room Chessboard page
+
+#: hotel_management/hotel_management/page/room_chessboard/room_chessboard.js
+msgid "Room Chessboard"
+msgstr "Шахматка номеров"
+
+#: hotel_management/hotel_management/page/room_chessboard/room_chessboard.js
+msgid "Day"
+msgstr "День"
+
+#: hotel_management/hotel_management/page/room_chessboard/room_chessboard.js
+msgid "Week"
+msgstr "Неделя"
+
+#: hotel_management/hotel_management/page/room_chessboard/room_chessboard.js
+msgid "Month"
+msgstr "Месяц"
+
+#: hotel_management/hotel_management/page/room_chessboard/room_chessboard.js
+msgid "Previous"
+msgstr "Назад"
+
+#: hotel_management/hotel_management/page/room_chessboard/room_chessboard.js
+msgid "Next"
+msgstr "Вперёд"
+
+#: hotel_management/hotel_management/page/room_chessboard/room_chessboard.js
+msgid "Today"
+msgstr "Сегодня"
+
+#: hotel_management/hotel_management/page/room_chessboard/room_chessboard.js
+msgid "Draft"
+msgstr "Черновик"
+
+#: hotel_management/hotel_management/page/room_chessboard/room_chessboard.js
+msgid "No rooms found"
+msgstr "Номера не найдены"
+
+#: hotel_management/hotel_management/page/room_chessboard/room_chessboard.js
+msgid "Create Hotel Room"
+msgstr "Создать номер"
+
+#: hotel_management/hotel_management/page/room_chessboard/room_chessboard.js
+msgid "Double-click a booking to open it, or an empty cell to create a new one. Ctrl + wheel to zoom."
+msgstr "Двойной клик по брони — открыть её, по пустой ячейке — создать новую. Ctrl + колесо — масштаб."
+
+#: hotel_management/hotel_management/page/room_chessboard/room_chessboard.js
+msgid "No Building"
+msgstr "Без здания"
+
+#: hotel_management/hotel_management/page/room_chessboard/room_chessboard.js
+msgid "No Floor"
+msgstr "Без этажа"
+
+#: hotel_management/hotel_management/page/room_chessboard/room_chessboard.js
+msgid "Floor {0}"
+msgstr "Этаж {0}"
+
+#: hotel_management/hotel_management/page/room_chessboard/room_chessboard.js
+msgid "Go to Date"
+msgstr "Перейти к дате"
+
+#: hotel_management/hotel_management/page/room_chessboard/room_chessboard.js
+msgid "New Booking"
+msgstr "Новая бронь"
+
+#: hotel_management/hotel_management/page/room_chessboard/room_chessboard.js
+msgid "Refresh"
+msgstr "Обновить"
+
+#: hotel_management/hotel_management/page/room_chessboard/room_chessboard.js
+msgid "Hours"
+msgstr "Часы"
+
+#: hotel_management/hotel_management/page/room_chessboard/room_chessboard.js
+msgid "Total"
+msgstr "Итого"
