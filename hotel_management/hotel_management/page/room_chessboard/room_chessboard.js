@@ -200,7 +200,7 @@
 				horizontalScroll: false,
 				showCurrentTime: true,
 				groupOrder: "order",
-				margin: { item: { horizontal: 0, vertical: 8 }, axis: 0 },
+				margin: { item: { horizontal: 0, vertical: 6 }, axis: 0 },
 				maxHeight: this.available_height(),
 				tooltip: { followMouse: true, overflowMethod: "flip", delay: 250 },
 				xss: {

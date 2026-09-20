@@ -1,10 +1,13 @@
 /* Room Chessboard — цвета через CSS-переменные Frappe (светлая и тёмная темы) */
 
 .rc {
-	--rc-row-h: 54px;
+	--rc-row-h: 40px;
+	--rc-item-h: 28px;
+	--rc-section-h: 34px;
 	--rc-line: var(--border-color);
 	--rc-line-soft: color-mix(in srgb, var(--border-color) 60%, transparent);
-	--rc-weekend: var(--subtle-fg);
+	--rc-weekend: color-mix(in srgb, var(--text-muted) 7%, transparent);
+	--rc-section: var(--subtle-fg);
 	--rc-today: var(--blue-500);
 	--rc-months-h: 28px;
 	display: flex;
@@ -250,7 +253,7 @@
 
 .rc-group-label-section,
 .rc-group-label-subsection {
-	height: 46px;
+	height: var(--rc-section-h);
 	font-weight: 600;
 }
 
@@ -264,7 +267,7 @@
 .rc-timeline .vis-label.rc-group-subsection,
 .rc-timeline .vis-foreground .vis-group.rc-group-section,
 .rc-timeline .vis-foreground .vis-group.rc-group-subsection {
-	background: var(--rc-weekend);
+	background: var(--rc-section);
 }
 
 .rc-timeline .vis-foreground .vis-group.rc-group-section,
@@ -291,7 +294,7 @@
 .rc-timeline .vis-item.rc-selection {
 	--rc-c: var(--gray-500);
 	--rc-bg: var(--bg-gray);
-	height: 38px;
+	height: var(--rc-item-h);
 	border: 0;
 	background: none;
 	color: var(--text-color);
@@ -308,7 +311,7 @@
 	position: absolute;
 	z-index: 0;
 	border-radius: 7px;
-	clip-path: polygon(0 0, calc(100% - 10px) 0, 100% 50%, calc(100% - 10px) 100%, 0 100%);
+	clip-path: polygon(0 0, calc(100% - 8px) 0, 100% 50%, calc(100% - 8px) 100%, 0 100%);
 }
 
 .rc-timeline .vis-item.rc-item::before,
@@ -336,19 +339,19 @@
 	box-sizing: border-box;
 	width: 100%;
 	height: 100%;
-	padding: 0 18px 0 14px;
+	padding: 0 14px 0 10px;
 }
 
 .rc-item-content {
 	display: flex;
 	align-items: center;
-	gap: 8px;
-	height: 38px;
+	gap: 6px;
+	height: var(--rc-item-h);
 }
 
 .rc-item-content > .rc-icon {
-	width: 18px;
-	height: 18px;
+	width: 15px;
+	height: 15px;
 }
 
 .rc-item-title {
