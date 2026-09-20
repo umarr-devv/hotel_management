@@ -74,6 +74,7 @@
 				'<path d="M12 12.5v5M9.5 15h5"/>'
 		),
 		chevron: svg('<path d="m6 9 6 6 6-6"/>', "rc-chevron"),
+		mouse: svg('<rect x="6" y="3" width="12" height="18" rx="6"/><path d="M12 3v6"/><path d="M12 9h6" stroke-width="3"/>'),
 	};
 
 	hotel_management.RoomChessboard = class RoomChessboard {
@@ -95,10 +96,43 @@
 		// ------------------------------------------------------------ layout
 
 		make_layout() {
-			const views = Object.entries(VIEWS)
-				.map(([k, label]) => `<option value="${k}">${label}</option>`)
-				.join("");
+			// --- стандартная шапка Frappe: кнопки и фильтры -----------------------------
+			this.page.set_primary_action(__("Booking"), () => this.open_quick_entry({}), "add");
+			this.page.add_action_icon("es-line-reload", () => this.reload(), "", __("Refresh"));
 
+			this.$month = $(`
+				<div class="col-md-3 rc-month">
+					<button class="btn btn-default btn-xs rc-month-btn" data-action="prev-month"
+						title="${__("Previous Month")}">${ICONS.prev}</button>
+					<button class="btn btn-xs rc-month-label" data-action="today" title="${__("Today")}"></button>
+					<button class="btn btn-default btn-xs rc-month-btn" data-action="next-month"
+						title="${__("Next Month")}">${ICONS.next}</button>
+				</div>
+			`).prependTo(this.page.page_form.removeClass("hide"));
+
+			this.view_field = this.page.add_field({
+				fieldname: "view",
+				label: __("View"),
+				fieldtype: "Select",
+				options: Object.entries(VIEWS).map(([value, label]) => ({ value, label })),
+				default: this.view,
+				change: () => {
+					const view = this.view_field.get_value();
+					if (!VIEWS[view] || view === this.view) return;
+					this.view = view;
+					this.save_view();
+					this.set_groups(this.rooms || []);
+				},
+			});
+
+			this.$month.on("click", "[data-action]", (e) => {
+				const action = $(e.currentTarget).attr("data-action");
+				if (action === "prev-month") this.shift_month(-1);
+				else if (action === "next-month") this.shift_month(1);
+				else this.go_to_month(start_of_month(new Date()), new Date());
+			});
+
+			// --- тело страницы -----------------------------------------------------------
 			const legend = STATUSES.map(
 				(s) => `<span class="rc-legend-item">
 					<span class="rc-dot rc-status-${slug(s)}"></span>${__(s)}
@@ -107,35 +141,13 @@
 
 			this.$body = $(`
 				<div class="rc">
-					<div class="rc-toolbar">
-						<div class="rc-field">
-							<label>${__("Month")}</label>
-							<div class="rc-month">
-								<button class="btn btn-default rc-icon-btn" data-action="prev-month"
-									title="${__("Previous Month")}">${ICONS.prev}</button>
-								<button class="btn rc-month-label" data-action="today"
-									title="${__("Today")}"></button>
-								<button class="btn btn-default rc-icon-btn" data-action="next-month"
-									title="${__("Next Month")}">${ICONS.next}</button>
-							</div>
-						</div>
-						<div class="rc-field">
-							<label>${__("View")}</label>
-							<select class="form-control rc-view">${views}</select>
-						</div>
-						<button class="btn btn-default rc-icon-btn rc-refresh" data-action="refresh"
-							title="${__("Refresh")}">${ICONS.refresh}</button>
-						<button class="btn btn-primary rc-new" data-action="new">
-							${ICONS.add}<span>${__("Booking")}</span>
-						</button>
-					</div>
-
 					<div class="rc-board">
 						<div class="rc-corner">
 							<button class="rc-corner-toggle" data-action="toggle-all">
 								${ICONS.chevron}<span>${__("Resources")}</span>
 							</button>
 						</div>
+						<div class="rc-months"></div>
 						<div class="rc-timeline"></div>
 						<div class="rc-scrollbar"><div class="rc-scrollbar-thumb"></div></div>
 					</div>
@@ -148,30 +160,16 @@
 					<div class="rc-legend">
 						${legend}
 						<span class="rc-legend-sep"></span>
-						<span class="rc-legend-item rc-pay-unpaid">${ICONS.unpaid}${__("Unpaid")}</span>
-						<span class="rc-legend-item rc-pay-paid">${ICONS.paid}${__("Paid")}</span>
+						<span class="rc-legend-item">${ICONS.unpaid}${__("Unpaid")}</span>
+						<span class="rc-legend-item">${ICONS.paid}${__("Paid")}</span>
+						<span class="rc-legend-sep"></span>
+						<span class="rc-legend-item rc-legend-hint">${ICONS.mouse}${__("Right mouse button — select dates")}</span>
 					</div>
 				</div>
 			`).appendTo(this.page.main);
 
 			this.$timeline = this.$body.find(".rc-timeline");
-			this.$body.find(".rc-view").val(this.view);
-
-			this.$body.on("click", "[data-action]", (e) => {
-				const action = $(e.currentTarget).attr("data-action");
-				if (action === "prev-month") this.shift_month(-1);
-				else if (action === "next-month") this.shift_month(1);
-				else if (action === "today")
-					this.go_to_month(start_of_month(new Date()), new Date());
-				else if (action === "refresh") this.reload();
-				else if (action === "new") this.open_quick_entry({});
-				else if (action === "toggle-all") this.toggle_all();
-			});
-			this.$body.on("change", ".rc-view", (e) => {
-				this.view = $(e.currentTarget).val();
-				this.save_view();
-				this.set_groups(this.rooms || []);
-			});
+			this.$body.on("click", "[data-action=toggle-all]", () => this.toggle_all());
 
 			$(window).on(
 				"resize.room_chessboard",
@@ -222,7 +220,10 @@
 				groupTemplate: (group) => this.group_template(group),
 			});
 
-			this.timeline.on("rangechange", () => this.update_scrollbar());
+			this.timeline.on("rangechange", () => {
+				this.update_scrollbar();
+				this.render_months();
+			});
 			this.timeline.on("rangechanged", () => {
 				this.update_scrollbar();
 				// vis-timeline с заданными start/end показывает шкалу только после rangechanged
@@ -266,8 +267,7 @@
 			this.timeline.setOptions({ min, max });
 			this.set_window(start, new Date(start.getTime() + span));
 
-			const label = moment(this.month).format("MMMM YYYY");
-			this.$body.find(".rc-month-label").text(label.charAt(0).toUpperCase() + label.slice(1));
+			this.$month.find(".rc-month-label").text(month_label(this.month));
 
 			return this.load_bookings_now();
 		}
@@ -287,6 +287,10 @@
 		}
 
 		fit() {
+			// легенда всегда прижата к низу окна: .rc растягиваем на всю доступную высоту
+			const top = this.$body.get(0).getBoundingClientRect().top;
+			this.$body.css("min-height", `${Math.max(400, window.innerHeight - top - 16)}px`);
+
 			this.timeline.setOptions({ maxHeight: this.available_height() });
 			const win = this.timeline.getWindow();
 			this.set_window(win.start, new Date(win.start.getTime() + this.visible_days() * DAY));
@@ -296,7 +300,8 @@
 		available_height() {
 			const el = this.$timeline && this.$timeline.get(0);
 			const top = el && el.offsetParent ? el.getBoundingClientRect().top : 240;
-			return Math.max(360, window.innerHeight - top - 90);
+			const legend = this.$body ? this.$body.find(".rc-legend").outerHeight(true) || 0 : 0;
+			return Math.max(300, window.innerHeight - top - legend - 16 - 20);
 		}
 
 		// ------------------------------------------------------------ data
@@ -371,10 +376,12 @@
 						room.hotel_building || __("No Building"),
 						0
 					);
-					const floor_key = room.hotel_floor || String(room.floor_number || "");
+					const floor_key = room.hotel_floor || String(room.floor_label || "");
+					const floor = String(room.floor_label || "");
 					container = parent(
 						`f::${room.hotel_building || ""}::${floor_key}`,
-						floor_key ? __("Floor {0}", [room.floor_number || room.hotel_floor]) : __("No Floor"),
+						// «2» → «Этаж 2»; «2 Этаж» оставляем как есть
+						floor ? (/^\d+$/.test(floor) ? __("Floor {0}", [floor]) : floor) : __("No Floor"),
 						1,
 						b
 					);
@@ -453,12 +460,13 @@
 		// ------------------------------------------------------------ templates
 
 		day_label(date) {
-			// подписи ставим на полдень — так число оказывается по центру колонки дня
+			// подписи ставим на полдень — так число оказывается по центру колонки дня.
 			// vis-timeline на часовой шкале не помечает выходные/сегодня классами,
 			// поэтому кодируем это тегом: <mark> — сегодня, <strong> — выходной, <b> — будни
 			if (date.hours() !== 12) return "";
-			const tag = date.isSame(moment(), "day") ? "mark" : [0, 6].includes(date.day()) ? "strong" : "b";
-			return `<${tag}>${date.format("D")}</${tag}><br>${date.format("dd")}`;
+			const d = date.toDate();
+			const tag = is_same_day(d, new Date()) ? "mark" : [0, 6].includes(d.getDay()) ? "strong" : "b";
+			return `<${tag}>${d.getDate()}</${tag}><br>${weekday_label(d)}`;
 		}
 
 		group_template(group) {
@@ -526,35 +534,51 @@
 		setup_selection() {
 			const root = this.$timeline.get(0);
 
-			const on_down = (e) => {
-				if (e.button !== 0 || e.ctrlKey || e.metaKey || e.shiftKey) return;
+			const is_free_cell = (e) => {
 				const $t = $(e.target);
-				if (!$t.closest(".vis-panel.vis-center").length || $t.closest(".vis-item:not(.vis-background)").length) return;
+				return (
+					$t.closest(".vis-panel.vis-center").length &&
+					!$t.closest(".vis-item:not(.vis-background)").length
+				);
+			};
+
+			const on_down = (e) => {
+				// выделение — правой кнопкой; левая остаётся для прокрутки шкалы
+				if (e.button !== 2 || !is_free_cell(e)) return;
 
 				const props = this.timeline.getEventProperties(e);
 				const group = props.group != null && this.groups.get(props.group);
 				if (!group || group.kind !== "room" || !props.time) return;
 
-				// перехватываем событие до vis-timeline, чтобы вместо прокрутки было выделение
 				e.stopPropagation();
 				e.preventDefault();
 
-				this.selection = { room: group.id, anchor: start_of_day(props.time) };
-				this.selection.current = this.selection.anchor;
+				const anchor = half_day(props.time);
+				this.selection = { room: group.id, anchor, current: anchor };
 				this.render_selection();
 
+				let frame = null;
+				let last_event = null;
 				const on_move = (ev) => {
-					const p = this.timeline.getEventProperties(ev);
-					if (!p.time) return;
-					const day = start_of_day(p.time);
-					if (day.getTime() !== this.selection.current.getTime()) {
-						this.selection.current = day;
-						this.render_selection();
-					}
+					last_event = ev;
+					if (frame) return; // не чаще одного пересчёта за кадр
+					frame = requestAnimationFrame(() => {
+						frame = null;
+						if (!this.selection) return;
+						const p = this.timeline.getEventProperties(last_event);
+						if (!p.time) return;
+						const cell = half_day(p.time);
+						if (cell.getTime() !== this.selection.current.getTime()) {
+							this.selection.current = cell;
+							this.render_selection();
+						}
+					});
 				};
-				const on_up = () => {
+				const on_up = (ev) => {
+					if (ev.button !== 2) return;
 					window.removeEventListener("pointermove", on_move, true);
 					window.removeEventListener("pointerup", on_up, true);
+					frame && cancelAnimationFrame(frame);
 					this.finish_selection();
 				};
 				window.addEventListener("pointermove", on_move, true);
@@ -563,21 +587,23 @@
 
 			// capture: срабатываем раньше обработчиков vis-timeline (они висят на дочернем элементе)
 			root.addEventListener("pointerdown", on_down, true);
-			root.addEventListener("mousedown", (e) => this.selection && e.stopPropagation(), true);
-			root.addEventListener("touchstart", (e) => this.selection && e.stopPropagation(), true);
+			root.addEventListener(
+				"contextmenu",
+				(e) => {
+					if (!$(e.target).closest(".vis-panel.vis-center").length) return;
+					e.preventDefault();
+					e.stopPropagation();
+				},
+				true
+			);
 		}
 
 		selection_range() {
+			// ячейка = полдня: первая половина дня начинается в 00:00, вторая — в 12:00
 			const { anchor, current } = this.selection;
-			const first = new Date(Math.min(anchor, current));
-			let last = new Date(Math.max(anchor, current));
-			if (last.getTime() === first.getTime()) last = new Date(first.getTime() + DAY);
-
-			const check_in = new Date(first);
-			check_in.setHours(CHECK_IN_HOUR, 0, 0, 0);
-			const check_out = new Date(last);
-			check_out.setHours(CHECK_OUT_HOUR, 0, 0, 0);
-			return [check_in, check_out];
+			const start = new Date(Math.min(anchor, current));
+			const end = new Date(Math.max(anchor, current) + DAY / 2);
+			return [start, end];
 		}
 
 		render_selection() {
@@ -586,17 +612,15 @@
 				filter: (i) =>
 					i.id !== SELECTION_ID && i.group === this.selection.room && i.start < end && i.end > start,
 			}).length;
-			const nights = Math.round((start_of_day(end) - start_of_day(start)) / DAY);
 
+			const fmt = (d) => `${pad2(d.getDate())}.${pad2(d.getMonth() + 1)} ${pad2(d.getHours())}:00`;
 			this.selection.conflict = !!conflict;
 			this.items.update({
 				id: SELECTION_ID,
 				group: this.selection.room,
 				start,
 				end,
-				label: conflict
-					? __("Room is occupied")
-					: `${__("Nights: {0}", [nights])} · ${moment(start).format("DD.MM")} – ${moment(end).format("DD.MM")}`,
+				label: conflict ? __("Room is occupied") : `${fmt(start)} – ${fmt(end)}`,
 				className: `rc-selection ${conflict ? "rc-selection-conflict" : ""}`,
 			});
 		}
@@ -713,14 +737,41 @@
 			const top = this.$timeline.find(".vis-panel.vis-top").get(0);
 			this.$body.find(".rc-corner").css({
 				width: `${width}px`,
-				height: `${top ? top.offsetHeight : 58}px`,
+				height: `${top ? top.offsetHeight : 80}px`,
 			});
+			this.$body.find(".rc-months").css({ left: `${width}px` });
 			this.$body.find(".rc-scrollbar").css({ "margin-left": `${width}px` });
 			// ширина колонки дня — для центрирования подписей в шапке
 			const win = this.timeline.getWindow();
 			const center = this.$timeline.width() - width;
 			const day_px = (center / (win.end - win.start)) * DAY;
 			this.$timeline.get(0).style.setProperty("--rc-day-w", `${day_px}px`);
+			this.render_months();
+		}
+
+		render_months() {
+			// строка месяцев над числами: сегмент на каждый видимый месяц, подпись прилипает слева
+			const $months = this.$body.find(".rc-months");
+			const win = this.timeline.getWindow();
+			const width = this.$timeline.width() - this.left_width();
+			const px = (t) => ((t - win.start) / (win.end - win.start)) * width;
+
+			const parts = [];
+			let month = start_of_month(win.start);
+			while (month < win.end) {
+				const next = new Date(month);
+				next.setMonth(next.getMonth() + 1);
+				const left = Math.max(0, px(month));
+				const right = Math.min(width, px(next));
+				if (right - left > 1) {
+					parts.push(
+						`<div class="rc-month-seg" style="left:${left}px;width:${right - left}px">` +
+							`<span>${frappe.utils.escape_html(month_label(month))}</span></div>`
+					);
+				}
+				month = next;
+			}
+			$months.html(parts.join(""));
 		}
 
 		toggle_all() {
@@ -771,6 +822,35 @@
 			`${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())} ` +
 			`${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(date.getSeconds())}`
 		);
+	}
+
+	function pad2(n) {
+		return String(n).padStart(2, "0");
+	}
+
+	function half_day(time) {
+		// начало ячейки: 00:00 или 12:00 того же дня
+		const d = start_of_day(time);
+		if (new Date(time).getHours() >= 12) d.setHours(12);
+		return d;
+	}
+
+	function is_same_day(a, b) {
+		return start_of_day(a).getTime() === start_of_day(b).getTime();
+	}
+
+	function lang() {
+		return (frappe.boot.lang || "en").split("-")[0];
+	}
+
+	// названия месяцев/дней — через Intl: глобальный moment во Frappe может быть без нужной локали
+	function month_label(date) {
+		const name = new Intl.DateTimeFormat(lang(), { month: "long" }).format(date);
+		return `${name.charAt(0).toUpperCase()}${name.slice(1)} ${date.getFullYear()}`;
+	}
+
+	function weekday_label(date) {
+		return new Intl.DateTimeFormat(lang(), { weekday: "short" }).format(date).replace(".", "");
 	}
 
 	function start_of_day(date) {

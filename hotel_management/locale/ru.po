@@ -454,3 +454,7 @@ msgstr "Выезд должен быть позже заезда"
 #: hotel_management/hotel_management/page/room_chessboard/room_chessboard.js
 msgid "h"
 msgstr "ч"
+
+#: hotel_management/hotel_management/page/room_chessboard/room_chessboard.js
+msgid "Right mouse button — select dates"
+msgstr "Правая кнопка мыши — выбрать период"

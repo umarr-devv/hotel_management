@@ -6,7 +6,9 @@
 	--rc-line-soft: color-mix(in srgb, var(--border-color) 60%, transparent);
 	--rc-weekend: var(--subtle-fg);
 	--rc-today: var(--blue-500);
-	padding: 4px 0 0;
+	--rc-months-h: 28px;
+	display: flex;
+	flex-direction: column;
 	color: var(--text-color);
 }
 
@@ -16,70 +18,40 @@
 	flex: none;
 }
 
-/* --- toolbar ------------------------------------------------------------- */
+/* --- фильтр «Месяц» в стандартной строке фильтров Frappe ---------------------- */
 
-.rc-toolbar {
-	display: flex;
-	flex-wrap: wrap;
-	align-items: flex-end;
-	gap: 12px 20px;
-	padding-bottom: 16px;
-}
-
-.rc-field > label {
-	display: block;
-	margin-bottom: 6px;
-	font-size: var(--text-sm);
-	color: var(--text-color);
-}
-
-.rc-month {
+.page-form .rc-month {
 	display: flex;
 	align-items: center;
-	gap: 6px;
+	gap: 4px;
 }
 
-.rc-icon-btn {
+.page-form .rc-month-btn {
 	display: inline-flex;
 	align-items: center;
 	justify-content: center;
-	width: 36px;
-	height: 36px;
+	width: 28px;
+	height: 28px;
 	padding: 0;
 }
 
-.rc-month-label {
-	min-width: 150px;
-	height: 36px;
-	font-size: var(--text-lg, 16px);
+.page-form .rc-month-btn .rc-icon {
+	width: 14px;
+	height: 14px;
+}
+
+.page-form .rc-month-label {
+	flex: 1 1 auto;
+	min-width: 120px;
+	height: 28px;
+	padding: 0 8px;
 	font-weight: 500;
 	background: none;
 	box-shadow: none;
 }
 
-.rc-month-label:hover {
+.page-form .rc-month-label:hover {
 	background: var(--subtle-fg);
-}
-
-.rc-view {
-	min-width: 200px;
-	height: 36px;
-}
-
-.rc-refresh {
-	border: none;
-	background: none;
-	box-shadow: none;
-	color: var(--text-muted);
-}
-
-.rc-new {
-	display: inline-flex;
-	align-items: center;
-	gap: 8px;
-	height: 36px;
-	margin-left: auto;
-	padding: 0 14px;
 }
 
 /* --- board --------------------------------------------------------------- */
@@ -162,15 +134,15 @@
 /* --- time axis: колонка дня = число + день недели ------------------------ */
 
 .rc-timeline .vis-time-axis.vis-foreground {
-	height: 58px;
+	height: 80px;
 }
 
 .rc-timeline .vis-time-axis .vis-text.vis-minor {
 	box-sizing: border-box;
 	width: var(--rc-day-w, 112px) !important;
 	margin-left: calc(var(--rc-day-w, 112px) / -2);
-	height: 58px;
-	padding: 10px 0 0;
+	height: 80px;
+	padding: calc(var(--rc-months-h) + 8px) 0 0;
 	text-align: center;
 	line-height: 1.1;
 	font-size: var(--text-xs);
@@ -202,6 +174,37 @@
 	background: var(--rc-today);
 	color: #fff;
 	font-weight: 700;
+}
+
+/* строка месяцев над числами */
+.rc-months {
+	position: absolute;
+	top: 0;
+	right: 0;
+	z-index: 6;
+	height: var(--rc-months-h);
+	overflow: hidden;
+	pointer-events: none;
+	border-bottom: 1px solid var(--rc-line);
+	background: var(--card-bg);
+}
+
+.rc-month-seg {
+	position: absolute;
+	top: 0;
+	bottom: 0;
+	display: flex;
+	align-items: center;
+	padding: 0 10px;
+	border-left: 1px solid var(--rc-line);
+	font-size: var(--text-sm);
+	font-weight: 600;
+	white-space: nowrap;
+	color: var(--text-color);
+}
+
+.rc-month-seg:first-child {
+	border-left: none;
 }
 
 /* сетка: сплошная линия между днями, бледная — в полдень */
@@ -450,6 +453,7 @@
 /* --- legend ------------------------------------------------------------------ */
 
 .rc-legend {
+	margin-top: auto !important;
 	display: flex;
 	flex-wrap: wrap;
 	justify-content: center;
@@ -476,6 +480,14 @@
 
 .rc-legend-sep {
 	width: 12px;
+}
+
+.rc-legend-hint {
+	font-size: var(--text-sm);
+}
+
+.rc-legend-hint .rc-icon {
+	color: var(--text-muted);
 }
 
 .rc-dot {
