@@ -1,0 +1,346 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: hotel_management\n"
+"Report-Msgid-Bugs-To: umarr.devv@outlook.com\n"
+"POT-Creation-Date: 2026-09-11 00:00+0000\n"
+"PO-Revision-Date: 2026-09-11 00:00+0000\n"
+"Last-Translator: umarr <umarr.devv@outlook.com>\n"
+"Language-Team: Russian\n"
+"Language: ru\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
+
+# App / module / workspace
+
+#. Title of the app
+#: hotel_management/hooks.py
+msgid "Hotel Management"
+msgstr "Управление отелем"
+
+#. Description of the app
+#: hotel_management/hooks.py
+msgid "App for Hotel Management"
+msgstr "Приложение для управления отелем"
+
+#. Label of the workspace, desktop icon and sidebar entry
+#: hotel_management/hotel_management/workspace/hotel/hotel.json
+msgid "Hotel"
+msgstr "Отель"
+
+#. Label of a section break in the workspace sidebar
+#: hotel_management/fixtures/workspace_sidebar.json
+msgid "Setups"
+msgstr "Настройки"
+
+#. Name of a Role
+#: hotel_management/fixtures/role.json
+msgid "Hotel Manager"
+msgstr "Менеджер отеля"
+
+# DocType names
+
+#. Name of a DocType
+#: hotel_management/hotel_management/doctype/room_type/room_type.json
+msgid "Room Type"
+msgstr "Тип номера"
+
+#. Name of a DocType
+#: hotel_management/hotel_management/doctype/room_rate/room_rate.json
+msgid "Room Rate"
+msgstr "Тариф номера"
+
+#. Name of a DocType
+#: hotel_management/hotel_management/doctype/room_type_rate/room_type_rate.json
+msgid "Room Type Rate"
+msgstr "Тариф типа номера"
+
+#. Name of a DocType
+#: hotel_management/hotel_management/doctype/room_type_amenity/room_type_amenity.json
+msgid "Room Type Amenity"
+msgstr "Удобство типа номера"
+
+#. Name of a DocType
+#: hotel_management/hotel_management/doctype/hotel_room/hotel_room.json
+msgid "Hotel Room"
+msgstr "Номер отеля"
+
+#. Name of a DocType
+#: hotel_management/hotel_management/doctype/hotel_building/hotel_building.json
+msgid "Hotel Building"
+msgstr "Корпус отеля"
+
+#. Name of a DocType
+#: hotel_management/hotel_management/doctype/hotel_floor/hotel_floor.json
+msgid "Hotel Floor"
+msgstr "Этаж отеля"
+
+#. Name of a DocType
+#: hotel_management/hotel_management/doctype/hotel_profile/hotel_profile.json
+msgid "Hotel Profile"
+msgstr "Профиль отеля"
+
+#. Name of a DocType
+#: hotel_management/hotel_management/doctype/room_amenity/room_amenity.json
+msgid "Room Amenity"
+msgstr "Удобство номера"
+
+#. Name of a DocType
+#: hotel_management/hotel_management/doctype/room_booking/room_booking.json
+msgid "Room Booking"
+msgstr "Бронирование номера"
+
+#. Name of a DocType
+#: hotel_management/hotel_management/doctype/room_booking_item/room_booking_item.json
+msgid "Room Booking Item"
+msgstr "Позиция бронирования"
+
+#. Name of a DocType
+#: hotel_management/hotel_management/doctype/room_booking_guest/room_booking_guest.json
+msgid "Room Booking Guest"
+msgstr "Гость бронирования"
+
+# Field labels
+
+#: hotel_management/hotel_management/doctype/room_type/room_type.json
+msgid "Room Type Name"
+msgstr "Название типа номера"
+
+#: hotel_management/hotel_management/doctype/room_type/room_type.json
+msgid "Image"
+msgstr "Изображение"
+
+#: hotel_management/hotel_management/doctype/room_type/room_type.json
+msgid "Information"
+msgstr "Информация"
+
+#: hotel_management/hotel_management/doctype/room_type/room_type.json
+msgid "Max Occupancy"
+msgstr "Макс. вместимость"
+
+#: hotel_management/hotel_management/doctype/room_type/room_type.json
+msgid "Description"
+msgstr "Описание"
+
+#: hotel_management/hotel_management/doctype/room_type/room_type.json
+msgid "Room Size"
+msgstr "Площадь номера"
+
+#: hotel_management/hotel_management/doctype/room_type/room_type.json
+msgid "Media"
+msgstr "Медиа"
+
+#: hotel_management/hotel_management/doctype/room_type/room_type.json
+msgid "Gallery"
+msgstr "Галерея"
+
+#: hotel_management/hotel_management/doctype/room_rate/room_rate.json
+msgid "Room Rate Name"
+msgstr "Название тарифа"
+
+#: hotel_management/hotel_management/doctype/room_booking_guest/room_booking_guest.json
+msgid "Guest"
+msgstr "Гость"
+
+#: hotel_management/hotel_management/doctype/room_booking/room_booking.json
+msgid "Amended From"
+msgstr "Исправлено из"
+
+#: hotel_management/hotel_management/doctype/room_booking/room_booking.json
+msgid "Naming Series"
+msgstr "Серия нумерации"
+
+#: hotel_management/hotel_management/doctype/room_booking/room_booking.json
+msgid "Company"
+msgstr "Компания"
+
+#: hotel_management/hotel_management/doctype/room_booking/room_booking.json
+msgid "Customer"
+msgstr "Клиент"
+
+#: hotel_management/hotel_management/doctype/room_booking/room_booking.json
+msgid "Room"
+msgstr "Номер"
+
+#: hotel_management/hotel_management/doctype/room_booking/room_booking.json
+msgid "Check In"
+msgstr "Заезд"
+
+#: hotel_management/hotel_management/doctype/room_booking/room_booking.json
+msgid "Check Out"
+msgstr "Выезд"
+
+#: hotel_management/hotel_management/doctype/room_booking/room_booking.json
+msgid "Status"
+msgstr "Статус"
+
+#: hotel_management/hotel_management/doctype/room_booking/room_booking.json
+msgid "Rate by Hour"
+msgstr "Почасовой тариф"
+
+#: hotel_management/hotel_management/doctype/room_booking/room_booking.json
+msgid "Total Hours"
+msgstr "Всего часов"
+
+#: hotel_management/hotel_management/doctype/room_booking/room_booking.json
+msgid "Amount"
+msgstr "Сумма"
+
+#: hotel_management/hotel_management/doctype/room_booking/room_booking.json
+msgid "Items and Serivce"
+msgstr "Товары и услуги"
+
+#: hotel_management/hotel_management/doctype/room_booking/room_booking.json
+msgid "Items and Service Amount"
+msgstr "Сумма товаров и услуг"
+
+#: hotel_management/hotel_management/doctype/room_booking/room_booking.json
+msgid "Total Amount"
+msgstr "Итоговая сумма"
+
+#: hotel_management/hotel_management/doctype/room_booking/room_booking.json
+msgid "Guests"
+msgstr "Гости"
+
+#: hotel_management/hotel_management/doctype/room_booking/room_booking.json
+msgid "Pay Status"
+msgstr "Статус оплаты"
+
+#: hotel_management/hotel_management/doctype/room_booking/room_booking.json
+msgid "Sales Invoice"
+msgstr "Счёт продажи"
+
+#: hotel_management/hotel_management/doctype/room_type_rate/room_type_rate.json
+msgid "Enabled"
+msgstr "Активно"
+
+#: hotel_management/hotel_management/doctype/room_type_amenity/room_type_amenity.json
+msgid "Amenity"
+msgstr "Удобство"
+
+#: hotel_management/hotel_management/doctype/hotel_room/hotel_room.json
+msgid "Notes"
+msgstr "Примечания"
+
+#: hotel_management/hotel_management/doctype/hotel_room/hotel_room.json
+msgid "Room_Number"
+msgstr "Номер комнаты"
+
+#: hotel_management/hotel_management/doctype/hotel_room/hotel_room.json
+msgid "Floor Number"
+msgstr "Номер этажа"
+
+#: hotel_management/hotel_management/doctype/room_booking_item/room_booking_item.json
+msgid "Item"
+msgstr "Номенклатура"
+
+#: hotel_management/hotel_management/doctype/room_booking_item/room_booking_item.json
+msgid "Price List"
+msgstr "Прайс-лист"
+
+#: hotel_management/hotel_management/doctype/room_booking_item/room_booking_item.json
+msgid "Unit of Measure"
+msgstr "Единица измерения"
+
+#: hotel_management/hotel_management/doctype/room_booking_item/room_booking_item.json
+msgid "Qty"
+msgstr "Кол-во"
+
+#: hotel_management/hotel_management/doctype/hotel_floor/hotel_floor.json
+msgid "Building"
+msgstr "Корпус"
+
+#: hotel_management/hotel_management/doctype/hotel_building/hotel_building.json
+msgid "Hotel Building Name"
+msgstr "Название корпуса отеля"
+
+#: hotel_management/hotel_management/doctype/hotel_building/hotel_building.json
+msgid "Address"
+msgstr "Адрес"
+
+#: hotel_management/hotel_management/doctype/hotel_building/hotel_building.json
+msgid "Warehouse"
+msgstr "Склад"
+
+#: hotel_management/hotel_management/doctype/hotel_profile/hotel_profile.json
+msgid "Hotel Profile Name"
+msgstr "Название профиля отеля"
+
+#: hotel_management/hotel_management/doctype/hotel_profile/hotel_profile.json
+msgid "Income Account"
+msgstr "Счёт доходов"
+
+#: hotel_management/hotel_management/doctype/hotel_profile/hotel_profile.json
+msgid "Default Service"
+msgstr "Услуга по умолчанию"
+
+#: hotel_management/hotel_management/doctype/room_amenity/room_amenity.json
+msgid "Room Amenity Name"
+msgstr "Название удобства номера"
+
+#: hotel_management/hotel_management/doctype/room_amenity/room_amenity.json
+msgid "Icon"
+msgstr "Иконка"
+
+#: hotel_management/hotel_management/doctype/room_amenity/room_amenity.json
+msgid "Color"
+msgstr "Цвет"
+
+# Select field options / workflow states
+
+#. Option for the status (Select) field in DocType 'Room Booking'; also a Workflow State
+#: hotel_management/hotel_management/doctype/room_booking/room_booking.json
+#: hotel_management/fixtures/workflow_state.json
+msgid "Booking"
+msgstr "Бронирование"
+
+#. Option for the status (Select) field in DocType 'Room Booking'; also a Workflow State and Workflow Action
+#: hotel_management/hotel_management/doctype/room_booking/room_booking.json
+#: hotel_management/fixtures/workflow_state.json
+#: hotel_management/fixtures/workflow_action_master.json
+msgid "Checked In"
+msgstr "Заселён"
+
+#. Option for the status (Select) field in DocType 'Room Booking'; also a Workflow State and Workflow Action
+#: hotel_management/hotel_management/doctype/room_booking/room_booking.json
+#: hotel_management/fixtures/workflow_state.json
+#: hotel_management/fixtures/workflow_action_master.json
+msgid "Checked Out"
+msgstr "Выселен"
+
+#. Option for the status (Select) field in DocType 'Room Booking'; also a Workflow State
+#: hotel_management/hotel_management/doctype/room_booking/room_booking.json
+#: hotel_management/fixtures/workflow_state.json
+msgid "Completed"
+msgstr "Завершено"
+
+#. Option for the status (Select) field in DocType 'Room Booking'
+#: hotel_management/hotel_management/doctype/room_booking/room_booking.json
+msgid "Cancelled"
+msgstr "Отменено"
+
+#. Option for the pay_status (Select) field in DocType 'Room Booking'
+#: hotel_management/hotel_management/doctype/room_booking/room_booking.json
+msgid "Unpaid"
+msgstr "Не оплачено"
+
+#. Option for the pay_status (Select) field in DocType 'Room Booking'
+#: hotel_management/hotel_management/doctype/room_booking/room_booking.json
+msgid "Paid"
+msgstr "Оплачено"
+
+#. Name of a Workflow Action
+#: hotel_management/fixtures/workflow_action_master.json
+msgid "Complete"
+msgstr "Завершить"
+
+# Client Script button labels
+
+#: hotel_management/fixtures/client_script.json
+msgid "Create Sales Invoice"
+msgstr "Создать счёт продажи"
+
+#: hotel_management/fixtures/client_script.json
+msgid "Recreate Sales Invoice"
+msgstr "Пересоздать счёт продажи"
