@@ -1,7 +1,7 @@
 {
  "app": "hotel_management",
  "charts": [],
- "content": "[]",
+ "content": "[{\"id\":\"hmQuickAccess\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\"><b>Quick Access</b></span>\",\"col\":12}},{\"id\":\"hmShortcut0\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Room Booking\",\"col\":3}},{\"id\":\"hmShortcut1\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Room Chessboard\",\"col\":3}},{\"id\":\"hmShortcut2\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Arrivals and Departures\",\"col\":3}},{\"id\":\"hmShortcut3\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Hotel Room\",\"col\":3}},{\"id\":\"hmSpacer\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"hmCardsHeader\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\"><b>Hotel</b></span>\",\"col\":12}},{\"id\":\"hmCard0\",\"type\":\"card\",\"data\":{\"card_name\":\"Bookings\",\"col\":4}},{\"id\":\"hmCard1\",\"type\":\"card\",\"data\":{\"card_name\":\"Rooms\",\"col\":4}},{\"id\":\"hmCard2\",\"type\":\"card\",\"data\":{\"card_name\":\"Rates and Amenities\",\"col\":4}},{\"id\":\"hmCard3\",\"type\":\"card\",\"data\":{\"card_name\":\"Front Desk\",\"col\":4}},{\"id\":\"hmCard4\",\"type\":\"card\",\"data\":{\"card_name\":\"Performance\",\"col\":4}},{\"id\":\"hmCard5\",\"type\":\"card\",\"data\":{\"card_name\":\"Money\",\"col\":4}}]",
  "creation": "2026-08-30 17:10:28.078190",
  "custom_blocks": [],
  "docstatus": 0,
@@ -13,8 +13,299 @@
  "is_hidden": 0,
  "label": "Hotel",
  "link_type": "DocType",
- "links": [],
- "modified": "2026-08-30 17:10:28.078190",
+ "links": [
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Bookings",
+   "link_count": 3,
+   "onboard": 0,
+   "type": "Card Break"
+  },
+  {
+   "dependencies": "",
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Room Booking",
+   "link_count": 0,
+   "link_to": "Room Booking",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "dependencies": "",
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Room Chessboard",
+   "link_count": 0,
+   "link_to": "room-chessboard",
+   "link_type": "Page",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "dependencies": "",
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Customer",
+   "link_count": 0,
+   "link_to": "Customer",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Rooms",
+   "link_count": 4,
+   "onboard": 0,
+   "type": "Card Break"
+  },
+  {
+   "dependencies": "",
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Hotel Room",
+   "link_count": 0,
+   "link_to": "Hotel Room",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "dependencies": "",
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Room Type",
+   "link_count": 0,
+   "link_to": "Room Type",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "dependencies": "",
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Hotel Building",
+   "link_count": 0,
+   "link_to": "Hotel Building",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "dependencies": "",
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Hotel Floor",
+   "link_count": 0,
+   "link_to": "Hotel Floor",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Rates and Amenities",
+   "link_count": 3,
+   "onboard": 0,
+   "type": "Card Break"
+  },
+  {
+   "dependencies": "",
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Room Rate",
+   "link_count": 0,
+   "link_to": "Room Rate",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "dependencies": "",
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Room Amenity",
+   "link_count": 0,
+   "link_to": "Room Amenity",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "dependencies": "",
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Hotel Profile",
+   "link_count": 0,
+   "link_to": "Hotel Profile",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Front Desk",
+   "link_count": 3,
+   "onboard": 0,
+   "type": "Card Break"
+  },
+  {
+   "dependencies": "Room Booking",
+   "hidden": 0,
+   "is_query_report": 1,
+   "label": "Arrivals and Departures",
+   "link_count": 0,
+   "link_to": "Hotel Arrivals and Departures",
+   "link_type": "Report",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "dependencies": "Hotel Room",
+   "hidden": 0,
+   "is_query_report": 1,
+   "label": "Room Availability",
+   "link_count": 0,
+   "link_to": "Hotel Room Availability",
+   "link_type": "Report",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "dependencies": "Room Booking",
+   "hidden": 0,
+   "is_query_report": 1,
+   "label": "Guest History",
+   "link_count": 0,
+   "link_to": "Hotel Guest History",
+   "link_type": "Report",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Performance",
+   "link_count": 3,
+   "onboard": 0,
+   "type": "Card Break"
+  },
+  {
+   "dependencies": "Room Booking",
+   "hidden": 0,
+   "is_query_report": 1,
+   "label": "Occupancy",
+   "link_count": 0,
+   "link_to": "Hotel Occupancy",
+   "link_type": "Report",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "dependencies": "Room Booking",
+   "hidden": 0,
+   "is_query_report": 1,
+   "label": "ADR and RevPAR",
+   "link_count": 0,
+   "link_to": "Hotel ADR and RevPAR",
+   "link_type": "Report",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "dependencies": "Room Booking",
+   "hidden": 0,
+   "is_query_report": 1,
+   "label": "Booking Revenue",
+   "link_count": 0,
+   "link_to": "Hotel Booking Revenue",
+   "link_type": "Report",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Money",
+   "link_count": 6,
+   "onboard": 0,
+   "type": "Card Break"
+  },
+  {
+   "dependencies": "Room Booking",
+   "hidden": 0,
+   "is_query_report": 1,
+   "label": "Unpaid Bookings",
+   "link_count": 0,
+   "link_to": "Hotel Unpaid Bookings",
+   "link_type": "Report",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "dependencies": "Sales Invoice",
+   "hidden": 0,
+   "is_query_report": 1,
+   "label": "Accounts Receivable Summary",
+   "link_count": 0,
+   "link_to": "Accounts Receivable Summary",
+   "link_type": "Report",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "dependencies": "Sales Invoice",
+   "hidden": 0,
+   "is_query_report": 1,
+   "label": "Customer Ledger Summary",
+   "link_count": 0,
+   "link_to": "Customer Ledger Summary",
+   "link_type": "Report",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "dependencies": "Sales Invoice",
+   "hidden": 0,
+   "is_query_report": 1,
+   "label": "Item-wise Sales Register",
+   "link_count": 0,
+   "link_to": "Item-wise Sales Register",
+   "link_type": "Report",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "dependencies": "Item",
+   "hidden": 0,
+   "is_query_report": 1,
+   "label": "Sales Analytics",
+   "link_count": 0,
+   "link_to": "Sales Analytics",
+   "link_type": "Report",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "dependencies": "GL Entry",
+   "hidden": 0,
+   "is_query_report": 1,
+   "label": "Profit and Loss Statement",
+   "link_count": 0,
+   "link_to": "Profit and Loss Statement",
+   "link_type": "Report",
+   "onboard": 0,
+   "type": "Link"
+  }
+ ],
+ "modified": "2026-09-21 10:00:00.000000",
  "modified_by": "Administrator",
  "module": "Hotel Management",
  "name": "Hotel",
@@ -23,8 +314,40 @@
  "public": 1,
  "quick_lists": [],
  "roles": [],
- "sequence_id": 0.0,
- "shortcuts": [],
+ "sequence_id": 1.0,
+ "shortcuts": [
+  {
+   "color": "Blue",
+   "doc_view": "List",
+   "label": "Room Booking",
+   "link_to": "Room Booking",
+   "stats_filter": "[]",
+   "type": "DocType"
+  },
+  {
+   "color": "Green",
+   "doc_view": "",
+   "label": "Room Chessboard",
+   "link_to": "room-chessboard",
+   "type": "Page"
+  },
+  {
+   "color": "Orange",
+   "doc_view": "",
+   "label": "Arrivals and Departures",
+   "link_to": "Hotel Arrivals and Departures",
+   "report_ref_doctype": "Room Booking",
+   "type": "Report"
+  },
+  {
+   "color": "Grey",
+   "doc_view": "List",
+   "label": "Hotel Room",
+   "link_to": "Hotel Room",
+   "stats_filter": "[]",
+   "type": "DocType"
+  }
+ ],
  "title": "Hotel",
  "type": "Workspace"
 }

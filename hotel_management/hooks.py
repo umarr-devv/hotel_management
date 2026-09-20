@@ -5,35 +5,35 @@ app_description = "App for Hotel Management"
 app_email = "umarr.devv@outlook.com"
 app_license = "mit"
 
+# статус оплаты брони синхронизируется с остатком её счёта
+doc_events = {
+	"Payment Entry": {
+		"on_submit": "hotel_management.api.update_booking_payment_status",
+		"on_cancel": "hotel_management.api.update_booking_payment_status",
+	},
+}
+
 # сайдбар и иконка рабочего стола лежат в файлах приложения и всегда
 # перезаливаются из них после migrate
 after_migrate = "hotel_management.setup.sync_app_level_docs"
 
 fixtures = [
-    {
-        "dt": "Role",
-        "filters": [["name", "in", ["Hotel Manager"]]],
-    },
-    {
-        "dt": "Workflow",
-        "filters": [["name", "in", ["Room Booking"]]],
-    },
-    {
-        "dt": "Workflow Action Master",
-        "filters": [["name", "in", ["Check In", "Check Out", "Complete"]]],
-    },
-    {
-        "dt": "Workflow State",
-        "filters": [["name", "in", ["Booking", "Checked In", "Checked Out", "Completed"]]],
-    },
-    {
-        "dt": "Server Script",
-        "filters": [["module", "=", "Hotel Management"]],
-    },
-    {
-        "dt": "Client Script",
-        "filters": [["module", "=", "Hotel Management"]],
-    },
+	{
+		"dt": "Role",
+		"filters": [["name", "in", ["Hotel Manager"]]],
+	},
+	{
+		"dt": "Workflow",
+		"filters": [["name", "in", ["Room Booking"]]],
+	},
+	{
+		"dt": "Workflow Action Master",
+		"filters": [["name", "in", ["Check In", "Check Out", "Complete"]]],
+	},
+	{
+		"dt": "Workflow State",
+		"filters": [["name", "in", ["Booking", "Checked In", "Checked Out", "Completed"]]],
+	},
 ]
 
 # Apps
@@ -294,4 +294,3 @@ app_include_js = ["/assets/hotel_management/js/room_booking_quick_entry.js"]
 # ------------
 # List of apps whose translatable strings should be excluded from this app's translations.
 # ignore_translatable_strings_from = []
-

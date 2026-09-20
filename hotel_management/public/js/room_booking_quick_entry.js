@@ -170,12 +170,16 @@ frappe.ui.form.RoomBookingQuickEntryForm = class RoomBookingQuickEntryForm exten
 			["company", __("Company")],
 			["hotel_profile", __("Hotel Profile")],
 		];
-		const missing = required.filter(([field]) => !this.get_value(field)).map(([, label]) => label);
+		const missing = required
+			.filter(([field]) => !this.get_value(field))
+			.map(([, label]) => label);
 
 		if (missing.length) {
 			this.working = false; // иначе Frappe заблокирует повторное нажатие «Сохранить»
 			missing.forEach((label) => {
-				const f = Object.values(this.fields_dict).find((c) => c.df && __(c.df.label) === label);
+				const f = Object.values(this.fields_dict).find(
+					(c) => c.df && __(c.df.label) === label
+				);
 				f && f.refresh_input && f.refresh_input();
 			});
 			if (!this.get_value("company") || !this.get_value("hotel_profile")) {
@@ -184,7 +188,9 @@ frappe.ui.form.RoomBookingQuickEntryForm = class RoomBookingQuickEntryForm exten
 			}
 			frappe.msgprint({
 				title: __("Missing Fields"),
-				message: __("Mandatory fields required: {0}", [missing.map((l) => `<b>${l}</b>`).join(", ")]),
+				message: __("Mandatory fields required: {0}", [
+					missing.map((l) => `<b>${l}</b>`).join(", "),
+				]),
 				indicator: "red",
 			});
 			return new Promise(() => {}); // сохранение не выполняем
@@ -217,16 +223,22 @@ frappe.ui.form.RoomBookingQuickEntryForm = class RoomBookingQuickEntryForm exten
 		const nights = moment(check_out)
 			.startOf("day")
 			.diff(moment(check_in).startOf("day"), "days");
+
+		// сумма считается так же, как в контроллере брони: цена за час × часы
 		const parts = [
-			__("Nights: {0}", [nights]),
-			`${flt(hours, 1)} ${__("h")}`,
+			`${__("Nights")}: <b>${nights}</b>`,
+			`${__("Hours")}: <b>${flt(hours, 1)}</b>`,
 		];
+
 		if (rate != null) {
 			parts.push(
-				`${format_currency(rate, currency)} / ${__("h")}`,
-				`<b>${format_currency(flt(rate * hours, 2), currency)}</b>`
+				`${__("Rate")}: ${format_currency(rate, currency)} / ${__("h")}`,
+				`${__("Amount")}: <b>${format_currency(flt(rate * hours, 2), currency)}</b>`
 			);
+		} else {
+			parts.push(`${__("Amount")}: <b>—</b>`);
 		}
+
 		field.$wrapper.html(
 			`<div class="text-muted" style="padding: 2px 0 6px">${parts.join(" · ")}</div>`
 		);

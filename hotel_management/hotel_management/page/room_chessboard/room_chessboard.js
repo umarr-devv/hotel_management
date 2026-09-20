@@ -1067,7 +1067,7 @@
 
 		create_invoice(doc) {
 			frappe.call({
-				method: "make_sales_invoice_from_booking",
+				method: "hotel_management.api.make_sales_invoice_from_booking",
 				args: { room_booking: doc.name },
 				freeze: true,
 				freeze_message: __("Creating Sales Invoice..."),

@@ -44,6 +44,7 @@
   {
    "child": 0,
    "collapsible": 1,
+   "icon": "settings",
    "indent": 0,
    "keep_closed": 0,
    "label": "Setups",
@@ -54,6 +55,7 @@
   {
    "child": 0,
    "collapsible": 1,
+   "icon": "door-open",
    "indent": 0,
    "keep_closed": 0,
    "label": "Hotel Rooms",
@@ -266,6 +268,7 @@
   {
    "child": 0,
    "collapsible": 1,
+   "icon": "file-chart-column",
    "indent": 0,
    "keep_closed": 1,
    "label": "Reports",
@@ -276,6 +279,7 @@
   {
    "child": 1,
    "collapsible": 1,
+   "icon": "scale",
    "indent": 0,
    "keep_closed": 0,
    "label": "Profit and Loss Statement",
@@ -287,6 +291,7 @@
   {
    "child": 1,
    "collapsible": 1,
+   "icon": "book-user",
    "indent": 0,
    "keep_closed": 0,
    "label": "Customer Ledger Summary",
@@ -298,6 +303,7 @@
   {
    "child": 1,
    "collapsible": 1,
+   "icon": "hand-coins",
    "indent": 0,
    "keep_closed": 0,
    "label": "Accounts Receivable Summary",
@@ -309,6 +315,7 @@
   {
    "child": 1,
    "collapsible": 1,
+   "icon": "receipt",
    "indent": 0,
    "keep_closed": 0,
    "label": "Item-wise Sales Register",
@@ -320,6 +327,7 @@
   {
    "child": 1,
    "collapsible": 1,
+   "icon": "chart-pie",
    "indent": 0,
    "keep_closed": 0,
    "label": "Sales Analytics",
@@ -329,7 +337,7 @@
    "type": "Link"
   }
  ],
- "modified": "2026-09-20 23:30:00.000000",
+ "modified": "2026-09-21 10:00:00.000000",
  "modified_by": "Administrator",
  "module": "Hotel Management",
  "name": "Hotel",

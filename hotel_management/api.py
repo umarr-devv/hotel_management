@@ -107,7 +107,9 @@ def get_room_card(room: str):
 		if f.file_url and f.file_url not in images and _is_image(f.file_url):
 			images.append(f.file_url)
 
-	floor_label = frappe.db.get_value("Hotel Floor", doc.hotel_floor, "floor_number") if doc.hotel_floor else None
+	floor_label = (
+		frappe.db.get_value("Hotel Floor", doc.hotel_floor, "floor_number") if doc.hotel_floor else None
+	)
 
 	return {
 		"name": doc.name,
@@ -127,3 +129,93 @@ def get_room_card(room: str):
 
 def _is_image(url: str) -> bool:
 	return url.lower().rsplit(".", 1)[-1] in {"png", "jpg", "jpeg", "gif", "webp", "svg", "avif"}
+
+
+@frappe.whitelist()
+def make_sales_invoice_from_booking(room_booking: str):
+	"""Создать и провести Sales Invoice по брони.
+
+	Раньше это был Server Script «Room Booking Invoice» с API-методом
+	make_sales_invoice_from_booking; логика перенесена без изменений.
+	"""
+	booking = frappe.get_doc("Room Booking", room_booking)
+	booking.check_permission("write")
+
+	if not booking.customer:
+		frappe.throw(_("Set Customer on the booking"))
+
+	if not booking.hotel_profile:
+		frappe.throw(_("Set Hotel Profile on the booking"))
+
+	hotel_profile = frappe.get_doc("Hotel Profile", booking.hotel_profile)
+	if not hotel_profile.default_service:
+		frappe.throw(_("Default Service is not set in Hotel Profile"))
+
+	cancel_previous_invoice(booking)
+
+	si = frappe.new_doc("Sales Invoice")
+	si.customer = booking.customer
+	si.company = booking.company
+
+	# проживание
+	si.append(
+		"items",
+		{
+			"item_code": hotel_profile.default_service,
+			"qty": 1,
+			"rate": flt(booking.amount),
+			"warehouse": hotel_profile.warehouse,
+		},
+	)
+
+	# дополнительные товары и услуги (мини-бар и прочее)
+	for row in booking.items_and_service:
+		si.append(
+			"items",
+			{
+				"item_code": row.item,
+				"qty": flt(row.qty),
+				"rate": flt(row.rate),
+				"warehouse": hotel_profile.warehouse,
+			},
+		)
+
+	si.insert(ignore_permissions=True)
+	# счёт сразу проводим — по нему можно принимать оплату
+	si.submit()
+
+	frappe.db.set_value("Room Booking", booking.name, "sales_invoice", si.name)
+	return si.name
+
+
+def cancel_previous_invoice(booking):
+	"""Отменить (или удалить черновик) предыдущий счёт брони перед созданием нового."""
+	if not (booking.sales_invoice and frappe.db.exists("Sales Invoice", booking.sales_invoice)):
+		return
+
+	old_name = booking.sales_invoice
+	frappe.db.set_value("Room Booking", booking.name, "sales_invoice", None)
+
+	old_si = frappe.get_doc("Sales Invoice", old_name)
+	if old_si.docstatus == 1:
+		old_si.cancel()
+	elif old_si.docstatus == 0:
+		old_si.delete()
+
+
+def update_booking_payment_status(doc, method=None):
+	"""Статус оплаты брони по остатку её счёта.
+
+	Вызывается из doc_events на Payment Entry (проведение и отмена);
+	раньше это были Server Scripts «Payment Entry After Submit/Cancel».
+	"""
+	for ref in doc.references:
+		if ref.reference_doctype != "Sales Invoice":
+			continue
+
+		booking = frappe.db.get_value("Room Booking", {"sales_invoice": ref.reference_name}, "name")
+		if not booking:
+			continue
+
+		outstanding = flt(frappe.db.get_value("Sales Invoice", ref.reference_name, "outstanding_amount"))
+		frappe.db.set_value("Room Booking", booking, "pay_status", "Paid" if outstanding <= 0 else "Unpaid")

@@ -24,7 +24,7 @@ class RoomBooking(Document):
 		# После проведения разрешено только продление/сокращение (check_out)
 		# и изменение доп. услуг. Тариф остаётся зафиксированным.
 		if self.has_value_changed("check_out") and self.status != "Checked In":
-			frappe.throw(_("Дату выезда можно менять только у заселённой брони (Checked In)"))
+			frappe.throw(_("Check Out can only be changed for a checked in booking"))
 
 		old_total = flt(self.get_doc_before_save() and self.get_doc_before_save().total_amount)
 		self.validate_dates()
@@ -37,10 +37,10 @@ class RoomBooking(Document):
 		if not self.sales_invoice or flt(old_total) == flt(self.total_amount):
 			return
 		frappe.msgprint(
-			_("Сумма брони изменилась ({0} → {1}), а счёт {2} выставлен на старую сумму. Пересоздайте счёт.").format(
-				frappe.bold(old_total), frappe.bold(self.total_amount), frappe.bold(self.sales_invoice)
-			),
-			title=_("Счёт устарел"),
+			_(
+				"Booking total changed ({0} → {1}), but invoice {2} still holds the old amount. Recreate the invoice."
+			).format(frappe.bold(old_total), frappe.bold(self.total_amount), frappe.bold(self.sales_invoice)),
+			title=_("Invoice is outdated"),
 			indicator="orange",
 		)
 
@@ -48,16 +48,16 @@ class RoomBooking(Document):
 
 	def validate_dates(self):
 		if get_datetime(self.check_out) <= get_datetime(self.check_in):
-			frappe.throw(_("Check Out должен быть позже Check In"))
+			frappe.throw(_("Check Out must be after Check In"))
 
 	def validate_overlap(self):
 		conflict = get_overlapping_booking(self.room, self.check_in, self.check_out, exclude=self.name)
 		if conflict:
 			frappe.throw(
-				_("Номер {0} уже забронирован на этот период (пересекается с бронированием {1})").format(
+				_("Room {0} is already booked for this period (overlaps booking {1})").format(
 					frappe.bold(self.room), frappe.bold(conflict)
 				),
-				title=_("Номер занят"),
+				title=_("Room is occupied"),
 			)
 
 	# --- calculations --------------------------------------------------------
@@ -71,14 +71,16 @@ class RoomBooking(Document):
 		)
 		if rate is None:
 			frappe.throw(
-				_("Нет активного тарифа {0} для типа номера {1}").format(
+				_("No active rate {0} for room type {1}").format(
 					frappe.bold(self.room_rate), frappe.bold(room_type)
 				)
 			)
 		self.rate_by_hour = flt(rate)
 
 	def calculate_totals(self):
-		self.total_hours = flt(time_diff_in_hours(self.check_out, self.check_in), self.precision("total_hours"))
+		self.total_hours = flt(
+			time_diff_in_hours(self.check_out, self.check_in), self.precision("total_hours")
+		)
 		self.amount = flt(self.rate_by_hour * self.total_hours, self.precision("amount"))
 
 		items_amount = 0

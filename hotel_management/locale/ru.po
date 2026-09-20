@@ -30,7 +30,7 @@ msgid "Hotel"
 msgstr "Отель"
 
 #. Label of a section break in the workspace sidebar
-#: hotel_management/fixtures/workspace_sidebar.json
+#: hotel_management/workspace_sidebar/hotel.json
 msgid "Setups"
 msgstr "Настройки"
 
@@ -333,11 +333,11 @@ msgstr "Завершить"
 
 # Client Script button labels
 
-#: hotel_management/fixtures/client_script.json
+#: hotel_management/hotel_management/doctype/room_booking/room_booking.js
 msgid "Create Sales Invoice"
 msgstr "Создать счёт продажи"
 
-#: hotel_management/fixtures/client_script.json
+#: hotel_management/hotel_management/doctype/room_booking/room_booking.js
 msgid "Recreate Sales Invoice"
 msgstr "Пересоздать счёт продажи"
 
@@ -622,3 +622,416 @@ msgstr "Заполните обязательные поля: {0}"
 #: hotel_management/hotel_management/page/room_chessboard/room_chessboard.js
 msgid "Invoice total {0} differs from booking total — recreate the invoice"
 msgstr "Счёт на {0} не совпадает с итогом брони — пересоздайте счёт"
+
+# Названия отчётов
+
+#: hotel_management/hotel_management/report/hotel_arrivals_and_departures/hotel_arrivals_and_departures.json
+msgid "Hotel Arrivals and Departures"
+msgstr "Отель: заезды и выезды"
+
+#: hotel_management/hotel_management/report/hotel_room_availability/hotel_room_availability.json
+msgid "Hotel Room Availability"
+msgstr "Отель: свободные номера"
+
+#: hotel_management/hotel_management/report/hotel_occupancy/hotel_occupancy.json
+msgid "Hotel Occupancy"
+msgstr "Отель: загрузка"
+
+#: hotel_management/hotel_management/report/hotel_adr_and_revpar/hotel_adr_and_revpar.json
+msgid "Hotel ADR and RevPAR"
+msgstr "Отель: ADR и RevPAR"
+
+#: hotel_management/hotel_management/report/hotel_booking_revenue/hotel_booking_revenue.json
+msgid "Hotel Booking Revenue"
+msgstr "Отель: выручка бронирований"
+
+#: hotel_management/hotel_management/report/hotel_unpaid_bookings/hotel_unpaid_bookings.json
+msgid "Hotel Unpaid Bookings"
+msgstr "Отель: неоплаченные брони"
+
+#: hotel_management/hotel_management/report/hotel_guest_history/hotel_guest_history.json
+msgid "Hotel Guest History"
+msgstr "Отель: история гостей"
+
+#: hotel_management/hotel_management/workspace/hotel/hotel.json
+msgid "Arrivals and Departures"
+msgstr "Заезды и выезды"
+
+#: hotel_management/hotel_management/workspace/hotel/hotel.json
+msgid "Room Availability"
+msgstr "Свободные номера"
+
+#: hotel_management/hotel_management/report/hotel_adr_and_revpar/hotel_adr_and_revpar.py
+msgid "Occupancy"
+msgstr "Загрузка"
+
+#: hotel_management/hotel_management/workspace/hotel/hotel.json
+msgid "ADR and RevPAR"
+msgstr "ADR и RevPAR"
+
+#: hotel_management/hotel_management/workspace/hotel/hotel.json
+msgid "Booking Revenue"
+msgstr "Выручка бронирований"
+
+#: hotel_management/hotel_management/workspace/hotel/hotel.json
+msgid "Unpaid Bookings"
+msgstr "Неоплаченные брони"
+
+#: hotel_management/hotel_management/workspace/hotel/hotel.json
+msgid "Guest History"
+msgstr "История гостей"
+
+# Показатели и колонки отчётов
+
+#: hotel_management/hotel_management/report/hotel_adr_and_revpar/hotel_adr_and_revpar.py
+msgid "ADR"
+msgstr "ADR"
+
+#: hotel_management/hotel_management/report/hotel_adr_and_revpar/hotel_adr_and_revpar.py
+msgid "RevPAR"
+msgstr "RevPAR"
+
+#: hotel_management/hotel_management/report/hotel_adr_and_revpar/hotel_adr_and_revpar.py
+msgid "TRevPAR"
+msgstr "TRevPAR"
+
+#: hotel_management/hotel_management/report/hotel_adr_and_revpar/hotel_adr_and_revpar.py
+msgid "Occupancy %"
+msgstr "Загрузка, %"
+
+#: hotel_management/hotel_management/report/hotel_occupancy/hotel_occupancy.py
+msgid "Hourly Occupancy %"
+msgstr "Почасовая загрузка, %"
+
+#: hotel_management/hotel_management/report/hotel_occupancy/hotel_occupancy.py
+msgid "Occupied Room Days"
+msgstr "Занятые номеро-сутки"
+
+#: hotel_management/hotel_management/report/hotel_occupancy/hotel_occupancy.py
+msgid "Available Room Days"
+msgstr "Доступные номеро-сутки"
+
+#: hotel_management/hotel_management/report/hotel_adr_and_revpar/hotel_adr_and_revpar.py
+msgid "Room Days Sold"
+msgstr "Проданные номеро-сутки"
+
+#: hotel_management/hotel_management/report/hotel_adr_and_revpar/hotel_adr_and_revpar.py
+msgid "Room Days Available"
+msgstr "Доступные номеро-сутки"
+
+#: hotel_management/hotel_management/report/hotel_booking_revenue/hotel_booking_revenue.py
+msgid "Room Days"
+msgstr "Номеро-сутки"
+
+#: hotel_management/hotel_management/report/hotel_occupancy/hotel_occupancy.py
+msgid "Occupied Hours"
+msgstr "Занятые часы"
+
+#: hotel_management/hotel_management/report/hotel_room_availability/hotel_room_availability.py
+msgid "Booked Hours"
+msgstr "Занято часов"
+
+#: hotel_management/hotel_management/report/hotel_room_availability/hotel_room_availability.py
+msgid "Free Hours"
+msgstr "Свободно часов"
+
+#: hotel_management/hotel_management/report/hotel_arrivals_and_departures/hotel_arrivals_and_departures.py
+msgid "Hours"
+msgstr "Часы"
+
+#: hotel_management/hotel_management/report/hotel_arrivals_and_departures/hotel_arrivals_and_departures.py
+msgid "Nights"
+msgstr "Ночи"
+
+#: hotel_management/hotel_management/report/hotel_adr_and_revpar/hotel_adr_and_revpar.py
+msgid "Room Revenue"
+msgstr "Выручка за проживание"
+
+#: hotel_management/hotel_management/report/hotel_adr_and_revpar/hotel_adr_and_revpar.py
+msgid "Services Revenue"
+msgstr "Выручка за услуги"
+
+#: hotel_management/hotel_management/report/hotel_adr_and_revpar/hotel_adr_and_revpar.py
+msgid "Total Revenue"
+msgstr "Общая выручка"
+
+#: hotel_management/hotel_management/report/hotel_adr_and_revpar/hotel_adr_and_revpar.py
+msgid "Avg Rate / Hour"
+msgstr "Средняя цена часа"
+
+#: hotel_management/hotel_management/report/hotel_guest_history/hotel_guest_history.py
+msgid "Avg per Stay"
+msgstr "Средний чек за проживание"
+
+#: hotel_management/hotel_management/report/hotel_booking_revenue/hotel_booking_revenue.py
+msgid "Share %"
+msgstr "Доля, %"
+
+#: hotel_management/hotel_management/report/hotel_guest_history/hotel_guest_history.py
+msgid "Stays"
+msgstr "Проживаний"
+
+#: hotel_management/hotel_management/report/hotel_guest_history/hotel_guest_history.py
+msgid "Repeat Guests"
+msgstr "Повторные гости"
+
+#: hotel_management/hotel_management/report/hotel_guest_history/hotel_guest_history.py
+msgid "First Stay"
+msgstr "Первое проживание"
+
+#: hotel_management/hotel_management/report/hotel_guest_history/hotel_guest_history.py
+msgid "Last Stay"
+msgstr "Последнее проживание"
+
+#: hotel_management/hotel_management/report/hotel_guest_history/hotel_guest_history.py
+msgid "Favourite Room Type"
+msgstr "Любимый тип номера"
+
+#: hotel_management/hotel_management/report/hotel_room_availability/hotel_room_availability.py
+msgid "Rooms"
+msgstr "Номера"
+
+#: hotel_management/hotel_management/report/hotel_booking_revenue/hotel_booking_revenue.py
+msgid "Bookings"
+msgstr "Бронирования"
+
+# Ресепшен: заезды, выезды, занятость
+
+#: hotel_management/hotel_management/report/hotel_arrivals_and_departures/hotel_arrivals_and_departures.js
+msgid "Movement"
+msgstr "Движение"
+
+#: hotel_management/hotel_management/report/hotel_arrivals_and_departures/hotel_arrivals_and_departures.py
+msgid "Arrivals"
+msgstr "Заезды"
+
+#: hotel_management/hotel_management/report/hotel_arrivals_and_departures/hotel_arrivals_and_departures.py
+msgid "Departures"
+msgstr "Выезды"
+
+#: hotel_management/hotel_management/report/hotel_arrivals_and_departures/hotel_arrivals_and_departures.py
+msgid "In House"
+msgstr "Проживают"
+
+msgid "Arrival"
+msgstr "Заезд"
+
+msgid "Departure"
+msgstr "Выезд"
+
+#: hotel_management/hotel_management/report/hotel_arrivals_and_departures/hotel_arrivals_and_departures.py
+msgid "Amount Shown"
+msgstr "Сумма в выборке"
+
+#: hotel_management/hotel_management/report/hotel_room_availability/hotel_room_availability.js
+msgid "Availability"
+msgstr "Занятость"
+
+#: hotel_management/hotel_management/report/hotel_room_availability/hotel_room_availability.py
+msgid "Free"
+msgstr "Свободен"
+
+#: hotel_management/hotel_management/report/hotel_room_availability/hotel_room_availability.py
+msgid "Partially Booked"
+msgstr "Частично занят"
+
+#: hotel_management/hotel_management/report/hotel_room_availability/hotel_room_availability.py
+msgid "Fully Booked"
+msgstr "Занят полностью"
+
+#: hotel_management/hotel_management/report/hotel_room_availability/hotel_room_availability.py
+msgid "Next Check In"
+msgstr "Ближайший заезд"
+
+# Долги и счета
+
+#: hotel_management/hotel_management/report/hotel_unpaid_bookings/hotel_unpaid_bookings.py
+msgid "Bookings with Balance"
+msgstr "Броней с долгом"
+
+#: hotel_management/hotel_management/report/hotel_unpaid_bookings/hotel_unpaid_bookings.py
+msgid "Balance Due"
+msgstr "Долг"
+
+#: hotel_management/hotel_management/report/hotel_unpaid_bookings/hotel_unpaid_bookings.py
+msgid "Booking Amount"
+msgstr "Сумма брони"
+
+#: hotel_management/hotel_management/report/hotel_unpaid_bookings/hotel_unpaid_bookings.py
+msgid "Invoice Status"
+msgstr "Статус счёта"
+
+#: hotel_management/hotel_management/report/hotel_unpaid_bookings/hotel_unpaid_bookings.py
+msgid "Invoiced"
+msgstr "Выставлено"
+
+#: hotel_management/hotel_management/report/hotel_unpaid_bookings/hotel_unpaid_bookings.py
+msgid "Not Invoiced"
+msgstr "Счёт не выставлен"
+
+#: hotel_management/hotel_management/report/hotel_unpaid_bookings/hotel_unpaid_bookings.py
+msgid "Due After Check Out"
+msgstr "Долг после выезда"
+
+#: hotel_management/hotel_management/report/hotel_unpaid_bookings/hotel_unpaid_bookings.py
+msgid "Days Since Check Out"
+msgstr "Дней после выезда"
+
+#: hotel_management/hotel_management/report/hotel_unpaid_bookings/hotel_unpaid_bookings.js
+msgid "Only Checked Out Guests"
+msgstr "Только выехавшие гости"
+
+# Фильтры отчётов
+
+#: hotel_management/hotel_management/report/hotel_adr_and_revpar/hotel_adr_and_revpar.js
+msgid "From Date"
+msgstr "Дата с"
+
+#: hotel_management/hotel_management/report/hotel_adr_and_revpar/hotel_adr_and_revpar.js
+msgid "To Date"
+msgstr "Дата по"
+
+#: hotel_management/hotel_management/report/hotel_adr_and_revpar/hotel_adr_and_revpar.js
+msgid "Group By"
+msgstr "Группировать по"
+
+#: hotel_management/hotel_management/report/hotel_guest_history/hotel_guest_history.js
+msgid "Minimum Stays"
+msgstr "Минимум проживаний"
+
+msgid "Date"
+msgstr "Дата"
+
+msgid "All"
+msgstr "Все"
+
+#: hotel_management/hotel_management/report/hotel_booking_revenue/hotel_booking_revenue.py
+msgid "Not Set"
+msgstr "Не указано"
+
+#: hotel_management/hotel_management/report/hotel_occupancy/hotel_occupancy.py
+msgid "No rooms match the filters"
+msgstr "Под фильтры не попал ни один номер"
+
+#: hotel_management/hotel_management/report/report_utils.py
+msgid "From Date must be before To Date"
+msgstr "Дата «с» должна быть раньше даты «по»"
+
+#: hotel_management/hotel_management/report/report_utils.py
+msgid "Period is limited to {0} days"
+msgstr "Период ограничен {0} днями"
+
+#: hotel_management/hotel_management/report/hotel_booking_revenue/hotel_booking_revenue.py
+msgid "Unsupported Group By: {0}"
+msgstr "Недопустимая группировка: {0}"
+
+# Сайдбар и рабочее пространство
+
+#: hotel_management/workspace_sidebar/hotel.json
+msgid "Chessboard"
+msgstr "Шахматка"
+
+#: hotel_management/workspace_sidebar/hotel.json
+msgid "Hotel Reports"
+msgstr "Отчёты отеля"
+
+#: hotel_management/workspace_sidebar/hotel.json
+msgid "Hotel Rooms"
+msgstr "Номерной фонд"
+
+#: hotel_management/workspace_sidebar/hotel.json
+msgid "Reports"
+msgstr "Отчёты"
+
+#: hotel_management/workspace_sidebar/hotel.json
+msgid "Setup"
+msgstr "Справочники"
+
+#: hotel_management/hotel_management/workspace/hotel/hotel.json
+msgid "Front Desk"
+msgstr "Ресепшен"
+
+#: hotel_management/hotel_management/workspace/hotel/hotel.json
+msgid "Performance"
+msgstr "Показатели"
+
+#: hotel_management/hotel_management/workspace/hotel/hotel.json
+msgid "Money"
+msgstr "Деньги"
+
+#: hotel_management/hotel_management/workspace/hotel/hotel.json
+msgid "Rates and Amenities"
+msgstr "Тарифы и удобства"
+
+msgid "Quick Access"
+msgstr "Быстрый доступ"
+
+#: hotel_management/hotel_management/workspace/hotel/hotel.json
+msgid "Profit and Loss Statement"
+msgstr "Отчёт о прибылях и убытках"
+
+#: hotel_management/hotel_management/workspace/hotel/hotel.json
+msgid "Customer Ledger Summary"
+msgstr "Сводка по расчётам с клиентами"
+
+#: hotel_management/hotel_management/workspace/hotel/hotel.json
+msgid "Accounts Receivable Summary"
+msgstr "Сводка дебиторской задолженности"
+
+#: hotel_management/hotel_management/workspace/hotel/hotel.json
+msgid "Item-wise Sales Register"
+msgstr "Реестр продаж по позициям"
+
+#: hotel_management/hotel_management/workspace/hotel/hotel.json
+msgid "Sales Analytics"
+msgstr "Аналитика продаж"
+
+# Сообщения формы брони и счёта
+
+#: hotel_management/api.py
+msgid "Set Customer on the booking"
+msgstr "Укажите клиента в бронировании"
+
+#: hotel_management/api.py
+msgid "Set Hotel Profile on the booking"
+msgstr "Укажите Hotel Profile в бронировании"
+
+#: hotel_management/api.py
+msgid "Default Service is not set in Hotel Profile"
+msgstr "В Hotel Profile не указана услуга по умолчанию"
+
+#: hotel_management/hotel_management/doctype/room_booking/room_booking.py
+msgid "Check Out can only be changed for a checked in booking"
+msgstr "Дату выезда можно менять только у заселённой брони (Checked In)"
+
+#: hotel_management/hotel_management/doctype/room_booking/room_booking.py
+msgid "Booking total changed ({0} → {1}), but invoice {2} still holds the old amount. Recreate the invoice."
+msgstr "Сумма брони изменилась ({0} → {1}), а счёт {2} выставлен на старую сумму. Пересоздайте счёт."
+
+#: hotel_management/hotel_management/doctype/room_booking/room_booking.py
+msgid "Invoice is outdated"
+msgstr "Счёт устарел"
+
+#: hotel_management/hotel_management/doctype/room_booking/room_booking.py
+msgid "Room {0} is already booked for this period (overlaps booking {1})"
+msgstr "Номер {0} уже забронирован на этот период (пересекается с бронированием {1})"
+
+#: hotel_management/hotel_management/doctype/room_booking/room_booking.py
+msgid "No active rate {0} for room type {1}"
+msgstr "Нет активного тарифа {0} для типа номера {1}"
+
+#: hotel_management/hotel_management/doctype/room_booking/room_booking.js
+msgid "No price found for this item in the selected price list"
+msgstr "Цена не найдена для этого товара в выбранном прайс-листе"
+
+#: hotel_management/hotel_management/doctype/room_booking/room_booking.js
+msgid "Sales Invoice {0} will be cancelled and a new one created. Continue?"
+msgstr "Текущий счёт {0} будет отменён и создан новый. Продолжить?"
+
+#: hotel_management/hotel_management/doctype/hotel_room/hotel_room.json
+msgid "Location"
+msgstr "Расположение"
+
+#: hotel_management/hotel_management/doctype/room_booking/room_booking.json
+msgid "Other"
+msgstr "Прочее"
