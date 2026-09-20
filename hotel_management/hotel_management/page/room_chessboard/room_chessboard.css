@@ -690,3 +690,103 @@
 .rcb-value a {
 	white-space: nowrap;
 }
+
+/* vis-timeline сдвигает текст брони, чтобы он оставался в видимой части шкалы.
+   Отключаем: текст стоит на месте и просто уходит за край вместе с плашкой */
+.rc-timeline .vis-item.rc-item .vis-item-content {
+	transform: none !important;
+}
+
+/* подпись номера кликабельна — открывает карточку номера */
+.rc-timeline .vis-label.rc-group-room {
+	cursor: pointer;
+}
+
+.rc-timeline .vis-label.rc-group-room:hover .rc-group-label {
+	color: var(--primary, var(--blue-500));
+}
+
+/* --- карточка номера ------------------------------------------------------------ */
+
+.rcr-gallery {
+	display: flex;
+	flex-direction: column;
+	gap: 6px;
+}
+
+.rcr-cover img {
+	display: block;
+	width: 100%;
+	max-height: 260px;
+	object-fit: cover;
+	border-radius: var(--border-radius-md);
+}
+
+.rcr-thumbs {
+	display: flex;
+	gap: 6px;
+	overflow-x: auto;
+}
+
+.rcr-thumbs img {
+	width: 72px;
+	height: 54px;
+	object-fit: cover;
+	border-radius: 6px;
+}
+
+.rcr-noimage {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	gap: 6px;
+	height: 120px;
+	border-radius: var(--border-radius-md);
+	background: var(--subtle-fg);
+	color: var(--text-muted);
+	font-size: var(--text-sm);
+}
+
+.rcr-noimage .rc-icon {
+	width: 32px;
+	height: 32px;
+}
+
+.rcr-title {
+	margin-bottom: 6px;
+	font-size: var(--text-sm);
+	font-weight: 600;
+	color: var(--text-muted);
+}
+
+.rcr-amenities {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 6px;
+}
+
+.rcr-amenity {
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+	padding: 3px 10px;
+	border: 1px solid var(--border-color);
+	border-radius: 999px;
+	font-size: var(--text-sm);
+}
+
+.rcr-amenity .rc-dot {
+	width: 8px;
+	height: 8px;
+	background: var(--rcr-c);
+}
+
+.rcr-text {
+	white-space: pre-line;
+	font-size: var(--text-sm);
+}
+
+.rcr .rcb-money .rcr-title {
+	margin: 6px 0 0;
+}

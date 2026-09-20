@@ -19,6 +19,7 @@ frappe.ui.form.RoomBookingQuickEntryForm = class RoomBookingQuickEntryForm exten
 	}
 
 	set_meta_and_mandatory_fields() {
+		const me_ref = this; // для onchange в строках таблицы (там this — контрол)
 		this.meta = frappe.get_meta(this.doctype);
 		this.rates = {}; // room_rate -> rate_by_hour для выбранного номера
 
@@ -53,7 +54,12 @@ frappe.ui.form.RoomBookingQuickEntryForm = class RoomBookingQuickEntryForm exten
 				fieldtype: "Link",
 				options: "Room Rate",
 				reqd: 1,
-				get_query: () => ({ filters: { name: ["in", Object.keys(this.rates)] } }),
+				// только тарифы типа выбранного номера (как в полной форме).
+				// Пустой список «in []» Frappe игнорирует, поэтому подставляем заведомо несуществующее имя
+				get_query: () => {
+					const names = Object.keys(this.rates);
+					return { filters: { name: ["in", names.length ? names : ["__no_rate__"]] } };
+				},
 				onchange: () => this.update_summary(),
 			},
 			{
@@ -62,6 +68,57 @@ frappe.ui.form.RoomBookingQuickEntryForm = class RoomBookingQuickEntryForm exten
 				fieldtype: "Datetime",
 				reqd: 1,
 				onchange: () => this.update_summary(),
+			},
+			{ fieldtype: "Section Break", label: __("Items and Services"), collapsible: 1 },
+			{
+				fieldname: "items_and_service",
+				fieldtype: "Table",
+				label: __("Items and Services"),
+				cannot_add_rows: false,
+				in_place_edit: true,
+				data: [],
+				fields: [
+					{
+						fieldname: "item",
+						label: __("Item"),
+						fieldtype: "Link",
+						options: "Item",
+						in_list_view: 1,
+						reqd: 1,
+						columns: 5,
+						get_query: () => ({ filters: { is_sales_item: 1, disabled: 0 } }),
+						onchange: function () {
+							// this — контрол ячейки, this.doc — строка таблицы
+							me_ref.fetch_item_rate(this.doc);
+						},
+					},
+					{
+						fieldname: "qty",
+						label: __("Qty"),
+						fieldtype: "Float",
+						in_list_view: 1,
+						reqd: 1,
+						default: 1,
+						columns: 2,
+						onchange: function () {
+							me_ref.update_row(this.doc);
+						},
+					},
+					{
+						fieldname: "rate",
+						label: __("Rate"),
+						fieldtype: "Currency",
+						in_list_view: 1,
+						read_only: 1,
+						columns: 3,
+					},
+					{
+						fieldname: "price_list",
+						label: __("Price List"),
+						fieldtype: "Link",
+						options: "Price List",
+					},
+				],
 			},
 			{ fieldtype: "Section Break" },
 			{ fieldname: "summary", fieldtype: "HTML" },
@@ -90,6 +147,7 @@ frappe.ui.form.RoomBookingQuickEntryForm = class RoomBookingQuickEntryForm exten
 
 	render_dialog() {
 		super.render_dialog();
+		this.load_price_list();
 		this.$wrapper.addClass("room-booking-quick-entry");
 		this.set_missing_defaults();
 		this.on_room_change(true);
@@ -113,21 +171,75 @@ frappe.ui.form.RoomBookingQuickEntryForm = class RoomBookingQuickEntryForm exten
 		section && section.collapse && section.collapse(!!filled);
 	}
 
+	// ---- товары и услуги --------------------------------------------------------
+
+	async load_price_list() {
+		this.price_list =
+			(await frappe.db.get_single_value("Selling Settings", "selling_price_list")) ||
+			"Standard Selling";
+	}
+
+	get items_grid() {
+		return this.fields_dict.items_and_service && this.fields_dict.items_and_service.grid;
+	}
+
+	async fetch_item_rate(row) {
+		if (!row) return;
+		row.price_list = row.price_list || this.price_list;
+		row.qty = row.qty || 1;
+		row.rate = 0;
+		if (row.item && row.price_list) {
+			const r = await frappe.db.get_value(
+				"Item Price",
+				{ item_code: row.item, price_list: row.price_list, selling: 1 },
+				"price_list_rate"
+			);
+			row.rate = flt(r.message && r.message.price_list_rate);
+			if (!row.rate) {
+				frappe.show_alert({
+					message: __("No price for {0} in price list {1}", [row.item, row.price_list]),
+					indicator: "orange",
+				});
+			}
+		}
+		this.update_row(row);
+	}
+
+	update_row(row) {
+		if (row) row.amount = flt(row.rate) * flt(row.qty);
+		this.items_grid && this.items_grid.refresh();
+		this.update_summary();
+	}
+
+	items_total() {
+		const rows = (this.items_grid && this.items_grid.get_data()) || [];
+		return rows.reduce((sum, r) => sum + flt(r.rate) * flt(r.qty), 0);
+	}
+
+	update_doc() {
+		super.update_doc();
+		// в документ отдаём только нужные поля строк (без служебных name/idx диалога)
+		const rows = (this.items_grid && this.items_grid.get_data()) || [];
+		this.doc.items_and_service = rows
+			.filter((r) => r.item)
+			.map((r) => ({
+				item: r.item,
+				qty: flt(r.qty) || 1,
+				rate: flt(r.rate),
+				price_list: r.price_list || this.price_list,
+			}));
+		return this.doc;
+	}
+
 	async on_room_change(initial = false) {
 		const room = this.get_value("room");
 		this.rates = {};
 
 		if (room) {
-			const room_type = (await frappe.db.get_value("Hotel Room", room, "room_type")).message
-				?.room_type;
-			if (room_type) {
-				const rows = await frappe.db.get_list("Room Type Rate", {
-					filters: { parent: room_type, parenttype: "Room Type", enabled: 1 },
-					fields: ["room_rate", "rate_by_hour"],
-					parent_doctype: "Room Type",
-				});
-				rows.forEach((r) => (this.rates[r.room_rate] = flt(r.rate_by_hour)));
-			}
+			const rows = await frappe.xcall("hotel_management.api.get_room_rates", { room });
+			// номер могли сменить, пока шёл запрос
+			if (room !== this.get_value("room")) return;
+			(rows || []).forEach((r) => (this.rates[r.room_rate] = flt(r.rate_by_hour)));
 		}
 
 		const current = this.get_value("room_rate");
@@ -176,11 +288,11 @@ frappe.ui.form.RoomBookingQuickEntryForm = class RoomBookingQuickEntryForm exten
 			__("Nights: {0}", [nights]),
 			`${flt(hours, 1)} ${__("h")}`,
 		];
+		const items = this.items_total();
 		if (rate != null) {
-			parts.push(
-				`${format_currency(rate, currency)} / ${__("h")}`,
-				`<b>${format_currency(flt(rate * hours, 2), currency)}</b>`
-			);
+			parts.push(`${format_currency(rate, currency)} / ${__("h")}`);
+			if (items) parts.push(`${__("Items and Services")}: ${format_currency(items, currency)}`);
+			parts.push(`<b>${format_currency(flt(rate * hours + items, 2), currency)}</b>`);
 		}
 		field.$wrapper.html(
 			`<div class="text-muted" style="padding: 2px 0 6px">${parts.join(" · ")}</div>`

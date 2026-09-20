@@ -554,3 +554,55 @@ msgstr "Счёт {0} уже оплачен"
 #: hotel_management/api.py
 msgid "Amount must be greater than zero"
 msgstr "Сумма должна быть больше нуля"
+
+#: hotel_management/hotel_management/page/room_chessboard/room_chessboard.js
+msgid "Occupied"
+msgstr "Занят"
+
+#: hotel_management/hotel_management/page/room_chessboard/room_chessboard.js
+msgid "until {0}"
+msgstr "до {0}"
+
+#: hotel_management/hotel_management/page/room_chessboard/room_chessboard.js
+msgid "Free now"
+msgstr "Сейчас свободен"
+
+#: hotel_management/hotel_management/page/room_chessboard/room_chessboard.js
+msgid "No photo"
+msgstr "Нет фото"
+
+#: hotel_management/hotel_management/page/room_chessboard/room_chessboard.js
+msgid "Room Number"
+msgstr "Номер комнаты"
+
+#: hotel_management/hotel_management/page/room_chessboard/room_chessboard.js
+msgid "Floor"
+msgstr "Этаж"
+
+#: hotel_management/hotel_management/page/room_chessboard/room_chessboard.js
+msgid "m²"
+msgstr "м²"
+
+#: hotel_management/hotel_management/page/room_chessboard/room_chessboard.js
+msgid "Amenities"
+msgstr "Удобства"
+
+#: hotel_management/hotel_management/page/room_chessboard/room_chessboard.js
+msgid "Rates"
+msgstr "Тарифы"
+
+#: hotel_management/hotel_management/page/room_chessboard/room_chessboard.js
+msgid "Book"
+msgstr "Забронировать"
+
+#: hotel_management/hotel_management/page/room_chessboard/room_chessboard.js
+msgid "Item"
+msgstr "Товар"
+
+#: hotel_management/hotel_management/page/room_chessboard/room_chessboard.js
+msgid "Rate"
+msgstr "Цена"
+
+#: hotel_management/hotel_management/page/room_chessboard/room_chessboard.js
+msgid "No price for {0} in price list {1}"
+msgstr "Нет цены для {0} в прайс-листе {1}"

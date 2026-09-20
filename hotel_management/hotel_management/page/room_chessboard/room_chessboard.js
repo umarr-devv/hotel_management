@@ -80,6 +80,7 @@
 				'<path d="M12 12.5v5M9.5 15h5"/>'
 		),
 		chevron: svg('<path d="m6 9 6 6 6-6"/>', "rc-chevron"),
+		bed: svg('<path d="M3 20v-8a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v8M3 16h18M7 10V7a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2v3"/>'),
 		mouse: svg('<rect x="6" y="3" width="12" height="18" rx="6"/><path d="M12 3v6"/><path d="M12 9h6" stroke-width="3"/>'),
 	};
 
@@ -239,7 +240,15 @@
 			this.timeline.on("changed", () => this.sync_corner());
 			this.timeline.on("click", (props) => {
 				const item = props.item && this.items.get(props.item);
-				if (item && item.booking) this.show_booking(props.item);
+				if (item && item.booking) {
+					this.show_booking(props.item);
+					return;
+				}
+				// клик по подписи номера слева — карточка номера
+				if (props.what === "group-label" && props.group != null) {
+					const group = this.groups.get(props.group);
+					if (group && group.kind === "room") this.show_room(group.id);
+				}
 			});
 		}
 
@@ -945,6 +954,98 @@
 				</div>`;
 		}
 
+		// ------------------------------------------------------------ карточка номера
+
+		async show_room(name) {
+			const room = await frappe.xcall("hotel_management.api.get_room_card", { room: name });
+			const esc = (v) => frappe.utils.escape_html(v == null ? "" : String(v));
+			const currency = frappe.defaults.get_default("currency");
+
+			// кто сейчас в номере
+			const now = new Date();
+			const current = this.items.get({
+				filter: (i) => i.booking && i.group === name && i.start <= now && i.end > now,
+			})[0];
+			const occupancy = current
+				? `<span class="rcb-badge rc-status-${slug(current.booking.status)}"><span class="rc-dot"></span>${esc(
+						__("Occupied")
+				  )}: ${esc(current.booking.customer_name)} · ${esc(__("until {0}", [fmt_short(current.end)]))}</span>`
+				: `<span class="rcb-badge rcb-paid">${esc(__("Free now"))}</span>`;
+
+			const row = (label, value) =>
+				value || value === 0
+					? `<div class="rcb-row"><span class="rcb-label">${esc(label)}</span><span class="rcb-value">${value}</span></div>`
+					: "";
+
+			const [cover, ...thumbs] = room.images || [];
+			const gallery = cover
+				? `<div class="rcr-gallery">
+						<a href="${esc(cover)}" target="_blank" class="rcr-cover"><img src="${esc(cover)}" alt=""></a>
+						${
+							thumbs.length
+								? `<div class="rcr-thumbs">${thumbs
+										.slice(0, 8)
+										.map((u) => `<a href="${esc(u)}" target="_blank"><img src="${esc(u)}" alt=""></a>`)
+										.join("")}</div>`
+								: ""
+						}
+				  </div>`
+				: `<div class="rcr-noimage">${ICONS.bed}<span>${esc(__("No photo"))}</span></div>`;
+
+			const amenities = (room.amenities || [])
+				.map(
+					(a) =>
+						`<span class="rcr-amenity" style="--rcr-c:${esc(a.color || "var(--text-muted)")}"
+							title="${esc(a.description || "")}"><span class="rc-dot"></span>${esc(a.name)}</span>`
+				)
+				.join("");
+
+			const rates = (room.rates || [])
+				.map((r) => row(r.room_rate, `${format_currency(r.rate_by_hour, currency)} / ${esc(__("h"))}`))
+				.join("");
+
+			const html = `
+				<div class="rcb rcr">
+					${gallery}
+					<div class="rcb-badges">${occupancy}</div>
+					<div class="rcb-grid">
+						<div>
+							${row(__("Room Type"), esc(room.room_type))}
+							${row(__("Room Number"), esc(room.room_number))}
+							${row(__("Hotel Building"), esc(room.hotel_building))}
+							${row(__("Floor"), esc(room.floor))}
+						</div>
+						<div>
+							${row(__("Max Occupancy"), room.max_occupancy ? esc(room.max_occupancy) : "")}
+							${row(__("Room Size"), room.room_size ? `${esc(room.room_size)} ${esc(__("m²"))}` : "")}
+						</div>
+					</div>
+					${amenities ? `<div><div class="rcr-title">${esc(__("Amenities"))}</div><div class="rcr-amenities">${amenities}</div></div>` : ""}
+					${rates ? `<div class="rcb-money"><div class="rcr-title">${esc(__("Rates"))}</div>${rates}</div>` : ""}
+					${room.notes ? `<div><div class="rcr-title">${esc(__("Notes"))}</div><div class="rcr-text">${esc(room.notes)}</div></div>` : ""}
+					${room.description ? `<div class="rcr-text text-muted">${esc(room.description)}</div>` : ""}
+				</div>`;
+
+			this.booking_dialog && this.booking_dialog.hide();
+			const dialog = new frappe.ui.Dialog({
+				title: esc(room_label(room)),
+				fields: [{ fieldtype: "HTML", fieldname: "body" }],
+			});
+			this.booking_dialog = dialog;
+			dialog.$wrapper.addClass("rc-booking-dialog");
+			dialog.fields_dict.body.$wrapper.html(html);
+
+			dialog.set_primary_action(__("Open Full Form"), () => {
+				dialog.hide();
+				frappe.set_route("Form", "Hotel Room", name);
+			});
+			dialog.add_custom_action(`${ICONS.add} ${__("Book")}`, () => {
+				dialog.hide();
+				this.open_quick_entry({ room: name });
+			}, "rcb-action");
+			dialog.show();
+		}
+
 		// ------------------------------------------------------------ счёт и оплата
 
 		create_invoice(doc) {
@@ -1139,6 +1240,11 @@
 
 	function weekday_label(date) {
 		return new Intl.DateTimeFormat(lang(), { weekday: "short" }).format(date).replace(".", "");
+	}
+
+	function fmt_short(date) {
+		const d = new Date(date);
+		return `${pad2(d.getDate())}.${pad2(d.getMonth() + 1)} ${pad2(d.getHours())}:${pad2(d.getMinutes())}`;
 	}
 
 	function start_of_day(date) {
