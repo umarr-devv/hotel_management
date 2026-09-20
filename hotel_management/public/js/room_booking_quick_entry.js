@@ -116,16 +116,24 @@ frappe.ui.form.RoomBookingQuickEntryForm = class RoomBookingQuickEntryForm exten
 		section && section.collapse && section.collapse(!!filled);
 	}
 
-	async on_room_change(initial = false) {
+	async load_rates() {
 		const room = this.get_value("room");
-		this.rates = {};
+		const rates = {};
 
 		if (room) {
 			const rows = await frappe.xcall("hotel_management.api.get_room_rates", { room });
-			// номер могли сменить, пока шёл запрос
-			if (room !== this.get_value("room")) return;
-			(rows || []).forEach((r) => (this.rates[r.room_rate] = flt(r.rate_by_hour)));
+			// номер могли сменить, пока шёл запрос — тогда ответ уже не актуален
+			if (room !== this.get_value("room")) return null;
+			(rows || []).forEach((r) => (rates[r.room_rate] = flt(r.rate_by_hour)));
 		}
+
+		this.rates = rates;
+		return rates;
+	}
+
+	async on_room_change(initial = false) {
+		const room = this.get_value("room");
+		if ((await this.load_rates()) === null) return;
 
 		const current = this.get_value("room_rate");
 		const names = Object.keys(this.rates);
@@ -198,13 +206,20 @@ frappe.ui.form.RoomBookingQuickEntryForm = class RoomBookingQuickEntryForm exten
 		return super.insert();
 	}
 
-	update_summary() {
+	async update_summary() {
 		const field = this.fields_dict.summary;
 		if (!field) return;
 
 		const check_in = this.get_value("check_in");
 		const check_out = this.get_value("check_out");
-		const rate = this.rates[this.get_value("room_rate")];
+		let rate = (this.rates || {})[this.get_value("room_rate")];
+
+		// тариф выбран, но карта цен пуста (например, значения подставили извне —
+		// из шахматки) — дочитываем цены и считаем сумму
+		if (rate == null && this.get_value("room") && this.get_value("room_rate")) {
+			const rates = await this.load_rates();
+			rate = (rates || {})[this.get_value("room_rate")];
+		}
 
 		if (!check_in || !check_out) {
 			field.$wrapper.html("");
