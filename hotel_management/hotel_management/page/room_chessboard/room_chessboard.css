@@ -790,3 +790,12 @@
 .rcr .rcb-money .rcr-title {
 	margin: 6px 0 0;
 }
+
+.rcb-warning {
+	margin: 4px 0 6px;
+	padding: 6px 10px;
+	border-radius: 6px;
+	background: var(--bg-orange);
+	color: var(--text-on-orange);
+	font-size: var(--text-sm);
+}

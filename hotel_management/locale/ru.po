@@ -618,3 +618,7 @@ msgstr "Не заполнены поля"
 #: hotel_management/public/js/room_booking_quick_entry.js
 msgid "Mandatory fields required: {0}"
 msgstr "Заполните обязательные поля: {0}"
+
+#: hotel_management/hotel_management/page/room_chessboard/room_chessboard.js
+msgid "Invoice total {0} differs from booking total — recreate the invoice"
+msgstr "Счёт на {0} не совпадает с итогом брони — пересоздайте счёт"

@@ -814,23 +814,32 @@
 					.catch(() => []),
 			]);
 
+			// вспомогательные данные: если у пользователя нет прав на счёт или клиентов,
+			// карточка всё равно открывается (просто без этих сведений)
+			const safe = (promise, fallback) => Promise.resolve(promise).catch(() => fallback);
+
 			const si = doc.sales_invoice
-				? (
-						await frappe.db.get_value("Sales Invoice", doc.sales_invoice, [
+				? ((await safe(
+						frappe.db.get_value("Sales Invoice", doc.sales_invoice, [
 							"docstatus",
 							"outstanding_amount",
+							"grand_total",
 							"customer",
-						])
-				  ).message
+						]),
+						{}
+				  )) || {}).message || null
 				: null;
 
 			const guest_ids = (doc.guests || []).map((g) => g.guest).filter(Boolean);
 			const guest_names = guest_ids.length
-				? await frappe.db.get_list("Customer", {
-						filters: { name: ["in", guest_ids] },
-						fields: ["name", "customer_name"],
-						limit: guest_ids.length,
-				  })
+				? (await safe(
+						frappe.db.get_list("Customer", {
+							filters: { name: ["in", guest_ids] },
+							fields: ["name", "customer_name"],
+							limit: guest_ids.length,
+						}),
+						[]
+				  )) || []
 				: [];
 			const guest_map = Object.fromEntries(guest_names.map((g) => [g.name, g.customer_name]));
 
@@ -948,6 +957,15 @@
 						${
 							si && si.docstatus === 1 && flt(si.outstanding_amount) > 0
 								? `<div class="rcb-due">${row(__("Outstanding Amount"), money(si.outstanding_amount))}</div>`
+								: ""
+						}
+						${
+							si && si.docstatus === 1 && flt(si.grand_total) !== flt(doc.total_amount)
+								? `<div class="rcb-warning">${esc(
+										__("Invoice total {0} differs from booking total — recreate the invoice", [
+											money(si.grand_total),
+										])
+								  )}</div>`
 								: ""
 						}
 					</div>

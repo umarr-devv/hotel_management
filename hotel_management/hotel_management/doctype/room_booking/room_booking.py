@@ -9,6 +9,12 @@ from frappe.utils import flt, get_datetime, time_diff_in_hours
 
 class RoomBooking(Document):
 	def validate(self):
+		# validate() контроллера вызывается ДО стандартной проверки обязательных полей.
+		# Если чего-то не хватает — выходим и даём Frappe показать понятное
+		# «Заполните обязательные поля», вместо ложных ошибок про даты/тариф.
+		if not (self.room and self.room_rate and self.check_in and self.check_out):
+			return
+
 		self.validate_dates()
 		self.set_rate_by_hour()
 		self.calculate_totals()
@@ -20,9 +26,23 @@ class RoomBooking(Document):
 		if self.has_value_changed("check_out") and self.status != "Checked In":
 			frappe.throw(_("Дату выезда можно менять только у заселённой брони (Checked In)"))
 
+		old_total = flt(self.get_doc_before_save() and self.get_doc_before_save().total_amount)
 		self.validate_dates()
 		self.calculate_totals()
 		self.validate_overlap()
+		self.warn_outdated_invoice(old_total)
+
+	def warn_outdated_invoice(self, old_total):
+		"""Сумма брони изменилась после выставления счёта — предупреждаем, счёт сам не меняется."""
+		if not self.sales_invoice or flt(old_total) == flt(self.total_amount):
+			return
+		frappe.msgprint(
+			_("Сумма брони изменилась ({0} → {1}), а счёт {2} выставлен на старую сумму. Пересоздайте счёт.").format(
+				frappe.bold(old_total), frappe.bold(self.total_amount), frappe.bold(self.sales_invoice)
+			),
+			title=_("Счёт устарел"),
+			indicator="orange",
+		)
 
 	# --- validations ---------------------------------------------------------
 
