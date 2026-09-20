@@ -1,71 +1,136 @@
-/* Room Chessboard — цвета через CSS-переменные Frappe, поэтому работает и тёмная тема */
+/* Room Chessboard — цвета через CSS-переменные Frappe (светлая и тёмная темы) */
 
-.rc-wrapper {
-	padding: var(--padding-sm, 8px) 0;
+.rc {
+	--rc-row-h: 54px;
+	--rc-line: var(--border-color);
+	--rc-line-soft: color-mix(in srgb, var(--border-color) 60%, transparent);
+	--rc-weekend: var(--subtle-fg);
+	--rc-today: var(--blue-500);
+	padding: 4px 0 0;
+	color: var(--text-color);
 }
+
+.rc-icon {
+	width: 16px;
+	height: 16px;
+	flex: none;
+}
+
+/* --- toolbar ------------------------------------------------------------- */
 
 .rc-toolbar {
 	display: flex;
 	flex-wrap: wrap;
-	align-items: center;
-	gap: 8px 16px;
-	margin-bottom: 12px;
+	align-items: flex-end;
+	gap: 12px 20px;
+	padding-bottom: 16px;
 }
 
-.rc-period {
-	font-weight: 600;
+.rc-field > label {
+	display: block;
+	margin-bottom: 6px;
+	font-size: var(--text-sm);
 	color: var(--text-color);
 }
 
-.rc-legend {
+.rc-month {
 	display: flex;
-	flex-wrap: wrap;
-	gap: 6px 14px;
+	align-items: center;
+	gap: 6px;
+}
+
+.rc-icon-btn {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: 36px;
+	height: 36px;
+	padding: 0;
+}
+
+.rc-month-label {
+	min-width: 150px;
+	height: 36px;
+	font-size: var(--text-lg, 16px);
+	font-weight: 500;
+	background: none;
+	box-shadow: none;
+}
+
+.rc-month-label:hover {
+	background: var(--subtle-fg);
+}
+
+.rc-view {
+	min-width: 200px;
+	height: 36px;
+}
+
+.rc-refresh {
+	border: none;
+	background: none;
+	box-shadow: none;
+	color: var(--text-muted);
+}
+
+.rc-new {
+	display: inline-flex;
+	align-items: center;
+	gap: 8px;
+	height: 36px;
 	margin-left: auto;
-	font-size: var(--text-sm);
+	padding: 0 14px;
+}
+
+/* --- board --------------------------------------------------------------- */
+
+.rc-board {
+	position: relative;
+	border-top: 1px solid var(--rc-line);
+}
+
+.rc-corner {
+	position: absolute;
+	top: 0;
+	left: 0;
+	z-index: 5;
+	box-sizing: border-box;
+	display: flex;
+	align-items: flex-end;
+	padding: 0 12px 12px;
+	background: var(--card-bg);
+	border-right: 1px solid var(--rc-line);
+	border-bottom: 1px solid var(--rc-line);
+	pointer-events: none;
+}
+
+.rc-corner-toggle {
+	display: inline-flex;
+	align-items: center;
+	gap: 8px;
+	padding: 0;
+	border: 0;
+	background: none;
+	font-weight: 600;
+	color: var(--text-color);
+	pointer-events: auto;
+}
+
+.rc-chevron {
+	width: 16px;
+	height: 16px;
 	color: var(--text-muted);
+	transition: transform 0.15s ease;
 }
 
-.rc-legend-swatch {
-	display: inline-block;
-	width: 12px;
-	height: 12px;
-	margin-right: 5px;
-	border-radius: 3px;
-	border: 1px solid transparent;
-	vertical-align: -2px;
+.rc-corner.collapsed .rc-chevron,
+.rc-timeline .vis-label.vis-nesting-group.collapsed .rc-chevron {
+	transform: rotate(-90deg);
 }
-
-.rc-legend-unpaid {
-	background: var(--bg-color);
-	box-shadow: inset 3px 0 0 var(--red-500);
-	border-color: var(--border-color);
-}
-
-.rc-legend-draft {
-	background: var(--bg-color);
-	border: 1px dashed var(--text-muted);
-}
-
-.rc-hint {
-	margin-top: 8px;
-	font-size: var(--text-xs);
-}
-
-.rc-empty {
-	padding: 48px 16px;
-	text-align: center;
-	color: var(--text-muted);
-	border: 1px dashed var(--border-color);
-	border-radius: var(--border-radius-md);
-}
-
-/* --- timeline frame ------------------------------------------------------ */
 
 .rc-timeline .vis-timeline {
 	font-family: inherit;
-	border: 1px solid var(--border-color);
-	border-radius: var(--border-radius-md);
+	border: none;
 	background: var(--card-bg);
 	color: var(--text-color);
 }
@@ -76,162 +141,359 @@
 .rc-timeline .vis-panel.vis-bottom,
 .rc-timeline .vis-labelset .vis-label,
 .rc-timeline .vis-foreground .vis-group {
-	border-color: var(--border-color);
+	border-color: var(--rc-line);
 }
 
-.rc-timeline .vis-time-axis .vis-text {
-	color: var(--text-muted);
+.rc-timeline .vis-panel.vis-left {
+	border-right: 1px solid var(--rc-line);
+}
+
+.rc-timeline .vis-panel.vis-top {
+	border-bottom: 1px solid var(--rc-line);
+	/* шапка поверх линии текущего времени */
+	z-index: 3;
+	background: var(--card-bg);
+}
+
+.rc-timeline .vis-panel.vis-left {
+	border-left: none;
+}
+
+/* --- time axis: колонка дня = число + день недели ------------------------ */
+
+.rc-timeline .vis-time-axis.vis-foreground {
+	height: 58px;
+}
+
+.rc-timeline .vis-time-axis .vis-text.vis-minor {
+	box-sizing: border-box;
+	width: var(--rc-day-w, 112px) !important;
+	margin-left: calc(var(--rc-day-w, 112px) / -2);
+	height: 58px;
+	padding: 10px 0 0;
+	text-align: center;
+	line-height: 1.1;
 	font-size: var(--text-xs);
+	color: var(--text-muted);
+	white-space: normal;
 }
 
-.rc-timeline .vis-time-axis .vis-text.vis-major {
+.rc-timeline .vis-time-axis .vis-text.vis-minor :is(b, strong, mark) {
+	display: inline-block;
+	min-width: 26px;
+	height: 26px;
+	line-height: 26px;
+	border-radius: 13px;
+	font-size: var(--text-base);
+	font-weight: 500;
 	color: var(--text-color);
-	font-weight: 600;
 }
 
-.rc-timeline .vis-time-axis .vis-grid.vis-minor,
-.rc-timeline .vis-time-axis .vis-grid.vis-major {
-	border-color: var(--border-color);
+.rc-timeline .vis-time-axis .vis-text.vis-minor:has(strong) {
+	background: var(--rc-weekend);
 }
 
-.rc-timeline .vis-time-axis .vis-grid.vis-today {
-	background: none;
+.rc-timeline .vis-time-axis .vis-text.vis-minor strong {
+	font-weight: 700;
 }
 
-/* выходные затеняем только когда на шкале дни, а не часы */
-.rc-timeline:not(.rc-hourly) .vis-time-axis .vis-grid.vis-saturday,
-.rc-timeline:not(.rc-hourly) .vis-time-axis .vis-grid.vis-sunday {
-	background: var(--subtle-fg);
+.rc-timeline .vis-time-axis .vis-text.vis-minor mark {
+	padding: 0;
+	background: var(--rc-today);
+	color: #fff;
+	font-weight: 700;
+}
+
+/* сетка: сплошная линия между днями, бледная — в полдень */
+.rc-timeline .vis-time-axis .vis-grid.vis-minor {
+	border-color: var(--rc-line);
+}
+
+.rc-timeline .vis-time-axis .vis-grid.vis-minor.vis-h12 {
+	border-color: var(--rc-line-soft);
+}
+
+.rc-timeline .vis-panel.vis-top .vis-time-axis .vis-grid.vis-minor.vis-h12 {
+	border-color: transparent;
+}
+
+.rc-timeline .vis-item.vis-background.rc-weekend {
+	background: var(--rc-weekend);
+	border: 0;
+	z-index: 0;
 }
 
 .rc-timeline .vis-current-time {
 	width: 2px;
-	background-color: var(--red-500);
+	background-color: var(--rc-today);
+	z-index: 2;
 }
 
-/* --- group labels (здание → этаж → номер) ---------------------------------- */
+/* --- ресурсы (строки) ------------------------------------------------------ */
 
-.rc-timeline .vis-labelset .vis-label {
-	color: var(--text-color);
-}
-
-.rc-timeline .vis-label.rc-group-building,
-.rc-timeline .vis-label.rc-group-floor {
-	background: var(--subtle-fg);
-}
-
-.rc-timeline .vis-foreground .vis-group.rc-group-building,
-.rc-timeline .vis-foreground .vis-group.rc-group-floor {
-	background: var(--subtle-fg);
+.rc-timeline .vis-labelset .vis-label .vis-inner {
+	padding: 0;
 }
 
 .rc-group-label {
 	display: flex;
-	align-items: baseline;
+	align-items: center;
 	gap: 8px;
-	min-width: 150px;
-	padding-right: 8px;
+	min-width: 240px;
+	height: var(--rc-row-h);
+	padding: 0 16px;
+	font-size: var(--text-base);
 }
 
-.rc-group-label-building .rc-group-title {
-	font-weight: 700;
-}
-
-.rc-group-label-floor .rc-group-title {
-	font-weight: 600;
-	color: var(--text-muted);
-	font-size: var(--text-sm);
-}
-
-.rc-group-label-room .rc-group-title {
+.rc-group-label-section,
+.rc-group-label-subsection {
+	height: 46px;
 	font-weight: 600;
 }
 
-.rc-group-sub {
+.rc-group-label-subsection {
+	padding-left: 32px;
+	font-weight: 500;
 	color: var(--text-muted);
-	font-size: var(--text-xs);
-	white-space: nowrap;
 }
 
-.rc-timeline .vis-label.vis-nested-group.vis-group-level-2 .vis-inner {
-	padding-left: 36px;
+.rc-timeline .vis-label.rc-group-section,
+.rc-timeline .vis-label.rc-group-subsection,
+.rc-timeline .vis-foreground .vis-group.rc-group-section,
+.rc-timeline .vis-foreground .vis-group.rc-group-subsection {
+	background: var(--rc-weekend);
 }
 
-/* --- bookings ------------------------------------------------------------ */
+.rc-timeline .vis-foreground .vis-group.rc-group-section,
+.rc-timeline .vis-foreground .vis-group.rc-group-subsection {
+	background: color-mix(in srgb, var(--subtle-fg) 70%, transparent);
+}
 
-.rc-timeline .vis-item.rc-item {
-	border-width: 1px;
-	border-radius: 6px;
+/* свой шеврон вместо стандартного треугольника vis */
+.rc-timeline .vis-label.vis-nesting-group::before {
+	display: none;
+}
+
+.rc-timeline .vis-label.vis-nesting-group {
+	cursor: pointer;
+}
+
+.rc-timeline .vis-label.vis-nested-group .vis-inner {
+	padding-left: 0 !important;
+}
+
+/* --- брони ------------------------------------------------------------------- */
+
+.rc-timeline .vis-item.rc-item,
+.rc-timeline .vis-item.rc-selection {
+	--rc-c: var(--gray-500);
+	--rc-bg: var(--bg-gray);
+	height: 38px;
+	border: 0;
+	background: none;
+	color: var(--text-color);
 	font-size: var(--text-sm);
 	cursor: pointer;
 }
 
-.rc-timeline .vis-item.rc-item .vis-item-content {
-	padding: 3px 8px;
+/* форма «плашка со стрелкой»: ::before — контур, ::after — заливка */
+.rc-timeline .vis-item.rc-item::before,
+.rc-timeline .vis-item.rc-item::after,
+.rc-timeline .vis-item.rc-selection::before,
+.rc-timeline .vis-item.rc-selection::after {
+	content: "";
+	position: absolute;
+	z-index: 0;
+	border-radius: 7px;
+	clip-path: polygon(0 0, calc(100% - 10px) 0, 100% 50%, calc(100% - 10px) 100%, 0 100%);
+}
+
+.rc-timeline .vis-item.rc-item::before,
+.rc-timeline .vis-item.rc-selection::before {
+	inset: 0;
+	background: var(--rc-c);
+}
+
+.rc-timeline .vis-item.rc-item::after,
+.rc-timeline .vis-item.rc-selection::after {
+	inset: 1.5px;
+	border-radius: 6px;
+	background: var(--rc-bg);
+}
+
+.rc-timeline .vis-item.rc-item .vis-item-overflow,
+.rc-timeline .vis-item.rc-selection .vis-item-overflow {
+	position: relative;
+	z-index: 1;
+}
+
+.rc-timeline .vis-item.rc-item .vis-item-content,
+.rc-timeline .vis-item.rc-selection .vis-item-content {
+	display: block;
+	box-sizing: border-box;
+	width: 100%;
+	height: 100%;
+	padding: 0 18px 0 14px;
 }
 
 .rc-item-content {
 	display: flex;
-	gap: 6px;
-	align-items: baseline;
-	overflow: hidden;
+	align-items: center;
+	gap: 8px;
+	height: 38px;
+}
+
+.rc-item-content > .rc-icon {
+	width: 18px;
+	height: 18px;
 }
 
 .rc-item-title {
-	font-weight: 600;
-	white-space: nowrap;
+	flex: 1 1 auto;
+	min-width: 0;
 	overflow: hidden;
 	text-overflow: ellipsis;
+	white-space: nowrap;
+	font-weight: 500;
 }
 
-.rc-item-sub {
-	opacity: 0.75;
-	font-size: var(--text-xs);
+.rc-item-pay {
+	display: inline-flex;
+	color: var(--rc-c);
 }
 
-.rc-legend-swatch.rc-status-booking,
+.rc-timeline .vis-item.rc-item:hover::after {
+	filter: brightness(0.97);
+}
+
+/* статусы */
+.rc-status-booking {
+	--rc-c: var(--yellow-500);
+	--rc-bg: var(--bg-yellow);
+}
+
+.rc-status-checked-in {
+	--rc-c: var(--cyan-500);
+	--rc-bg: var(--bg-cyan);
+}
+
+.rc-status-checked-out {
+	--rc-c: var(--blue-500);
+	--rc-bg: var(--bg-blue);
+}
+
+.rc-status-completed {
+	--rc-c: var(--green-500);
+	--rc-bg: var(--bg-green);
+}
+
 .rc-timeline .vis-item.rc-item.rc-status-booking {
-	background-color: var(--bg-blue);
-	border-color: var(--text-on-blue);
-	color: var(--text-on-blue);
+	--rc-c: var(--yellow-500);
+	--rc-bg: var(--bg-yellow);
 }
 
-.rc-legend-swatch.rc-status-checked-in,
 .rc-timeline .vis-item.rc-item.rc-status-checked-in {
-	background-color: var(--bg-green);
-	border-color: var(--text-on-green);
-	color: var(--text-on-green);
+	--rc-c: var(--cyan-500);
+	--rc-bg: var(--bg-cyan);
 }
 
-.rc-legend-swatch.rc-status-checked-out,
 .rc-timeline .vis-item.rc-item.rc-status-checked-out {
-	background-color: var(--bg-orange);
-	border-color: var(--text-on-orange);
-	color: var(--text-on-orange);
+	--rc-c: var(--blue-500);
+	--rc-bg: var(--bg-blue);
 }
 
-.rc-legend-swatch.rc-status-completed,
 .rc-timeline .vis-item.rc-item.rc-status-completed {
-	background-color: var(--bg-gray);
-	border-color: var(--text-on-gray);
-	color: var(--text-on-gray);
+	--rc-c: var(--green-500);
+	--rc-bg: var(--bg-green);
 }
 
-.rc-timeline .vis-item.rc-item.rc-unpaid {
-	box-shadow: inset 4px 0 0 var(--red-500);
+/* выделение нового интервала */
+.rc-timeline .vis-item.rc-selection {
+	--rc-c: var(--text-color);
+	--rc-bg: var(--subtle-fg);
+	font-weight: 500;
+	pointer-events: none;
 }
 
-.rc-timeline .vis-item.rc-item.rc-draft {
-	border-style: dashed;
-	opacity: 0.85;
+.rc-timeline .vis-item.rc-selection.rc-selection-conflict {
+	--rc-c: var(--red-500);
+	--rc-bg: color-mix(in srgb, var(--red-500) 12%, var(--card-bg));
+	color: var(--red-600, var(--red-500));
 }
 
-.rc-timeline .vis-item.rc-item.vis-selected.vis-selected {
-	border-width: 2px;
-	z-index: 2;
+.rc-timeline .vis-panel.vis-center {
+	cursor: cell;
 }
 
-/* --- tooltip ------------------------------------------------------------- */
+/* --- scrollbar ---------------------------------------------------------------- */
+
+.rc-scrollbar {
+	position: relative;
+	height: 14px;
+	margin-top: 2px;
+	cursor: pointer;
+}
+
+.rc-scrollbar-thumb {
+	position: absolute;
+	top: 4px;
+	height: 6px;
+	border-radius: 3px;
+	background: var(--gray-300, var(--border-color));
+	cursor: grab;
+}
+
+.rc-scrollbar-thumb:hover {
+	background: var(--gray-400, var(--text-muted));
+}
+
+/* --- legend ------------------------------------------------------------------ */
+
+.rc-legend {
+	display: flex;
+	flex-wrap: wrap;
+	justify-content: center;
+	align-items: center;
+	gap: 8px 24px;
+	margin-top: 16px;
+	padding: 16px 0 4px;
+	border-top: 1px solid var(--rc-line);
+	font-size: var(--text-base);
+	color: var(--text-muted);
+}
+
+.rc-legend-item {
+	display: inline-flex;
+	align-items: center;
+	gap: 8px;
+}
+
+.rc-legend-item .rc-icon {
+	width: 20px;
+	height: 20px;
+	color: var(--text-color);
+}
+
+.rc-legend-sep {
+	width: 12px;
+}
+
+.rc-dot {
+	width: 14px;
+	height: 14px;
+	border-radius: 50%;
+	background: var(--rc-c);
+}
+
+.rc-empty {
+	padding: 48px 16px;
+	text-align: center;
+	color: var(--text-muted);
+	border: 1px dashed var(--border-color);
+	border-radius: var(--border-radius-md);
+}
+
+/* --- tooltip ------------------------------------------------------------------- */
 
 .vis-tooltip:has(.rc-tooltip) {
 	padding: 10px 12px;
@@ -265,4 +527,9 @@
 
 .rc-tooltip-row span:first-child {
 	color: var(--text-muted);
+}
+
+/* vis подкрашивает вложенные уровни — у строк номеров фон всегда обычный */
+.rc-timeline .vis-labelset .vis-label.rc-group-room {
+	background: var(--card-bg);
 }

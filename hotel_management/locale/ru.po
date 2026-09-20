@@ -347,33 +347,18 @@ msgstr "Пересоздать счёт продажи"
 msgid "Room Chessboard"
 msgstr "Шахматка номеров"
 
-#: hotel_management/hotel_management/page/room_chessboard/room_chessboard.js
-msgid "Day"
-msgstr "День"
 
-#: hotel_management/hotel_management/page/room_chessboard/room_chessboard.js
-msgid "Week"
-msgstr "Неделя"
 
 #: hotel_management/hotel_management/page/room_chessboard/room_chessboard.js
 msgid "Month"
 msgstr "Месяц"
 
-#: hotel_management/hotel_management/page/room_chessboard/room_chessboard.js
-msgid "Previous"
-msgstr "Назад"
 
-#: hotel_management/hotel_management/page/room_chessboard/room_chessboard.js
-msgid "Next"
-msgstr "Вперёд"
 
 #: hotel_management/hotel_management/page/room_chessboard/room_chessboard.js
 msgid "Today"
 msgstr "Сегодня"
 
-#: hotel_management/hotel_management/page/room_chessboard/room_chessboard.js
-msgid "Draft"
-msgstr "Черновик"
 
 #: hotel_management/hotel_management/page/room_chessboard/room_chessboard.js
 msgid "No rooms found"
@@ -383,9 +368,6 @@ msgstr "Номера не найдены"
 msgid "Create Hotel Room"
 msgstr "Создать номер"
 
-#: hotel_management/hotel_management/page/room_chessboard/room_chessboard.js
-msgid "Double-click a booking to open it, or an empty cell to create a new one. Ctrl + wheel to zoom."
-msgstr "Двойной клик по брони — открыть её, по пустой ячейке — создать новую. Ctrl + колесо — масштаб."
 
 #: hotel_management/hotel_management/page/room_chessboard/room_chessboard.js
 msgid "No Building"
@@ -399,9 +381,6 @@ msgstr "Без этажа"
 msgid "Floor {0}"
 msgstr "Этаж {0}"
 
-#: hotel_management/hotel_management/page/room_chessboard/room_chessboard.js
-msgid "Go to Date"
-msgstr "Перейти к дате"
 
 #: hotel_management/hotel_management/page/room_chessboard/room_chessboard.js
 msgid "New Booking"
@@ -411,10 +390,67 @@ msgstr "Новая бронь"
 msgid "Refresh"
 msgstr "Обновить"
 
-#: hotel_management/hotel_management/page/room_chessboard/room_chessboard.js
-msgid "Hours"
-msgstr "Часы"
 
 #: hotel_management/hotel_management/page/room_chessboard/room_chessboard.js
 msgid "Total"
 msgstr "Итого"
+
+#: hotel_management/hotel_management/page/room_chessboard/room_chessboard.js
+msgid "View"
+msgstr "Вид"
+
+#: hotel_management/hotel_management/page/room_chessboard/room_chessboard.js
+msgid "Resources"
+msgstr "Ресурсы"
+
+#: hotel_management/hotel_management/page/room_chessboard/room_chessboard.js
+msgid "By Room Type"
+msgstr "По типу номера"
+
+#: hotel_management/hotel_management/page/room_chessboard/room_chessboard.js
+msgid "By Building"
+msgstr "По зданию"
+
+#: hotel_management/hotel_management/page/room_chessboard/room_chessboard.js
+msgid "All Rooms"
+msgstr "Все номера"
+
+#: hotel_management/hotel_management/page/room_chessboard/room_chessboard.js
+msgid "Previous Month"
+msgstr "Предыдущий месяц"
+
+#: hotel_management/hotel_management/page/room_chessboard/room_chessboard.js
+msgid "Next Month"
+msgstr "Следующий месяц"
+
+#: hotel_management/hotel_management/page/room_chessboard/room_chessboard.js
+msgid "No Room Type"
+msgstr "Без типа"
+
+#: hotel_management/hotel_management/page/room_chessboard/room_chessboard.js
+msgid "Room is occupied"
+msgstr "Номер занят"
+
+#: hotel_management/hotel_management/page/room_chessboard/room_chessboard.js
+msgid "Room is occupied for the selected dates"
+msgstr "Номер занят на выбранные даты"
+
+#: hotel_management/hotel_management/page/room_chessboard/room_chessboard.js
+msgid "Nights: {0}"
+msgstr "Ночей: {0}"
+
+#: hotel_management/hotel_management/page/room_chessboard/room_chessboard.js
+msgid "More Information"
+msgstr "Дополнительно"
+
+#: hotel_management/hotel_management/page/room_chessboard/room_chessboard.js
+msgid "No active rates for this room type"
+msgstr "Нет активных тарифов для этого типа номера"
+
+#: hotel_management/hotel_management/page/room_chessboard/room_chessboard.js
+msgid "Check Out must be after Check In"
+msgstr "Выезд должен быть позже заезда"
+
+#: hotel_management/hotel_management/page/room_chessboard/room_chessboard.js
+msgid "h"
+msgstr "ч"

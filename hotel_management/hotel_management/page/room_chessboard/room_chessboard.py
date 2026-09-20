@@ -81,14 +81,14 @@ def get_bookings(start, end, hotel_building=None, room_type=None, status=None):
 		return []
 
 	customers = {b.customer for b in bookings if b.customer}
-	customer_names = dict(
-		frappe.get_all(
+	customer_info = {
+		c.name: c
+		for c in frappe.get_all(
 			"Customer",
 			filters={"name": ["in", list(customers)]},
-			fields=["name", "customer_name"],
-			as_list=True,
+			fields=["name", "customer_name", "customer_type"],
 		)
-	)
+	}
 
 	guest_count = {}
 	for row in frappe.get_all(
@@ -99,7 +99,9 @@ def get_bookings(start, end, hotel_building=None, room_type=None, status=None):
 		guest_count[row.parent] = guest_count.get(row.parent, 0) + 1
 
 	for b in bookings:
-		b.customer_name = customer_names.get(b.customer) or b.customer
+		info = customer_info.get(b.customer) or {}
+		b.customer_name = info.get("customer_name") or b.customer
+		b.customer_type = info.get("customer_type") or "Individual"
 		b.guests = guest_count.get(b.name, 0)
 		b.currency = frappe.get_cached_value("Company", b.company, "default_currency")
 
