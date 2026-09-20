@@ -44,6 +44,7 @@
    "label": "Information"
   },
   {
+   "allow_in_quick_entry": 1,
    "fieldname": "max_occupancy",
    "fieldtype": "Int",
    "label": "Max Occupancy"
@@ -70,6 +71,7 @@
    "options": "Room Type Amenity"
   },
   {
+   "allow_in_quick_entry": 1,
    "fieldname": "room_size",
    "fieldtype": "Float",
    "label": "Room Size"
@@ -83,7 +85,7 @@
  "image_field": "image",
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-09-20 18:33:47.757261",
+ "modified": "2026-09-20 21:00:00.000000",
  "modified_by": "Administrator",
  "module": "Hotel Management",
  "name": "Room Type",
@@ -103,6 +105,7 @@
    "write": 1
   }
  ],
+ "quick_entry": 1,
  "row_format": "Dynamic",
  "rows_threshold_for_grid_search": 20,
  "sort_field": "creation",

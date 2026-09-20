@@ -4,6 +4,7 @@
 // Короткая форма (Quick Entry) для Room Booking.
 // Frappe сам подхватывает класс по имени `<DocType без пробелов>QuickEntryForm`,
 // поэтому форма открывается везде: из списка, из поля-ссылки, из шахматки.
+// Подключается глобально через app_include_js (hooks.py).
 
 frappe.provide("frappe.ui.form");
 

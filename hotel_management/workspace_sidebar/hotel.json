@@ -1,0 +1,142 @@
+{
+ "app": "hotel_management",
+ "docstatus": 0,
+ "doctype": "Workspace Sidebar",
+ "items": [
+  {
+   "child": 0,
+   "collapsible": 1,
+   "icon": "house",
+   "indent": 0,
+   "keep_closed": 0,
+   "label": "Hotel",
+   "link_to": "Hotel",
+   "link_type": "Workspace",
+   "show_arrow": 0,
+   "type": "Link"
+  },
+  {
+   "child": 0,
+   "collapsible": 1,
+   "icon": "notebook-pen",
+   "indent": 0,
+   "keep_closed": 0,
+   "label": "Room Booking",
+   "link_to": "Room Booking",
+   "link_type": "DocType",
+   "show_arrow": 0,
+   "type": "Link"
+  },
+  {
+   "child": 0,
+   "collapsible": 1,
+   "icon": "calendar-days",
+   "indent": 0,
+   "keep_closed": 0,
+   "label": "Room Chessboard",
+   "link_to": "room-chessboard",
+   "link_type": "Page",
+   "show_arrow": 0,
+   "type": "Link"
+  },
+  {
+   "child": 0,
+   "collapsible": 1,
+   "indent": 0,
+   "keep_closed": 0,
+   "label": "Setups",
+   "link_type": "DocType",
+   "show_arrow": 0,
+   "type": "Section Break"
+  },
+  {
+   "child": 1,
+   "collapsible": 1,
+   "icon": "component",
+   "indent": 0,
+   "keep_closed": 0,
+   "label": "Room Type",
+   "link_to": "Room Type",
+   "link_type": "DocType",
+   "show_arrow": 0,
+   "type": "Link"
+  },
+  {
+   "child": 1,
+   "collapsible": 1,
+   "icon": "bed-double",
+   "indent": 0,
+   "keep_closed": 0,
+   "label": "Hotel Room",
+   "link_to": "Hotel Room",
+   "link_type": "DocType",
+   "show_arrow": 0,
+   "type": "Link"
+  },
+  {
+   "child": 1,
+   "collapsible": 1,
+   "icon": "building-2",
+   "indent": 0,
+   "keep_closed": 0,
+   "label": "Hotel Building",
+   "link_to": "Hotel Building",
+   "link_type": "DocType",
+   "show_arrow": 0,
+   "type": "Link"
+  },
+  {
+   "child": 1,
+   "collapsible": 1,
+   "icon": "grid-3x2",
+   "indent": 0,
+   "keep_closed": 0,
+   "label": "Hotel Floor",
+   "link_to": "Hotel Floor",
+   "link_type": "DocType",
+   "show_arrow": 0,
+   "type": "Link"
+  },
+  {
+   "child": 1,
+   "collapsible": 1,
+   "icon": "badge-dollar-sign",
+   "indent": 0,
+   "keep_closed": 0,
+   "label": "Room Rate",
+   "link_to": "Room Rate",
+   "link_type": "DocType",
+   "show_arrow": 0,
+   "type": "Link"
+  },
+  {
+   "child": 1,
+   "collapsible": 1,
+   "icon": "lamp-floor",
+   "indent": 0,
+   "keep_closed": 0,
+   "label": "Room Amenity",
+   "link_to": "Room Amenity",
+   "link_type": "DocType",
+   "show_arrow": 0,
+   "type": "Link"
+  },
+  {
+   "child": 1,
+   "collapsible": 1,
+   "icon": "settings-2",
+   "indent": 0,
+   "keep_closed": 0,
+   "label": "Hotel Profile",
+   "link_to": "Hotel Profile",
+   "link_type": "DocType",
+   "show_arrow": 0,
+   "type": "Link"
+  }
+ ],
+ "modified": "2026-09-20 21:00:00.000000",
+ "module": "Hotel Management",
+ "name": "Hotel",
+ "standard": 1,
+ "title": "Hotel"
+}
