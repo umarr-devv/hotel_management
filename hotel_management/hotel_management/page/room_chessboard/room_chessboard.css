@@ -554,3 +554,118 @@
 	border: none;
 	border-bottom: 1px solid var(--rc-line);
 }
+
+/* --- карточка брони (диалог по клику) ------------------------------------------ */
+
+.rcb {
+	display: flex;
+	flex-direction: column;
+	gap: 14px;
+	font-size: var(--text-base);
+}
+
+.rcb-badges {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 8px;
+}
+
+.rcb-badge {
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+	padding: 3px 10px;
+	border-radius: 999px;
+	font-size: var(--text-sm);
+	font-weight: 500;
+	background: var(--rc-bg, var(--subtle-fg));
+	color: var(--text-color);
+}
+
+.rcb-badge .rc-dot {
+	width: 8px;
+	height: 8px;
+}
+
+.rcb-badge .rc-icon {
+	width: 14px;
+	height: 14px;
+}
+
+.rcb-paid {
+	background: var(--bg-green);
+	color: var(--text-on-green);
+}
+
+.rcb-unpaid {
+	background: var(--bg-red, var(--subtle-fg));
+	color: var(--text-on-red, var(--text-color));
+}
+
+.rcb-name {
+	margin-left: auto;
+	font-size: var(--text-sm);
+	color: var(--text-muted);
+}
+
+.rcb-grid {
+	display: grid;
+	grid-template-columns: 1fr 1fr;
+	gap: 0 24px;
+}
+
+@media (max-width: 576px) {
+	.rcb-grid {
+		grid-template-columns: 1fr;
+	}
+}
+
+.rcb-row {
+	display: flex;
+	justify-content: space-between;
+	gap: 12px;
+	padding: 6px 0;
+	border-bottom: 1px solid var(--border-color);
+}
+
+.rcb-label {
+	color: var(--text-muted);
+	white-space: nowrap;
+}
+
+.rcb-value {
+	text-align: right;
+	font-weight: 500;
+}
+
+.rcb-money {
+	padding: 4px 12px;
+	border-radius: var(--border-radius-md);
+	background: var(--subtle-fg);
+}
+
+.rcb-money .rcb-row:last-child {
+	border-bottom: none;
+}
+
+.rcb-services {
+	padding: 4px 0 4px 12px;
+	font-size: var(--text-sm);
+	color: var(--text-muted);
+}
+
+.rcb-service {
+	display: flex;
+	justify-content: space-between;
+	padding: 2px 0;
+}
+
+.rcb-total .rcb-row {
+	border-bottom: none;
+	font-size: var(--text-lg, 16px);
+}
+
+.rcb-total .rcb-value {
+	font-weight: 700;
+}

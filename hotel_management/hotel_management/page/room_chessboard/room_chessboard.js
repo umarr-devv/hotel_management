@@ -41,6 +41,12 @@
 	const VIEW_KEY = "room_chessboard_view";
 
 	const STATUSES = ["Booking", "Checked In", "Checked Out", "Completed"];
+	const STATUS_INDICATOR = {
+		Booking: "yellow",
+		"Checked In": "cyan",
+		"Checked Out": "blue",
+		Completed: "green",
+	};
 
 	const VIEWS = {
 		group: __("By Room Type"),
@@ -233,9 +239,7 @@
 			this.timeline.on("changed", () => this.sync_corner());
 			this.timeline.on("click", (props) => {
 				const item = props.item && this.items.get(props.item);
-				if (item && item.booking) {
-					frappe.set_route("Form", "Room Booking", props.item);
-				}
+				if (item && item.booking) this.show_booking(props.item);
 			});
 		}
 
@@ -787,6 +791,142 @@
 			apply_visibility(groups);
 			this.groups.update(groups.map((g) => ({ id: g.id, showNested: g.showNested, visible: g.visible })));
 			this.$body.find(".rc-corner").toggleClass("collapsed", !expand);
+		}
+
+		// ------------------------------------------------------------ карточка брони
+
+		async show_booking(name) {
+			const item = this.items.get(name);
+			const b = (item && item.booking) || {};
+			const [doc, transitions] = await Promise.all([
+				frappe.db.get_doc("Room Booking", name),
+				frappe
+					.xcall("frappe.model.workflow.get_transitions", { doc: { doctype: "Room Booking", name } })
+					.catch(() => []),
+			]);
+
+			const guest_ids = (doc.guests || []).map((g) => g.guest).filter(Boolean);
+			const guest_names = guest_ids.length
+				? await frappe.db.get_list("Customer", {
+						filters: { name: ["in", guest_ids] },
+						fields: ["name", "customer_name"],
+						limit: guest_ids.length,
+				  })
+				: [];
+			const guest_map = Object.fromEntries(guest_names.map((g) => [g.name, g.customer_name]));
+
+			this.booking_dialog && this.booking_dialog.hide();
+			const dialog = new frappe.ui.Dialog({
+				title: frappe.utils.escape_html(b.customer_name || doc.customer),
+				indicator: STATUS_INDICATOR[doc.status] || "gray",
+				fields: [{ fieldtype: "HTML", fieldname: "body" }],
+			});
+			this.booking_dialog = dialog;
+			dialog.$wrapper.addClass("rc-booking-dialog");
+			dialog.fields_dict.body.$wrapper.html(
+				this.booking_card_html(doc, b, guest_ids.map((id) => guest_map[id] || id))
+			);
+
+			const open_form = () => {
+				dialog.hide();
+				frappe.set_route("Form", "Room Booking", name);
+			};
+
+			// действия workflow (с учётом ролей пользователя); первое — основная кнопка
+			const [first, ...rest] = transitions;
+			if (first) {
+				dialog.set_primary_action(__(first.action), () => this.apply_action(doc, first.action));
+				rest.forEach((t) =>
+					dialog.add_custom_action(__(t.action), () => this.apply_action(doc, t.action))
+				);
+				dialog.set_secondary_action(open_form);
+				dialog.set_secondary_action_label(__("Open Full Form"));
+			} else {
+				dialog.set_primary_action(__("Open Full Form"), open_form);
+			}
+
+			dialog.show();
+		}
+
+		booking_card_html(doc, b, guests) {
+			const esc = (v) => frappe.utils.escape_html(v == null ? "" : String(v));
+			const currency = b.currency || frappe.defaults.get_default("currency");
+			const money = (v) => format_currency(v || 0, currency);
+			const dt = (v) => {
+				const d = parse_dt(v);
+				return `${pad2(d.getDate())}.${pad2(d.getMonth() + 1)}.${d.getFullYear()} ${pad2(
+					d.getHours()
+				)}:${pad2(d.getMinutes())}`;
+			};
+			const nights = Math.round(
+				(start_of_day(parse_dt(doc.check_out)) - start_of_day(parse_dt(doc.check_in))) / DAY
+			);
+			const row = (label, value) =>
+				`<div class="rcb-row"><span class="rcb-label">${esc(label)}</span><span class="rcb-value">${value}</span></div>`;
+			const link = (doctype, name) =>
+				name
+					? `<a href="/app/${frappe.router.slug(doctype)}/${encodeURIComponent(name)}">${esc(name)}</a>`
+					: "—";
+
+			const services = (doc.items_and_service || [])
+				.map(
+					(r) =>
+						`<div class="rcb-service"><span>${esc(r.item)} × ${flt(r.qty)}</span><span>${money(
+							r.amount
+						)}</span></div>`
+				)
+				.join("");
+
+			const paid = doc.pay_status === "Paid";
+			return `
+				<div class="rcb">
+					<div class="rcb-badges">
+						<span class="rcb-badge rc-status-${slug(doc.status)}">
+							<span class="rc-dot"></span>${esc(__(doc.status))}
+						</span>
+						<span class="rcb-badge ${paid ? "rcb-paid" : "rcb-unpaid"}">
+							${paid ? ICONS.paid : ICONS.unpaid}${esc(__(doc.pay_status || "Unpaid"))}
+						</span>
+						<span class="rcb-name">${link("Room Booking", doc.name)}</span>
+					</div>
+
+					<div class="rcb-grid">
+						<div>
+							${row(__("Customer"), link("Customer", doc.customer))}
+							${row(__("Room"), esc(doc.room))}
+							${row(__("Room Rate"), esc(doc.room_rate))}
+							${row(__("Guests"), guests.length ? guests.map(esc).join("<br>") : "—")}
+						</div>
+						<div>
+							${row(__("Check In"), dt(doc.check_in))}
+							${row(__("Check Out"), dt(doc.check_out))}
+							${row(
+								__("Duration"),
+								`${__("Nights: {0}", [nights])} · ${flt(doc.total_hours, 1)} ${__("h")}`
+							)}
+							${row(__("Sales Invoice"), link("Sales Invoice", doc.sales_invoice))}
+						</div>
+					</div>
+
+					<div class="rcb-money">
+						${row(__("Accommodation"), money(doc.amount))}
+						${services ? `<div class="rcb-services">${services}</div>` : ""}
+						${services ? row(__("Items and Services"), money(doc.items_and_serivce_amount)) : ""}
+						<div class="rcb-total">${row(__("Total"), money(doc.total_amount))}</div>
+					</div>
+				</div>`;
+		}
+
+		apply_action(doc, action) {
+			frappe.confirm(__("Apply action {0}?", [__(action).bold()]), async () => {
+				const updated = await frappe.xcall("frappe.model.workflow.apply_workflow", {
+					doc: { doctype: doc.doctype, name: doc.name },
+					action,
+				});
+				frappe.show_alert({ message: __("{0}: {1}", [doc.name, __(updated.status)]), indicator: "green" });
+				await this.load_bookings_now();
+				this.show_booking(doc.name);
+			});
 		}
 
 		// ------------------------------------------------------------ settings

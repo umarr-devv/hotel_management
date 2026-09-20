@@ -458,3 +458,23 @@ msgstr "ч"
 #: hotel_management/hotel_management/page/room_chessboard/room_chessboard.js
 msgid "Right mouse button — select dates"
 msgstr "Правая кнопка мыши — выбрать период"
+
+#: hotel_management/hotel_management/page/room_chessboard/room_chessboard.js
+msgid "Open Full Form"
+msgstr "Открыть полную форму"
+
+#: hotel_management/hotel_management/page/room_chessboard/room_chessboard.js
+msgid "Duration"
+msgstr "Длительность"
+
+#: hotel_management/hotel_management/page/room_chessboard/room_chessboard.js
+msgid "Accommodation"
+msgstr "Проживание"
+
+#: hotel_management/hotel_management/page/room_chessboard/room_chessboard.js
+msgid "Items and Services"
+msgstr "Товары и услуги"
+
+#: hotel_management/hotel_management/page/room_chessboard/room_chessboard.js
+msgid "Apply action {0}?"
+msgstr "Выполнить действие {0}?"
