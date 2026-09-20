@@ -1,5 +1,10 @@
 // Copyright (c) 2026, umarr and contributors
 // For license information, please see license.txt
+//
+// CSS страницы лежит рядом (room_chessboard.css) — Frappe отдаёт его вместе со страницей,
+// сборка ассетов для него не нужна. Быструю форму подключаем так же, через include.
+
+{% include "hotel_management/public/js/room_booking_quick_entry.js" %}
 
 (() => {
 	frappe.pages["room-chessboard"].on_page_load = function (wrapper) {
@@ -13,7 +18,6 @@
 			.require([
 				"/assets/hotel_management/js/lib/vis-timeline.min.js",
 				"/assets/hotel_management/css/lib/vis-timeline.min.css",
-				"/assets/hotel_management/css/room_chessboard.css",
 			])
 			.then(() => {
 				wrapper.chessboard = new hotel_management.RoomChessboard(page, wrapper);
@@ -353,7 +357,7 @@
 				sorted.sort(
 					(a, b) =>
 						natural_cmp(a.room_type, b.room_type) ||
-						natural_cmp(a.room_number || a.name, b.room_number || b.name)
+						natural_cmp(room_sort_key(a), room_sort_key(b))
 				);
 			}
 
@@ -800,8 +804,15 @@
 	}
 
 	function room_label(room) {
-		if (room.room_type && room.room_number) return `${room.room_type} №${room.room_number}`;
-		return room.name;
+		if (!room.room_type || !room.room_number) return room.name;
+		// номер может уже содержать «№» — не дублируем
+		const number = /^\d/.test(room.room_number) ? `№${room.room_number}` : room.room_number;
+		return `${room.room_type} ${number}`;
+	}
+
+	function room_sort_key(room) {
+		// «№7», «7», «VIP 7» → сортируем по самому номеру
+		return String(room.room_number || room.name).replace(/^\D+/, "");
 	}
 
 	function natural_cmp(a, b) {

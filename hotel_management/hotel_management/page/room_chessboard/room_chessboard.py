@@ -31,7 +31,7 @@ def get_rooms(hotel_building=None, room_type=None):
 			_natural_key(r.hotel_building),
 			cint(r.floor_number),
 			_natural_key(r.hotel_floor),
-			_natural_key(r.room_number or r.name),
+			_natural_key(re.sub(r"^\D+", "", r.room_number or r.name)),
 		)
 	)
 	return rooms

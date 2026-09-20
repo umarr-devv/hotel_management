@@ -533,3 +533,9 @@
 .rc-timeline .vis-labelset .vis-label.rc-group-room {
 	background: var(--card-bg);
 }
+
+/* отладочное правило vis-timeline рисует красные рамки у вложенных строк */
+.rc-timeline .vis-group-level-unknown-but-gte1 {
+	border: none;
+	border-bottom: 1px solid var(--rc-line);
+}
