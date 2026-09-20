@@ -606,3 +606,7 @@ msgstr "Цена"
 #: hotel_management/hotel_management/page/room_chessboard/room_chessboard.js
 msgid "No price for {0} in price list {1}"
 msgstr "Нет цены для {0} в прайс-листе {1}"
+
+#: hotel_management/public/js/room_booking_quick_entry.js
+msgid "Select a room first"
+msgstr "Сначала выберите номер"
