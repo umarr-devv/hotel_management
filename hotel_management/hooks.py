@@ -5,6 +5,10 @@ app_description = "App for Hotel Management"
 app_email = "umarr.devv@outlook.com"
 app_license = "mit"
 
+# сайдбар и иконка рабочего стола лежат в файлах приложения и всегда
+# перезаливаются из них после migrate
+after_migrate = "hotel_management.setup.sync_app_level_docs"
+
 fixtures = [
     {
         "dt": "Role",
