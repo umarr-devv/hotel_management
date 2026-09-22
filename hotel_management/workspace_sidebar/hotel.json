@@ -140,7 +140,7 @@
    "collapsible": 1,
    "icon": "database",
    "indent": 0,
-   "keep_closed": 0,
+   "keep_closed": 1,
    "label": "Setup",
    "link_type": "DocType",
    "show_arrow": 0,
@@ -175,7 +175,7 @@
    "collapsible": 1,
    "icon": "chart-line",
    "indent": 0,
-   "keep_closed": 0,
+   "keep_closed": 1,
    "label": "Hotel Reports",
    "link_type": "DocType",
    "show_arrow": 0,
@@ -337,7 +337,7 @@
    "type": "Link"
   }
  ],
- "modified": "2026-09-21 10:00:00.000000",
+ "modified": "2026-09-22 22:43:14.939324",
  "modified_by": "Administrator",
  "module": "Hotel Management",
  "name": "Hotel",

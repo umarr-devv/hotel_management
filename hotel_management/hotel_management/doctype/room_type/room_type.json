@@ -8,6 +8,7 @@
  "engine": "InnoDB",
  "field_order": [
   "room_type_name",
+  "disabled",
   "column_break_ztnt",
   "image",
   "rate_section",
@@ -79,13 +80,19 @@
   {
    "fieldname": "column_break_tvyx",
    "fieldtype": "Column Break"
+  },
+  {
+   "default": "0",
+   "fieldname": "disabled",
+   "fieldtype": "Check",
+   "label": "Disabled"
   }
  ],
  "grid_page_length": 50,
  "image_field": "image",
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-09-20 21:00:00.000000",
+ "modified": "2026-09-22 22:39:39.347201",
  "modified_by": "Administrator",
  "module": "Hotel Management",
  "name": "Room Type",

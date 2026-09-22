@@ -14,6 +14,7 @@
   "column_break_lbwu",
   "room_type",
   "location",
+  "disabled",
   "section_break_ddjn",
   "notes"
  ],
@@ -76,13 +77,19 @@
    "fieldtype": "Link",
    "label": "Location",
    "options": "Location"
+  },
+  {
+   "default": "0",
+   "fieldname": "disabled",
+   "fieldtype": "Check",
+   "label": "Disabled"
   }
  ],
  "grid_page_length": 50,
  "image_field": "image",
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-09-20 22:01:42.323404",
+ "modified": "2026-09-22 22:39:00.710169",
  "modified_by": "Administrator",
  "module": "Hotel Management",
  "name": "Hotel Room",
