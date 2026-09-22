@@ -89,7 +89,7 @@ msgstr "Удобство номера"
 #. Name of a DocType
 #: hotel_management/hotel_management/doctype/room_booking/room_booking.json
 msgid "Room Booking"
-msgstr "Бронирование номера"
+msgstr "Бронирование"
 
 #. Name of a DocType
 #: hotel_management/hotel_management/doctype/room_booking_item/room_booking_item.json
