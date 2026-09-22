@@ -3,7 +3,9 @@
 
 import frappe
 from frappe import _
-from frappe.utils import flt, getdate, nowdate
+from frappe.utils import cint, flt, getdate, nowdate
+
+from hotel_management.utils import active_room_filters
 
 
 @frappe.whitelist()
@@ -68,6 +70,22 @@ def get_room_rates(room: str):
 		filters={"parent": room_type, "parenttype": "Room Type", "enabled": 1},
 		fields=["room_rate", "rate_by_hour"],
 		order_by="idx asc",
+	)
+
+
+@frappe.whitelist()
+def active_room_query(doctype, txt, searchfield, start, page_len, filters):
+	"""Поиск для полей-ссылок на номер: без отключённых номеров и номеров отключённых типов."""
+	txt = f"%{txt or ''}%"
+	return frappe.get_list(
+		"Hotel Room",
+		filters=active_room_filters(),
+		or_filters=[["name", "like", txt], ["room_number", "like", txt]],
+		fields=["name", "room_type", "hotel_building"],
+		order_by="name asc",
+		limit_start=cint(start),
+		limit_page_length=cint(page_len) or 20,
+		as_list=True,
 	)
 
 

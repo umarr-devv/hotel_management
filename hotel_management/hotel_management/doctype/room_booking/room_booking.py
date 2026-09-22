@@ -6,6 +6,8 @@ from frappe import _
 from frappe.model.document import Document
 from frappe.utils import flt, get_datetime, time_diff_in_hours
 
+from hotel_management.utils import is_room_active
+
 
 class RoomBooking(Document):
 	def validate(self):
@@ -15,6 +17,7 @@ class RoomBooking(Document):
 		if not (self.room and self.room_rate and self.check_in and self.check_out):
 			return
 
+		self.validate_room()
 		self.validate_dates()
 		self.set_rate_by_hour()
 		self.calculate_totals()
@@ -45,6 +48,12 @@ class RoomBooking(Document):
 		)
 
 	# --- validations ---------------------------------------------------------
+
+	def validate_room(self):
+		# новая бронь или смена номера — только на включённый номер включённого типа;
+		# старые брони отключённого номера при этом можно сохранять
+		if self.has_value_changed("room") and not is_room_active(self.room):
+			frappe.throw(_("Room {0} or its room type is disabled").format(frappe.bold(self.room)))
 
 	def validate_dates(self):
 		if get_datetime(self.check_out) <= get_datetime(self.check_in):

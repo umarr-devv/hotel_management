@@ -581,6 +581,8 @@
 	font-weight: 500;
 	background: var(--rc-bg, var(--subtle-fg));
 	color: var(--text-color);
+	max-width: 100%;
+	overflow-wrap: anywhere;
 }
 
 .rcb-badge .rc-dot {
@@ -604,20 +606,23 @@
 }
 
 .rcb-name {
+	min-width: 0;
 	margin-left: auto;
+	overflow-wrap: anywhere;
 	font-size: var(--text-sm);
 	color: var(--text-muted);
 }
 
 .rcb-grid {
 	display: grid;
-	grid-template-columns: 1fr 1fr;
+	/* minmax(0, …): иначе колонка растягивается под самый длинный текст и вылезает из диалога */
+	grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
 	gap: 0 24px;
 }
 
 @media (max-width: 576px) {
 	.rcb-grid {
-		grid-template-columns: 1fr;
+		grid-template-columns: minmax(0, 1fr);
 	}
 }
 
@@ -630,13 +635,16 @@
 }
 
 .rcb-label {
+	flex: none;
 	color: var(--text-muted);
 	white-space: nowrap;
 }
 
 .rcb-value {
+	min-width: 0;
 	text-align: right;
 	font-weight: 500;
+	overflow-wrap: anywhere;
 }
 
 .rcb-money {
@@ -658,7 +666,18 @@
 .rcb-service {
 	display: flex;
 	justify-content: space-between;
+	gap: 12px;
 	padding: 2px 0;
+}
+
+.rcb-service span:first-child {
+	min-width: 0;
+	overflow-wrap: anywhere;
+}
+
+.rcb-service span:last-child {
+	flex: none;
+	white-space: nowrap;
 }
 
 .rcb-total .rcb-row {
@@ -687,8 +706,19 @@
 	height: 15px;
 }
 
+/* длинное имя клиента в заголовке диалога переносится, а не выталкивает кнопки */
+.rc-booking-dialog .modal-header .title-section,
+.rc-booking-dialog .modal-header .modal-title {
+	min-width: 0;
+}
+
+.rc-booking-dialog .modal-header .modal-title {
+	white-space: normal;
+	overflow-wrap: anywhere;
+}
+
 .rcb-value a {
-	white-space: nowrap;
+	overflow-wrap: anywhere;
 }
 
 /* vis-timeline сдвигает текст брони, чтобы он оставался в видимой части шкалы.

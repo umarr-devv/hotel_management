@@ -39,6 +39,8 @@ frappe.ui.form.RoomBookingQuickEntryForm = class RoomBookingQuickEntryForm exten
 				fieldtype: "Link",
 				options: "Hotel Room",
 				reqd: 1,
+				// без отключённых номеров и номеров отключённых типов
+				get_query: () => ({ query: "hotel_management.api.active_room_query" }),
 				onchange: () => this.on_room_change(),
 			},
 			{

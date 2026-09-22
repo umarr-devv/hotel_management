@@ -6,6 +6,8 @@ import re
 import frappe
 from frappe.utils import cint, get_datetime
 
+from hotel_management.utils import active_room_filters
+
 
 def _natural_key(value):
 	return [cint(part) if part.isdigit() else part.lower() for part in re.split(r"(\d+)", value or "")]
@@ -13,12 +15,15 @@ def _natural_key(value):
 
 @frappe.whitelist()
 def get_rooms(hotel_building=None, room_type=None):
-	"""Номера для строк шахматки, отсортированные: здание → этаж → номер."""
-	filters = {}
+	"""Номера для строк шахматки, отсортированные: здание → этаж → номер.
+
+	Отключённые номера и номера отключённых типов не показываются.
+	"""
+	filters = active_room_filters()
 	if hotel_building:
-		filters["hotel_building"] = hotel_building
+		filters.append(["hotel_building", "=", hotel_building])
 	if room_type:
-		filters["room_type"] = room_type
+		filters.append(["room_type", "=", room_type])
 
 	rooms = frappe.get_list(
 		"Hotel Room",
@@ -56,11 +61,11 @@ def get_bookings(start, end, hotel_building=None, room_type=None, status=None):
 	]
 	if status:
 		filters.append(["status", "=", status])
-	if hotel_building or room_type:
-		rooms = [r.name for r in get_rooms(hotel_building, room_type)]
-		if not rooms:
-			return []
-		filters.append(["room", "in", rooms])
+	# только брони номеров, которые есть на шахматке (без отключённых)
+	rooms = [r.name for r in get_rooms(hotel_building, room_type)]
+	if not rooms:
+		return []
+	filters.append(["room", "in", rooms])
 
 	bookings = frappe.get_list(
 		"Room Booking",

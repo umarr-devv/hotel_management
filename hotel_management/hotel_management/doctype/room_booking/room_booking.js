@@ -5,6 +5,11 @@
 // Расчёты дублируют серверный контроллер, чтобы суммы обновлялись сразу при вводе.
 
 frappe.ui.form.on("Room Booking", {
+	setup(frm) {
+		// отключённые номера и номера отключённых типов в выборе не показываются
+		frm.set_query("room", () => ({ query: "hotel_management.api.active_room_query" }));
+	},
+
 	async refresh(frm) {
 		await load_rates(frm);
 		set_room_rate_query(frm);

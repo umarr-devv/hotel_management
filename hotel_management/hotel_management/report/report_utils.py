@@ -15,6 +15,8 @@ import frappe
 from frappe import _
 from frappe.utils import add_days, date_diff, flt, get_datetime, getdate, nowdate
 
+from hotel_management.utils import active_room_filters
+
 # ограничение на длину периода: отчёты считают номеро-сутки в цикле по дням
 MAX_PERIOD_DAYS = 366
 
@@ -109,9 +111,13 @@ def get_rooms(filters):
 	frappe.has_permission("Hotel Room", "report", throw=True)
 
 	filters = frappe._dict(filters or {})
-	room_filters = {field: filters.get(field) for field in ROOM_FILTER_FIELDS if filters.get(field)}
+	# отключённые номера и номера отключённых типов в номерной фонд не входят
+	room_filters = active_room_filters()
+	for field in ROOM_FILTER_FIELDS:
+		if filters.get(field):
+			room_filters.append([field, "=", filters.get(field)])
 	if filters.get("room"):
-		room_filters["name"] = filters.get("room")
+		room_filters.append(["name", "=", filters.get("room")])
 
 	return frappe.get_all(
 		"Hotel Room",

@@ -1035,3 +1035,11 @@ msgstr "Расположение"
 #: hotel_management/hotel_management/doctype/room_booking/room_booking.json
 msgid "Other"
 msgstr "Прочее"
+
+#: hotel_management/hotel_management/doctype/room_booking/room_booking.py
+msgid "Room {0} or its room type is disabled"
+msgstr "Номер {0} или его тип номера отключён"
+
+#: hotel_management/hotel_management/doctype/hotel_profile/hotel_profile.py
+msgid "Account {0} is a group account and cannot be selected"
+msgstr "Счёт {0} является группой и не может быть выбран"
