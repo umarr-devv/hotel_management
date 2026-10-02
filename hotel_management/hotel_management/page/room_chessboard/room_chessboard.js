@@ -261,14 +261,16 @@
 
 		go_to_month(month, focus) {
 			this.month = start_of_month(month);
+			// шкала: выбранный месяц плюс по одному месяцу до и после него
 			const min = new Date(this.month);
+			min.setMonth(min.getMonth() - 1);
 			const max = new Date(this.month);
-			max.setMonth(max.getMonth() + 1);
-			max.setDate(max.getDate() + 7); // небольшой «хвост» следующего месяца
+			max.setMonth(max.getMonth() + 2);
 			this.bounds = { min, max };
 
+			// окно открываем на начале выбранного месяца (или вокруг focus, если он в диапазоне)
 			const span = this.visible_days() * DAY;
-			let start = new Date(min);
+			let start = new Date(this.month);
 			if (focus && focus >= min && focus < max) {
 				start = new Date(focus);
 				start.setHours(0, 0, 0, 0);
@@ -824,6 +826,7 @@
 							"outstanding_amount",
 							"grand_total",
 							"customer",
+							"currency",
 						]),
 						{}
 				  )) || {}).message || null
@@ -908,14 +911,20 @@
 					? `<a href="/app/${frappe.router.slug(doctype)}/${encodeURIComponent(name)}">${esc(name)}</a>`
 					: "—";
 
-			const services = (doc.items_and_service || [])
-				.map(
-					(r) =>
-						`<div class="rcb-service"><span>${esc(r.item)} × ${flt(r.qty)}</span><span>${money(
-							r.amount
-						)}</span></div>`
-				)
-				.join("");
+			const service_rows = (rows, label) =>
+				(rows || [])
+					.map(
+						(r) =>
+							`<div class="rcb-service"><span>${esc(label(r))}</span><span>${money(
+								r.amount
+							)}</span></div>`
+					)
+					.join("");
+			const services = service_rows(doc.items_and_service, (r) => `${r.item} × ${flt(r.qty)}`);
+			const percentage_services = service_rows(
+				doc.percentage_services,
+				(r) => `${r.item} (${flt(r.percent)}%) × ${flt(r.qty)}`
+			);
 
 			const paid = doc.pay_status === "Paid";
 			return `
@@ -952,6 +961,12 @@
 						${row(__("Accommodation"), money(doc.amount))}
 						${services ? `<div class="rcb-services">${services}</div>` : ""}
 						${services ? row(__("Items and Services"), money(doc.items_and_serivce_amount)) : ""}
+						${percentage_services ? `<div class="rcb-services">${percentage_services}</div>` : ""}
+						${
+							percentage_services
+								? row(__("Percentage Services"), money(doc.percentage_services_amount))
+								: ""
+						}
 						<div class="rcb-total">${row(__("Total"), money(doc.total_amount))}</div>
 						${
 							si && si.docstatus === 1 && flt(si.outstanding_amount) > 0
@@ -1081,19 +1096,26 @@
 		}
 
 		async make_payment(doc, si) {
-			// если способ оплаты один — подставляем его
-			const modes = await frappe.db.get_list("Mode of Payment", { filters: { enabled: 1 }, limit: 2 });
+			// вкладки оплаты — способы оплаты из Hotel Settings
+			const modes = await frappe.xcall("hotel_management.api.get_payment_modes");
+			if (!modes.length) {
+				frappe.msgprint({
+					title: __("Payment"),
+					indicator: "orange",
+					message: `${__("Add Modes of Payment in Hotel Settings")}<br><br>
+						<a class="btn btn-default btn-sm" href="/app/hotel-settings">${__("Open Hotel Settings")}</a>`,
+				});
+				return;
+			}
+
+			const currency = si.currency || frappe.defaults.get_default("currency");
+			const money = (v) => format_currency(v || 0, currency);
+			const outstanding = flt(si.outstanding_amount);
 
 			const dialog = new frappe.ui.Dialog({
 				title: __("Payment"),
+				size: "large",
 				fields: [
-					{
-						fieldname: "payment_type",
-						label: __("Payment Type"),
-						fieldtype: "Data",
-						read_only: 1,
-						default: __("Incoming"),
-					},
 					{
 						fieldname: "customer",
 						label: __("Customer"),
@@ -1101,6 +1123,13 @@
 						options: "Customer",
 						read_only: 1,
 						default: si.customer,
+					},
+					{
+						fieldname: "posting_date",
+						label: __("Posting Date"),
+						fieldtype: "Date",
+						reqd: 1,
+						default: frappe.datetime.get_today(),
 					},
 					{ fieldtype: "Column Break" },
 					{
@@ -1116,57 +1145,168 @@
 						label: __("Outstanding Amount"),
 						fieldtype: "Currency",
 						read_only: 1,
-						default: si.outstanding_amount,
+						default: outstanding,
 					},
 					{ fieldtype: "Section Break" },
-					{
-						fieldname: "mode_of_payment",
-						label: __("Mode of Payment"),
-						fieldtype: "Link",
-						options: "Mode of Payment",
-						reqd: 1,
-						default: modes.length === 1 ? modes[0].name : undefined,
-					},
-					{
-						fieldname: "amount",
-						label: __("Paid Amount"),
-						fieldtype: "Currency",
-						reqd: 1,
-						default: si.outstanding_amount,
-					},
-					{ fieldtype: "Column Break" },
-					{
-						fieldname: "posting_date",
-						label: __("Posting Date"),
-						fieldtype: "Date",
-						reqd: 1,
-						default: frappe.datetime.get_today(),
-					},
-					{
-						fieldname: "reference_no",
-						label: __("Reference No"),
-						fieldtype: "Data",
-						description: __("For bank payments; defaults to the booking number"),
-					},
+					{ fieldname: "payments", fieldtype: "HTML" },
+					{ fieldname: "balance", fieldtype: "HTML" },
 				],
 				primary_action_label: __("Pay"),
 				primary_action: (values) => {
+					const payments = get_payments();
+					if (!payments.length) {
+						frappe.msgprint(__("Enter an amount in at least one Mode of Payment"));
+						return;
+					}
+					this.confirm_payment(doc, si, values.posting_date, payments, () => dialog.hide());
+				},
+			});
+			dialog.$wrapper.addClass("rc-booking-dialog");
+
+			// --- вкладки: по одной на способ оплаты --------------------------------------
+			const $root = $(`<div class="rcp">
+				<div class="rcp-tabs" role="tablist"></div>
+				<div class="rcp-panes"></div>
+			</div>`).appendTo(dialog.fields_dict.payments.$wrapper.empty());
+			const $balance = dialog.fields_dict.balance.$wrapper;
+
+			const tabs = modes.map((mode, i) => {
+				const $tab = $(`<button type="button" class="rcp-tab" role="tab">
+					<span class="rcp-tab-label"></span><span class="rcp-tab-amount"></span>
+				</button>`).appendTo($root.find(".rcp-tabs"));
+				$tab.find(".rcp-tab-label").text(__(mode.mode_of_payment));
+
+				const $pane = $(`<div class="rcp-pane" role="tabpanel">
+					<div class="rcp-pane-grid">
+						<div class="rcp-amount"></div>
+						<div class="rcp-reference"></div>
+					</div>
+					<button type="button" class="btn btn-default btn-xs rcp-fill">${__("Fill Remaining")}</button>
+				</div>`).appendTo($root.find(".rcp-panes"));
+
+				const amount = frappe.ui.form.make_control({
+					parent: $pane.find(".rcp-amount"),
+					df: {
+						fieldtype: "Currency",
+						fieldname: `amount_${i}`,
+						label: __("Paid Amount"),
+						non_negative: 1,
+						change: () => update_balance(),
+					},
+					render_input: true,
+				});
+				amount.refresh();
+				// остаток пересчитываем прямо при вводе, не дожидаясь ухода с поля
+				amount.$input.on("input", () => update_balance());
+
+				// номер документа нужен для банковских платежей; для наличных поле не показываем
+				const reference =
+					mode.type !== "Cash"
+						? frappe.ui.form.make_control({
+								parent: $pane.find(".rcp-reference"),
+								df: {
+									fieldtype: "Data",
+									fieldname: `reference_no_${i}`,
+									label: __("Reference No"),
+									description: __("For bank payments; defaults to the booking number"),
+								},
+								render_input: true,
+						  })
+						: null;
+				reference && reference.refresh();
+
+				const tab = { mode, $tab, $pane, amount, reference };
+				$tab.on("click", () => activate(tab));
+				$pane.find(".rcp-fill").on("click", () => {
+					const remaining = outstanding - total_paid();
+					if (remaining <= 0) return;
+					amount.set_value(amount_of(tab) + remaining);
+				});
+				return tab;
+			});
+
+			const amount_of = (tab) => Math.max(flt(tab.amount.get_value()), 0);
+			const total_paid = () => tabs.reduce((sum, tab) => sum + amount_of(tab), 0);
+			const get_payments = () =>
+				tabs
+					.filter((tab) => amount_of(tab) > 0)
+					.map((tab) => ({
+						mode_of_payment: tab.mode.mode_of_payment,
+						amount: amount_of(tab),
+						reference_no: (tab.reference && tab.reference.get_value()) || "",
+					}));
+
+			const activate = (active) => {
+				tabs.forEach((tab) => {
+					tab.$tab.toggleClass("active", tab === active).attr("aria-selected", tab === active);
+					tab.$pane.toggleClass("active", tab === active);
+				});
+				setTimeout(() => active.amount.set_focus(), 0);
+			};
+
+			const update_balance = () => {
+				tabs.forEach((tab) => tab.$tab.find(".rcp-tab-amount").text(amount_of(tab) ? money(amount_of(tab)) : ""));
+				const paid = total_paid();
+				$balance.html(this.payment_balance_html(outstanding, paid, money));
+			};
+
+			// по умолчанию вся сумма — первым способом оплаты
+			tabs[0].amount.set_value(outstanding);
+			activate(tabs[0]);
+			update_balance();
+
+			this.booking_dialog && this.booking_dialog.hide();
+			dialog.show();
+		}
+
+		payment_balance_html(outstanding, paid, money) {
+			const remaining = flt(outstanding - paid, 2);
+			const state = remaining > 0 ? "rcp-due" : remaining < 0 ? "rcp-over" : "rcp-settled";
+			return `<div class="rcb-money rcp-balance">
+				<div class="rcb-row"><span class="rcb-label">${__("Outstanding Amount")}</span>
+					<span class="rcb-value">${money(outstanding)}</span></div>
+				<div class="rcb-row"><span class="rcb-label">${__("Paying Now")}</span>
+					<span class="rcb-value">${money(paid)}</span></div>
+				<div class="rcb-total ${state}"><div class="rcb-row">
+					<span class="rcb-label">${remaining < 0 ? __("Overpayment") : __("Remaining to Pay")}</span>
+					<span class="rcb-value">${money(Math.abs(remaining))}</span></div></div>
+			</div>`;
+		}
+
+		confirm_payment(doc, si, posting_date, payments, on_done) {
+			const esc = (v) => frappe.utils.escape_html(v == null ? "" : String(v));
+			const currency = si.currency || frappe.defaults.get_default("currency");
+			const money = (v) => format_currency(v || 0, currency);
+			const outstanding = flt(si.outstanding_amount);
+			const paid = payments.reduce((sum, p) => sum + flt(p.amount), 0);
+			const row = (label, value) =>
+				`<div class="rcb-row"><span class="rcb-label">${esc(label)}</span><span class="rcb-value">${value}</span></div>`;
+
+			const lines = payments
+				.map(
+					(p) =>
+						`<div class="rcb-service"><span>${esc(__(p.mode_of_payment))}${
+							p.reference_no ? ` · ${esc(p.reference_no)}` : ""
+						}</span><span>${money(p.amount)}</span></div>`
+				)
+				.join("");
+
+			const confirm = new frappe.ui.Dialog({
+				title: __("Confirm Payment"),
+				fields: [{ fieldtype: "HTML", fieldname: "body" }],
+				primary_action_label: __("Confirm"),
+				primary_action: () => {
 					frappe.call({
-						method: "hotel_management.api.make_booking_payment",
-						args: {
-							room_booking: doc.name,
-							mode_of_payment: values.mode_of_payment,
-							amount: values.amount,
-							posting_date: values.posting_date,
-							reference_no: values.reference_no,
-						},
+						method: "hotel_management.api.make_booking_payments",
+						args: { room_booking: doc.name, payments, posting_date },
 						freeze: true,
 						freeze_message: __("Creating Payment Entry..."),
 						callback: async (r) => {
 							if (!r.message) return;
-							dialog.hide();
+							confirm.hide();
+							on_done && on_done();
 							frappe.show_alert({
-								message: __("Payment Entry {0} created", [r.message]),
+								message: __("Payment Entries {0} created", [r.message.join(", ")]),
 								indicator: "green",
 							});
 							await this.load_bookings_now();
@@ -1174,9 +1314,36 @@
 						},
 					});
 				},
+				secondary_action_label: __("Back"),
+				secondary_action: () => confirm.hide(),
 			});
-			this.booking_dialog && this.booking_dialog.hide();
-			dialog.show();
+			confirm.$wrapper.addClass("rc-booking-dialog");
+			confirm.fields_dict.body.$wrapper.html(`
+				<div class="rcb">
+					<div class="rcb-grid">
+						<div>
+							${row(__("Customer"), esc(si.customer))}
+							${row(__("Room"), esc(doc.room))}
+						</div>
+						<div>
+							${row(__("Sales Invoice"), esc(doc.sales_invoice))}
+							${row(__("Posting Date"), esc(frappe.datetime.str_to_user(posting_date)))}
+						</div>
+					</div>
+					<div class="rcb-money">
+						<div class="rcr-title">${esc(__("Mode of Payment"))}</div>
+						<div class="rcb-services">${lines}</div>
+					</div>
+					${this.payment_balance_html(outstanding, paid, money)}
+					${
+						paid > outstanding
+							? `<div class="rcb-warning">${esc(
+									__("Overpayment of {0} will be recorded as an advance", [money(paid - outstanding)])
+							  )}</div>`
+							: ""
+					}
+				</div>`);
+			confirm.show();
 		}
 
 		apply_action(doc, action) {

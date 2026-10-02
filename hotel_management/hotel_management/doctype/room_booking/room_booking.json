@@ -26,10 +26,13 @@
   "column_break_fydx",
   "amount",
   "items_and_serivce_amount",
+  "percentage_services_amount",
   "total_amount",
   "items_and_services_tab",
   "section_break_revz",
   "items_and_service",
+  "section_break_pcsv",
+  "percentage_services",
   "other_tab",
   "section_break_gpfe",
   "guests",
@@ -176,6 +179,18 @@
    "read_only_depends_on": "eval:doc.pay_status=='Paid' || doc.status=='Completed'"
   },
   {
+   "fieldname": "section_break_pcsv",
+   "fieldtype": "Section Break"
+  },
+  {
+   "allow_on_submit": 1,
+   "fieldname": "percentage_services",
+   "fieldtype": "Table",
+   "label": "Percentage Services",
+   "options": "Room Booking Percentage Service",
+   "read_only_depends_on": "eval:doc.pay_status=='Paid' || doc.status=='Completed'"
+  },
+  {
    "fieldname": "section_break_kslf",
    "fieldtype": "Section Break"
   },
@@ -188,6 +203,13 @@
    "fieldname": "items_and_serivce_amount",
    "fieldtype": "Currency",
    "label": "Items and Service Amount",
+   "read_only": 1
+  },
+  {
+   "allow_on_submit": 1,
+   "fieldname": "percentage_services_amount",
+   "fieldtype": "Currency",
+   "label": "Percentage Services Amount",
    "read_only": 1
   },
   {
@@ -251,7 +273,7 @@
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2026-09-20 18:38:28.717263",
+ "modified": "2026-10-02 12:00:00.000000",
  "modified_by": "Administrator",
  "module": "Hotel Management",
  "name": "Room Booking",

@@ -5,7 +5,78 @@ import frappe
 from frappe import _
 from frappe.utils import cint, flt, getdate, nowdate
 
+from hotel_management.hotel_management.doctype.hotel_settings.hotel_settings import (
+	get_payment_modes as get_hotel_payment_modes,
+)
 from hotel_management.utils import active_room_filters
+
+
+@frappe.whitelist()
+def get_payment_modes():
+	"""Способы оплаты для диалога оплаты брони — из Hotel Settings, в порядке таблицы."""
+	modes = get_hotel_payment_modes()
+	if not modes:
+		return []
+
+	info = {
+		m.name: m
+		for m in frappe.get_all(
+			"Mode of Payment", filters={"name": ["in", modes]}, fields=["name", "type", "enabled"]
+		)
+	}
+	return [
+		{"mode_of_payment": mode, "type": info[mode].type}
+		for mode in modes
+		if mode in info and info[mode].enabled
+	]
+
+
+@frappe.whitelist()
+def make_booking_payments(room_booking: str, payments: str | list, posting_date: str | None = None):
+	"""Сплит-оплата брони: по Payment Entry (Приход) на каждый способ оплаты с суммой больше нуля.
+
+	payments — список {mode_of_payment, amount, reference_no}. Всё проводится в одном
+	запросе: если какой-то платёж не прошёл, откатываются все.
+	"""
+	payments = [frappe._dict(p) for p in (frappe.parse_json(payments) or [])]
+	if any(flt(p.amount) < 0 for p in payments):
+		frappe.throw(_("Amount must be greater than zero"))
+	payments = [p for p in payments if flt(p.amount) > 0]
+	if not payments:
+		frappe.throw(_("Enter an amount in at least one Mode of Payment"))
+
+	allowed = get_hotel_payment_modes()
+	seen = set()
+	for p in payments:
+		if not p.mode_of_payment:
+			frappe.throw(_("Mode of Payment is required"))
+		if allowed and p.mode_of_payment not in allowed:
+			frappe.throw(
+				_("Mode of Payment {0} is not allowed in Hotel Settings").format(
+					frappe.bold(p.mode_of_payment)
+				)
+			)
+		if p.mode_of_payment in seen:
+			frappe.throw(
+				_("Mode of Payment {0} is listed more than once").format(frappe.bold(p.mode_of_payment))
+			)
+		seen.add(p.mode_of_payment)
+
+	booking, si = get_payable_invoice(room_booking)
+
+	# долг гасим по порядку способов; переплата уходит в аванс клиента
+	precision = si.precision("outstanding_amount")
+	outstanding = flt(si.outstanding_amount, precision)
+	names = []
+	for p in payments:
+		allocated = flt(min(flt(p.amount), outstanding), precision)
+		names.append(
+			make_payment_entry(
+				booking, si, p.mode_of_payment, p.amount, allocated, posting_date, p.reference_no
+			)
+		)
+		outstanding = flt(outstanding - allocated, precision)
+	return names
 
 
 @frappe.whitelist()
@@ -16,10 +87,18 @@ def make_booking_payment(
 	posting_date: str | None = None,
 	reference_no: str | None = None,
 ):
-	"""Создать и провести Payment Entry (Приход) по счёту брони."""
-	from erpnext.accounts.doctype.payment_entry.payment_entry import get_payment_entry
-	from erpnext.accounts.doctype.sales_invoice.sales_invoice import get_bank_cash_account
+	"""Создать и провести один Payment Entry (Приход) по счёту брони."""
+	amount = flt(amount)
+	if amount <= 0:
+		frappe.throw(_("Amount must be greater than zero"))
 
+	booking, si = get_payable_invoice(room_booking)
+	allocated = min(amount, flt(si.outstanding_amount))
+	return make_payment_entry(booking, si, mode_of_payment, amount, allocated, posting_date, reference_no)
+
+
+def get_payable_invoice(room_booking):
+	"""Бронь и её проведённый счёт с непогашенным остатком."""
 	booking = frappe.get_doc("Room Booking", room_booking)
 	booking.check_permission("read")
 
@@ -32,9 +111,15 @@ def make_booking_payment(
 	if flt(si.outstanding_amount) <= 0:
 		frappe.throw(_("Sales Invoice {0} is already paid").format(si.name))
 
+	return booking, si
+
+
+def make_payment_entry(booking, si, mode_of_payment, amount, allocated, posting_date=None, reference_no=None):
+	"""Провести Payment Entry на сумму amount, из которой allocated гасит счёт брони."""
+	from erpnext.accounts.doctype.payment_entry.payment_entry import get_payment_entry
+	from erpnext.accounts.doctype.sales_invoice.sales_invoice import get_bank_cash_account
+
 	amount = flt(amount)
-	if amount <= 0:
-		frappe.throw(_("Amount must be greater than zero"))
 
 	# касса/банк берём из настроек способа оплаты для компании счёта
 	account = get_bank_cash_account(mode_of_payment, si.company)["account"]
@@ -49,7 +134,9 @@ def make_booking_payment(
 	pe.paid_amount = amount
 	pe.received_amount = amount
 	for ref in pe.references:
-		ref.allocated_amount = min(amount, flt(ref.outstanding_amount))
+		ref.allocated_amount = min(flt(allocated), flt(ref.outstanding_amount))
+	# счёт уже погашен предыдущими платежами — этот платёж целиком аванс
+	pe.set("references", [ref for ref in pe.references if flt(ref.allocated_amount) > 0])
 
 	pe.set_exchange_rate()
 	pe.set_amounts()
@@ -187,7 +274,8 @@ def make_sales_invoice_from_booking(room_booking: str):
 	)
 
 	# дополнительные товары и услуги (мини-бар и прочее)
-	for row in booking.items_and_service:
+	# и процентные услуги (цена — процент от часового тарифа номера)
+	for row in [*booking.items_and_service, *booking.percentage_services]:
 		si.append(
 			"items",
 			{

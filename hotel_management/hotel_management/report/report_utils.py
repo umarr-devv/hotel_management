@@ -5,8 +5,9 @@
 
 Правила, единые для всех отчётов:
   * учитываются только проведённые брони (docstatus = 1), кроме отменённых;
-  * суммы берутся из самой брони (amount / items_and_serivce_amount), а не из
-    Sales Invoice: счёт может быть ещё не выставлен;
+  * суммы берутся из самой брони (amount — проживание; items_and_serivce_amount и
+    percentage_services_amount — услуги), а не из Sales Invoice: счёт может быть
+    ещё не выставлен;
   * если бронь выходит за границы периода, её выручка делится пропорционально
     часам, попавшим в период.
 """
@@ -22,7 +23,8 @@ MAX_PERIOD_DAYS = 366
 
 BOOKING_FIELDS = """
 	b.name, b.customer, b.room, b.room_rate, b.status, b.pay_status, b.check_in, b.check_out,
-	b.total_hours, b.rate_by_hour, b.amount, b.items_and_serivce_amount, b.total_amount,
+	b.total_hours, b.rate_by_hour, b.amount, b.items_and_serivce_amount, b.percentage_services_amount,
+	b.total_amount,
 	b.sales_invoice, b.company, b.hotel_profile,
 	r.room_type, r.hotel_building, r.hotel_floor
 """
@@ -144,11 +146,16 @@ def booking_hours(booking):
 	return overlap_hours(booking.check_in, booking.check_out, booking.check_in, booking.check_out)
 
 
+def service_amount(booking):
+	"""Услуги брони: товары и услуги + процентные услуги."""
+	return flt(booking.get("items_and_serivce_amount")) + flt(booking.get("percentage_services_amount"))
+
+
 def revenue_share(booking, hours):
 	"""Выручка брони за `hours` часов: (проживание, услуги)."""
 	total = booking_hours(booking)
 	share = (hours / total) if total else 0.0
-	return flt(booking.get("amount")) * share, flt(booking.get("items_and_serivce_amount")) * share
+	return flt(booking.get("amount")) * share, service_amount(booking) * share
 
 
 def stay_nights(check_in, check_out):

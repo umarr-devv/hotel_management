@@ -93,6 +93,21 @@ frappe.ui.form.RoomBookingQuickEntryForm = class RoomBookingQuickEntryForm exten
 		];
 	}
 
+	// Layout.refresh() подменяет df каждого поля на DocField из меты Room Booking
+	// (поля с теми же именами там есть). Вместе с df терялись наши onchange,
+	// get_query и тип Select у тарифа: сумма не пересчитывалась при выборе тарифа
+	// и смене дат. Здесь поля свои — привязываем документ, но df не трогаем.
+	attach_doc_and_docfields(refresh) {
+		for (const field of this.fields_list) {
+			if (this.doc) {
+				field.doc = this.doc;
+				field.doctype = this.doc.doctype;
+				field.docname = this.doc.name;
+			}
+			refresh && field.df && field.refresh && field.refresh();
+		}
+	}
+
 	render_dialog() {
 		super.render_dialog();
 		this.$wrapper.addClass("room-booking-quick-entry");

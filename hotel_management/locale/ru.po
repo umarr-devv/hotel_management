@@ -101,6 +101,22 @@ msgstr "Позиция бронирования"
 msgid "Room Booking Guest"
 msgstr "Гость бронирования"
 
+#. Name of a DocType
+#: hotel_management/hotel_management/doctype/room_booking_percentage_service/room_booking_percentage_service.json
+msgid "Room Booking Percentage Service"
+msgstr "Процентная услуга бронирования"
+
+#. Name of a DocType; also a sidebar and workspace link
+#: hotel_management/hotel_management/doctype/hotel_settings/hotel_settings.json
+#: hotel_management/workspace_sidebar/hotel.json
+msgid "Hotel Settings"
+msgstr "Настройки отеля"
+
+#. Name of a DocType
+#: hotel_management/hotel_management/doctype/hotel_settings_mode_of_payment/hotel_settings_mode_of_payment.json
+msgid "Hotel Settings Mode of Payment"
+msgstr "Способ оплаты в настройках отеля"
+
 # Field labels
 
 #: hotel_management/hotel_management/doctype/room_type/room_type.json
@@ -194,6 +210,34 @@ msgstr "Товары и услуги"
 #: hotel_management/hotel_management/doctype/room_booking/room_booking.json
 msgid "Items and Service Amount"
 msgstr "Сумма товаров и услуг"
+
+#: hotel_management/hotel_management/doctype/room_booking/room_booking.json
+msgid "Percentage Services"
+msgstr "Процентные услуги"
+
+#: hotel_management/hotel_management/doctype/room_booking/room_booking.json
+msgid "Percentage Services Amount"
+msgstr "Сумма процентных услуг"
+
+#: hotel_management/hotel_management/doctype/room_booking_percentage_service/room_booking_percentage_service.json
+msgid "Percent"
+msgstr "Процент"
+
+#: hotel_management/hotel_management/doctype/room_booking_percentage_service/room_booking_percentage_service.json
+msgid "Percent of the room's hourly rate"
+msgstr "Процент от часового тарифа номера"
+
+#: hotel_management/hotel_management/doctype/hotel_settings/hotel_settings.json
+msgid "Payments"
+msgstr "Платежи"
+
+#: hotel_management/hotel_management/doctype/hotel_settings/hotel_settings.json
+msgid "Modes of Payment"
+msgstr "Способы оплаты"
+
+#: hotel_management/hotel_management/doctype/hotel_settings/hotel_settings.json
+msgid "Each Mode of Payment becomes a tab in the booking payment dialog"
+msgstr "Каждый способ оплаты — отдельная вкладка в окне оплаты брони"
 
 #: hotel_management/hotel_management/doctype/room_booking/room_booking.json
 msgid "Total Amount"
@@ -492,14 +536,6 @@ msgid "Payment"
 msgstr "Оплата"
 
 #: hotel_management/hotel_management/page/room_chessboard/room_chessboard.js
-msgid "Payment Type"
-msgstr "Тип платежа"
-
-#: hotel_management/hotel_management/page/room_chessboard/room_chessboard.js
-msgid "Incoming"
-msgstr "Приход"
-
-#: hotel_management/hotel_management/page/room_chessboard/room_chessboard.js
 msgid "Outstanding Amount"
 msgstr "К оплате"
 
@@ -536,8 +572,66 @@ msgid "Creating Payment Entry..."
 msgstr "Проведение оплаты..."
 
 #: hotel_management/hotel_management/page/room_chessboard/room_chessboard.js
-msgid "Payment Entry {0} created"
-msgstr "Оплата {0} проведена"
+msgid "Payment Entries {0} created"
+msgstr "Оплаты проведены: {0}"
+
+#: hotel_management/hotel_management/page/room_chessboard/room_chessboard.js
+msgid "Paying Now"
+msgstr "Оплачивается сейчас"
+
+#: hotel_management/hotel_management/page/room_chessboard/room_chessboard.js
+msgid "Remaining to Pay"
+msgstr "Осталось оплатить"
+
+#: hotel_management/hotel_management/page/room_chessboard/room_chessboard.js
+msgid "Overpayment"
+msgstr "Переплата"
+
+#: hotel_management/hotel_management/page/room_chessboard/room_chessboard.js
+msgid "Overpayment of {0} will be recorded as an advance"
+msgstr "Переплата {0} будет учтена как аванс клиента"
+
+#: hotel_management/hotel_management/page/room_chessboard/room_chessboard.js
+msgid "Fill Remaining"
+msgstr "Внести остаток"
+
+#: hotel_management/hotel_management/page/room_chessboard/room_chessboard.js
+msgid "Confirm Payment"
+msgstr "Подтверждение оплаты"
+
+#: hotel_management/hotel_management/page/room_chessboard/room_chessboard.js
+msgid "Confirm"
+msgstr "Подтвердить"
+
+#: hotel_management/hotel_management/page/room_chessboard/room_chessboard.js
+msgid "Back"
+msgstr "Назад"
+
+#: hotel_management/hotel_management/page/room_chessboard/room_chessboard.js
+msgid "Add Modes of Payment in Hotel Settings"
+msgstr "Добавьте способы оплаты в настройках отеля"
+
+#: hotel_management/hotel_management/page/room_chessboard/room_chessboard.js
+msgid "Open Hotel Settings"
+msgstr "Открыть настройки отеля"
+
+#: hotel_management/hotel_management/page/room_chessboard/room_chessboard.js
+#: hotel_management/api.py
+msgid "Enter an amount in at least one Mode of Payment"
+msgstr "Введите сумму хотя бы для одного способа оплаты"
+
+#: hotel_management/api.py
+msgid "Mode of Payment is required"
+msgstr "Укажите способ оплаты"
+
+#: hotel_management/api.py
+msgid "Mode of Payment {0} is not allowed in Hotel Settings"
+msgstr "Способ оплаты {0} не разрешён в настройках отеля"
+
+#: hotel_management/api.py
+#: hotel_management/hotel_management/doctype/hotel_settings/hotel_settings.py
+msgid "Mode of Payment {0} is listed more than once"
+msgstr "Способ оплаты {0} указан несколько раз"
 
 #: hotel_management/api.py
 msgid "Create a Sales Invoice for this booking first"

@@ -25,7 +25,7 @@ class RoomBooking(Document):
 
 	def before_update_after_submit(self):
 		# После проведения разрешено только продление/сокращение (check_out)
-		# и изменение доп. услуг. Тариф остаётся зафиксированным.
+		# и изменение доп. и процентных услуг. Тариф остаётся зафиксированным.
 		if self.has_value_changed("check_out") and self.status != "Checked In":
 			frappe.throw(_("Check Out can only be changed for a checked in booking"))
 
@@ -104,7 +104,19 @@ class RoomBooking(Document):
 			items_amount += row.amount
 
 		self.items_and_serivce_amount = flt(items_amount, self.precision("items_and_serivce_amount"))
-		self.total_amount = flt(self.amount + self.items_and_serivce_amount, self.precision("total_amount"))
+
+		# процентные услуги: цена = процент от часового тарифа номера
+		percentage_amount = 0
+		for row in self.percentage_services:
+			row.rate = flt(flt(self.rate_by_hour) * flt(row.percent) / 100, row.precision("rate"))
+			row.amount = flt(row.rate * flt(row.qty), row.precision("amount"))
+			percentage_amount += row.amount
+
+		self.percentage_services_amount = flt(percentage_amount, self.precision("percentage_services_amount"))
+		self.total_amount = flt(
+			self.amount + self.items_and_serivce_amount + self.percentage_services_amount,
+			self.precision("total_amount"),
+		)
 
 
 def get_overlapping_booking(room, check_in, check_out, exclude=None):

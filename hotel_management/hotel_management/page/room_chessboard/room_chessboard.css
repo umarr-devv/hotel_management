@@ -829,3 +829,88 @@
 	color: var(--text-on-orange);
 	font-size: var(--text-sm);
 }
+
+/* --- оплата: вкладки способов оплаты -------------------------------------------- */
+
+.rcp-tabs {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 4px;
+	margin-bottom: 12px;
+	border-bottom: 1px solid var(--border-color);
+}
+
+.rcp-tab {
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+	margin-bottom: -1px;
+	padding: 6px 12px;
+	border: none;
+	border-bottom: 2px solid transparent;
+	background: none;
+	color: var(--text-muted);
+	font-weight: 500;
+}
+
+.rcp-tab:hover {
+	color: var(--text-color);
+}
+
+.rcp-tab.active {
+	border-bottom-color: var(--primary, var(--blue-500));
+	color: var(--text-color);
+}
+
+.rcp-tab-amount {
+	padding: 0 8px;
+	border-radius: 999px;
+	background: var(--bg-green);
+	color: var(--text-on-green);
+	font-size: var(--text-xs);
+}
+
+.rcp-tab-amount:empty {
+	display: none;
+}
+
+.rcp-pane {
+	display: none;
+}
+
+.rcp-pane.active {
+	display: block;
+}
+
+.rcp-pane-grid {
+	display: grid;
+	grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+	gap: 0 24px;
+}
+
+@media (max-width: 576px) {
+	.rcp-pane-grid {
+		grid-template-columns: minmax(0, 1fr);
+	}
+}
+
+.rcp-balance {
+	margin-top: 12px;
+}
+
+/* в окне подтверждения отступы задаёт .rcb (gap) */
+.rcb .rcp-balance {
+	margin-top: 0;
+}
+
+.rcp-due .rcb-row {
+	color: var(--text-on-red, var(--red-500));
+}
+
+.rcp-over .rcb-row {
+	color: var(--text-on-orange, var(--orange-500));
+}
+
+.rcp-settled .rcb-row {
+	color: var(--text-on-green, var(--green-500));
+}

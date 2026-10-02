@@ -19,6 +19,7 @@ frappe.ui.form.on("Room Booking", {
 	async room(frm) {
 		frm.set_value("room_rate", "");
 		frm.set_value("rate_by_hour", 0);
+		calculate_percentage_services(frm);
 		await load_rates(frm);
 		set_room_rate_query(frm);
 	},
@@ -50,6 +51,13 @@ frappe.ui.form.on("Room Booking Item", {
 	},
 });
 
+// процентные услуги: цена — процент от часового тарифа номера
+frappe.ui.form.on("Room Booking Percentage Service", {
+	percent: calculate_percentage_services,
+	qty: calculate_percentage_services,
+	percentage_services_remove: calculate_percentage_services,
+});
+
 // --- тарифы ----------------------------------------------------------------
 
 // активные тарифы типа выбранного номера: { название тарифа: цена за час }
@@ -79,6 +87,7 @@ function apply_rate(frm) {
 	}
 
 	frm.set_value("rate_by_hour", rate);
+	calculate_percentage_services(frm);
 	calculate_totals(frm);
 }
 
@@ -134,8 +143,25 @@ function calculate_items_amount(frm) {
 	calculate_total_amount(frm);
 }
 
+function calculate_percentage_services(frm) {
+	let total = 0;
+	(frm.doc.percentage_services || []).forEach((row) => {
+		row.rate = flt((flt(frm.doc.rate_by_hour) * flt(row.percent)) / 100, precision("rate", row));
+		row.amount = flt(row.rate * flt(row.qty), precision("amount", row));
+		total += row.amount;
+	});
+	frm.refresh_field("percentage_services");
+	frm.set_value("percentage_services_amount", total);
+	calculate_total_amount(frm);
+}
+
 function calculate_total_amount(frm) {
-	frm.set_value("total_amount", flt(frm.doc.amount) + flt(frm.doc.items_and_serivce_amount));
+	frm.set_value(
+		"total_amount",
+		flt(frm.doc.amount) +
+			flt(frm.doc.items_and_serivce_amount) +
+			flt(frm.doc.percentage_services_amount)
+	);
 }
 
 // --- счёт ------------------------------------------------------------------
