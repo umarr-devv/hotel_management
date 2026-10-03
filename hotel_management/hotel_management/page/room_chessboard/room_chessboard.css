@@ -204,6 +204,14 @@
 	font-weight: 600;
 	white-space: nowrap;
 	color: var(--text-color);
+	/* узкий сегмент (месяц едва виден) не должен залезать подписью на соседний */
+	overflow: hidden;
+}
+
+.rc-month-seg span {
+	min-width: 0;
+	overflow: hidden;
+	text-overflow: ellipsis;
 }
 
 .rc-month-seg:first-child {

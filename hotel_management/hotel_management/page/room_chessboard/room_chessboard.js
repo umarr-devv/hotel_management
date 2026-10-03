@@ -782,9 +782,11 @@
 				const left = Math.max(0, px(month));
 				const right = Math.min(width, px(next));
 				if (right - left > 1) {
+					// в совсем узкий сегмент подпись не помещается даже с многоточием — не пишем её
+					const label = right - left >= 48 ? frappe.utils.escape_html(month_label(month)) : "";
 					parts.push(
 						`<div class="rc-month-seg" style="left:${left}px;width:${right - left}px">` +
-							`<span>${frappe.utils.escape_html(month_label(month))}</span></div>`
+							`<span>${label}</span></div>`
 					);
 				}
 				month = next;
@@ -877,7 +879,14 @@
 
 			// счёт и оплата — в зависимости от статуса оплаты
 			if (doc.pay_status !== "Paid") {
-				if (si && si.docstatus === 1 && flt(si.outstanding_amount) > 0) {
+				if (invoice_outdated(doc, si)) {
+					// сумма брони изменилась — сначала пересоздаём счёт, как в полной форме
+					dialog.add_custom_action(
+						`${ICONS.refresh} ${__("Recreate Sales Invoice")}`,
+						() => this.recreate_invoice(doc),
+						"rcb-action"
+					);
+				} else if (si && si.docstatus === 1 && flt(si.outstanding_amount) > 0) {
 					dialog.add_custom_action(`${ICONS.unpaid} ${__("Pay")}`, () => this.make_payment(doc, si), "rcb-action");
 				} else if (!si || si.docstatus !== 1) {
 					dialog.add_custom_action(
@@ -974,7 +983,7 @@
 								: ""
 						}
 						${
-							si && si.docstatus === 1 && flt(si.grand_total) !== flt(doc.total_amount)
+							invoice_outdated(doc, si)
 								? `<div class="rcb-warning">${esc(
 										__("Invoice total {0} differs from booking total — recreate the invoice", [
 											money(si.grand_total),
@@ -1093,6 +1102,13 @@
 					this.show_booking(doc.name);
 				},
 			});
+		}
+
+		recreate_invoice(doc) {
+			frappe.confirm(
+				__("Sales Invoice {0} will be cancelled and a new one created. Continue?", [doc.sales_invoice]),
+				() => this.create_invoice(doc)
+			);
 		}
 
 		async make_payment(doc, si) {
@@ -1399,6 +1415,11 @@
 
 	function pad2(n) {
 		return String(n).padStart(2, "0");
+	}
+
+	// проведённый счёт выставлен не на текущий итог брони (бронь продлили, добавили услуги)
+	function invoice_outdated(doc, si) {
+		return !!si && si.docstatus === 1 && flt(si.grand_total) !== flt(doc.total_amount);
 	}
 
 	function half_day(time) {
