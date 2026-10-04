@@ -58,8 +58,8 @@ fixtures = [
 # include js, css files in header of desk.html
 # app_include_css = "/assets/hotel_management/css/hotel_management.css"
 # app_include_js = "/assets/hotel_management/js/hotel_management.js"
-# короткая форма Room Booking — доступна везде (список, поле-ссылка, шахматка)
-app_include_js = ["/assets/hotel_management/js/room_booking_quick_entry.js"]
+# короткая форма Room Booking подключается не здесь, а через include в room_booking_list.js
+# и room_chessboard.js (см. room_booking_quick_entry.js)
 
 # include js, css files in header of web template
 # web_include_css = "/assets/hotel_management/css/hotel_management.css"

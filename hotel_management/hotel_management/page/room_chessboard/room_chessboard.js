@@ -2,8 +2,9 @@
 // For license information, please see license.txt
 //
 // CSS страницы лежит рядом (room_chessboard.css) — Frappe отдаёт его вместе со страницей,
-// сборка ассетов для него не нужна. Быстрая форма Room Booking подключена глобально
-// через app_include_js в hooks.py.
+// сборка ассетов для него не нужна. Быстрая форма Room Booking вставляется ниже через include:
+// шахматка открывает её напрямую, не загружая перед этим мету Room Booking.
+// {% include 'hotel_management/hotel_management/doctype/room_booking/room_booking_quick_entry.js' %}
 
 (() => {
 	frappe.pages["room-chessboard"].on_page_load = function (wrapper) {

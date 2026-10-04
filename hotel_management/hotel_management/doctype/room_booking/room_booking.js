@@ -14,6 +14,8 @@ frappe.ui.form.on("Room Booking", {
 		await load_rates(frm);
 		set_room_rate_query(frm);
 		add_sales_invoice_button(frm);
+		// новая бронь из быстрой формы приходит с тарифом, но без цены и сумм
+		if (frm.is_new() && frm.doc.room_rate && !frm.doc.rate_by_hour) apply_rate(frm);
 	},
 
 	async room(frm) {
