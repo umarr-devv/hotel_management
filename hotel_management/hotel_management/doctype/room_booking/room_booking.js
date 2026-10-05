@@ -13,6 +13,7 @@ frappe.ui.form.on("Room Booking", {
 	async refresh(frm) {
 		await load_rates(frm);
 		set_room_rate_query(frm);
+		lock_paid_fields(frm);
 		add_sales_invoice_button(frm);
 		// новая бронь из быстрой формы приходит с тарифом, но без цены и сумм
 		if (frm.is_new() && frm.doc.room_rate && !frm.doc.rate_by_hour) apply_rate(frm);
@@ -42,11 +43,9 @@ frappe.ui.form.on("Room Booking", {
 frappe.ui.form.on("Room Booking Item", {
 	item: fetch_item_rate,
 	price_list: fetch_item_rate,
-
-	qty(frm, cdt, cdn) {
-		calculate_row_amount(cdt, cdn);
-		calculate_items_amount(frm);
-	},
+	qty: update_item_amount,
+	rate: update_item_amount,
+	markup: update_item_amount,
 
 	items_and_service_remove(frm) {
 		calculate_items_amount(frm);
@@ -128,14 +127,20 @@ function fetch_item_rate(frm, cdt, cdn) {
 			if (!rate) {
 				frappe.msgprint(__("No price found for this item in the selected price list"));
 			}
-			calculate_row_amount(cdt, cdn);
-			calculate_items_amount(frm);
+			update_item_amount(frm, cdt, cdn);
 		});
 }
 
+function update_item_amount(frm, cdt, cdn) {
+	calculate_row_amount(cdt, cdn);
+	calculate_items_amount(frm);
+}
+
+// сумма строки = цена с наценкой × количество; цену с наценкой округляем, как сервер
 function calculate_row_amount(cdt, cdn) {
 	const row = locals[cdt][cdn];
-	frappe.model.set_value(cdt, cdn, "amount", flt(row.rate) * flt(row.qty || 0));
+	const rate = flt(flt(row.rate) * (1 + flt(row.markup) / 100), precision("rate", row));
+	frappe.model.set_value(cdt, cdn, "amount", flt(rate * flt(row.qty), precision("amount", row)));
 }
 
 function calculate_items_amount(frm) {
@@ -168,8 +173,21 @@ function calculate_total_amount(frm) {
 
 // --- счёт ------------------------------------------------------------------
 
+function invoice_has_payments(frm) {
+	return !!(frm.doc.__onload && frm.doc.__onload.invoice_has_payments);
+}
+
+// после оплаты счёта номер, тариф, даты и услуги менять нельзя (проверяет и сервер)
+function lock_paid_fields(frm) {
+	const locked = invoice_has_payments(frm) ? 1 : 0;
+	["room", "room_rate", "check_in", "check_out", "items_and_service", "percentage_services"].forEach(
+		(field) => frm.set_df_property(field, "read_only", locked)
+	);
+}
+
 function add_sales_invoice_button(frm) {
-	if (frm.is_new() || frm.doc.pay_status === "Paid") return;
+	// счёт с оплатами пересоздать нельзя
+	if (frm.is_new() || frm.doc.pay_status === "Paid" || invoice_has_payments(frm)) return;
 
 	const label = frm.doc.sales_invoice
 		? __("Recreate Sales Invoice")

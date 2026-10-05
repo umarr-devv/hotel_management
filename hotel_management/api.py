@@ -3,20 +3,36 @@
 
 import frappe
 from frappe import _
+from frappe.core.doctype.user_permission.user_permission import get_user_permissions
 from frappe.utils import cint, flt, getdate, nowdate
 
 from hotel_management.hotel_management.doctype.hotel_settings.hotel_settings import (
 	get_payment_modes as get_hotel_payment_modes,
 )
-from hotel_management.utils import active_room_filters
+from hotel_management.hotel_management.doctype.room_booking.room_booking import (
+	cancel_sales_invoice,
+	get_rate_with_markup,
+)
+from hotel_management.utils import active_room_filters, invoice_has_payments
+
+# --- оплата --------------------------------------------------------------------
 
 
 @frappe.whitelist()
 def get_payment_modes():
-	"""Способы оплаты для диалога оплаты брони — из Hotel Settings, в порядке таблицы."""
+	"""Способы оплаты для диалога оплаты брони — из Hotel Settings, в порядке таблицы.
+
+	Показываются только способы, разрешённые пользователю (User Permission на Mode of Payment).
+	"""
 	modes = get_hotel_payment_modes()
 	if not modes:
 		return []
+
+	permitted = get_permitted_payment_modes()
+	if permitted is not None:
+		modes = [mode for mode in modes if mode in permitted]
+		if not modes:
+			frappe.throw(_("You are not permitted to use any Mode of Payment from Hotel Settings"))
 
 	info = {
 		m.name: m
@@ -29,6 +45,42 @@ def get_payment_modes():
 		for mode in modes
 		if mode in info and info[mode].enabled
 	]
+
+
+def get_permitted_payment_modes():
+	"""Способы оплаты, разрешённые пользователю через User Permission; None — ограничений нет.
+
+	Учитываются разрешения для всех документов и для Payment Entry: оплата брони
+	проводится через Payment Entry.
+	"""
+	permissions = [
+		perm
+		for perm in get_user_permissions().get("Mode of Payment", [])
+		if not perm.get("applicable_for") or perm.get("applicable_for") == "Payment Entry"
+	]
+	if not permissions:
+		return None
+	return {perm.get("doc") for perm in permissions}
+
+
+def validate_payment_modes(modes):
+	"""Способы оплаты указаны по разу, есть в Hotel Settings и разрешены пользователю."""
+	allowed = get_hotel_payment_modes()
+	permitted = get_permitted_payment_modes()
+	seen = set()
+	for mode in modes:
+		if not mode:
+			frappe.throw(_("Mode of Payment is required"))
+		if allowed and mode not in allowed:
+			frappe.throw(_("Mode of Payment {0} is not allowed in Hotel Settings").format(frappe.bold(mode)))
+		if permitted is not None and mode not in permitted:
+			frappe.throw(
+				_("You are not permitted to use Mode of Payment {0}").format(frappe.bold(mode)),
+				frappe.PermissionError,
+			)
+		if mode in seen:
+			frappe.throw(_("Mode of Payment {0} is listed more than once").format(frappe.bold(mode)))
+		seen.add(mode)
 
 
 @frappe.whitelist()
@@ -45,22 +97,7 @@ def make_booking_payments(room_booking: str, payments: str | list, posting_date:
 	if not payments:
 		frappe.throw(_("Enter an amount in at least one Mode of Payment"))
 
-	allowed = get_hotel_payment_modes()
-	seen = set()
-	for p in payments:
-		if not p.mode_of_payment:
-			frappe.throw(_("Mode of Payment is required"))
-		if allowed and p.mode_of_payment not in allowed:
-			frappe.throw(
-				_("Mode of Payment {0} is not allowed in Hotel Settings").format(
-					frappe.bold(p.mode_of_payment)
-				)
-			)
-		if p.mode_of_payment in seen:
-			frappe.throw(
-				_("Mode of Payment {0} is listed more than once").format(frappe.bold(p.mode_of_payment))
-			)
-		seen.add(p.mode_of_payment)
+	validate_payment_modes([p.mode_of_payment for p in payments])
 
 	booking, si = get_payable_invoice(room_booking)
 
@@ -88,13 +125,11 @@ def make_booking_payment(
 	reference_no: str | None = None,
 ):
 	"""Создать и провести один Payment Entry (Приход) по счёту брони."""
-	amount = flt(amount)
-	if amount <= 0:
+	if flt(amount) <= 0:
 		frappe.throw(_("Amount must be greater than zero"))
 
-	booking, si = get_payable_invoice(room_booking)
-	allocated = min(amount, flt(si.outstanding_amount))
-	return make_payment_entry(booking, si, mode_of_payment, amount, allocated, posting_date, reference_no)
+	payment = {"mode_of_payment": mode_of_payment, "amount": amount, "reference_no": reference_no}
+	return make_booking_payments(room_booking, [payment], posting_date)[0]
 
 
 def get_payable_invoice(room_booking):
@@ -145,6 +180,9 @@ def make_payment_entry(booking, si, mode_of_payment, amount, allocated, posting_
 	return pe.name
 
 
+# --- номера -------------------------------------------------------------------
+
+
 @frappe.whitelist()
 def get_room_rates(room: str):
 	"""Активные тарифы типа номера — как фильтр тарифа в полной форме брони."""
@@ -193,7 +231,7 @@ def get_room_card(room: str):
 				for a in frappe.get_all(
 					"Room Amenity",
 					filters={"name": ["in", names]},
-					fields=["name", "icon", "color", "description"],
+					fields=["name", "icon", "description"],
 				)
 			}
 			amenities = [info.get(n) or {"name": n} for n in names]
@@ -221,7 +259,7 @@ def get_room_card(room: str):
 		"room_number": doc.room_number,
 		"room_type": doc.room_type,
 		"hotel_building": doc.hotel_building,
-		"floor": floor_label or doc.floor_number,
+		"floor": floor_label,
 		"notes": doc.notes,
 		"max_occupancy": room_type and room_type.max_occupancy,
 		"room_size": room_type and room_type.room_size,
@@ -236,12 +274,15 @@ def _is_image(url: str) -> bool:
 	return url.lower().rsplit(".", 1)[-1] in {"png", "jpg", "jpeg", "gif", "webp", "svg", "avif"}
 
 
+# --- счёт ---------------------------------------------------------------------
+
+
 @frappe.whitelist()
 def make_sales_invoice_from_booking(room_booking: str):
 	"""Создать и провести Sales Invoice по брони.
 
 	Раньше это был Server Script «Room Booking Invoice» с API-методом
-	make_sales_invoice_from_booking; логика перенесена без изменений.
+	make_sales_invoice_from_booking.
 	"""
 	booking = frappe.get_doc("Room Booking", room_booking)
 	booking.check_permission("write")
@@ -262,29 +303,25 @@ def make_sales_invoice_from_booking(room_booking: str):
 	si.customer = booking.customer
 	si.company = booking.company
 
-	# проживание
-	si.append(
-		"items",
-		{
-			"item_code": hotel_profile.default_service,
-			"qty": 1,
-			"rate": flt(booking.amount),
-			"warehouse": hotel_profile.warehouse,
-		},
-	)
-
-	# дополнительные товары и услуги (мини-бар и прочее)
-	# и процентные услуги (цена — процент от часового тарифа номера)
-	for row in [*booking.items_and_service, *booking.percentage_services]:
+	def add_item(item_code, qty, rate):
 		si.append(
 			"items",
 			{
-				"item_code": row.item,
-				"qty": flt(row.qty),
-				"rate": flt(row.rate),
+				"item_code": item_code,
+				"qty": flt(qty),
+				"rate": flt(rate),
 				"warehouse": hotel_profile.warehouse,
 			},
 		)
+
+	# проживание
+	add_item(hotel_profile.default_service, 1, booking.amount)
+	# дополнительные товары и услуги (мини-бар и прочее) — с наценкой
+	for row in booking.items_and_service:
+		add_item(row.item, row.qty, get_rate_with_markup(row))
+	# процентные услуги (цена — процент от часового тарифа номера)
+	for row in booking.percentage_services:
+		add_item(row.item, row.qty, row.rate)
 
 	si.insert(ignore_permissions=True)
 	# счёт сразу проводим — по нему можно принимать оплату
@@ -298,15 +335,17 @@ def cancel_previous_invoice(booking):
 	"""Отменить (или удалить черновик) предыдущий счёт брони перед созданием нового."""
 	if not (booking.sales_invoice and frappe.db.exists("Sales Invoice", booking.sales_invoice)):
 		return
+	# счёт с оплатами отменить нельзя — иначе оплаты повиснут без счёта
+	if invoice_has_payments(booking.sales_invoice):
+		frappe.throw(
+			_("Sales Invoice {0} already has payments and cannot be recreated").format(
+				frappe.bold(booking.sales_invoice)
+			)
+		)
 
 	old_name = booking.sales_invoice
 	frappe.db.set_value("Room Booking", booking.name, "sales_invoice", None)
-
-	old_si = frappe.get_doc("Sales Invoice", old_name)
-	if old_si.docstatus == 1:
-		old_si.cancel()
-	elif old_si.docstatus == 0:
-		old_si.delete()
+	cancel_sales_invoice(old_name)
 
 
 def update_booking_payment_status(doc, method=None):

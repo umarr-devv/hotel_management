@@ -28,13 +28,13 @@ def get_rooms(hotel_building=None, room_type=None):
 	rooms = frappe.get_list(
 		"Hotel Room",
 		filters=filters,
-		fields=["name", "room_number", "room_type", "hotel_building", "hotel_floor", "floor_number"],
+		fields=["name", "room_number", "room_type", "hotel_building", "hotel_floor"],
 		limit_page_length=0,
 	)
 	# подпись этажа берём из справочника Hotel Floor (там floor_number — текст, напр. «1 Этаж»)
 	floors = dict(frappe.get_all("Hotel Floor", fields=["name", "floor_number"], as_list=True))
 	for r in rooms:
-		r.floor_label = floors.get(r.hotel_floor) or (str(r.floor_number) if r.floor_number else None)
+		r.floor_label = floors.get(r.hotel_floor)
 
 	rooms.sort(
 		key=lambda r: (

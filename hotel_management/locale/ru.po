@@ -287,6 +287,18 @@ msgstr "Единица измерения"
 msgid "Qty"
 msgstr "Кол-во"
 
+#: hotel_management/hotel_management/doctype/room_booking_item/room_booking_item.json
+msgid "Markup"
+msgstr "Наценка"
+
+#: hotel_management/hotel_management/doctype/room_booking_item/room_booking_item.json
+msgid "Increases the rate by the given percent"
+msgstr "Увеличивает цену на указанный процент"
+
+#: hotel_management/hotel_management/doctype/room_booking_item/room_booking_item.json
+msgid "Price per unit before markup; can be changed"
+msgstr "Цена за единицу без наценки; можно изменить"
+
 #: hotel_management/hotel_management/doctype/hotel_floor/hotel_floor.json
 msgid "Building"
 msgstr "Корпус"
@@ -308,10 +320,6 @@ msgid "Hotel Profile Name"
 msgstr "Название профиля отеля"
 
 #: hotel_management/hotel_management/doctype/hotel_profile/hotel_profile.json
-msgid "Income Account"
-msgstr "Счёт доходов"
-
-#: hotel_management/hotel_management/doctype/hotel_profile/hotel_profile.json
 msgid "Default Service"
 msgstr "Услуга по умолчанию"
 
@@ -322,10 +330,6 @@ msgstr "Название удобства номера"
 #: hotel_management/hotel_management/doctype/room_amenity/room_amenity.json
 msgid "Icon"
 msgstr "Иконка"
-
-#: hotel_management/hotel_management/doctype/room_amenity/room_amenity.json
-msgid "Color"
-msgstr "Цвет"
 
 # Select field options / workflow states
 
@@ -627,6 +631,14 @@ msgstr "Укажите способ оплаты"
 #: hotel_management/api.py
 msgid "Mode of Payment {0} is not allowed in Hotel Settings"
 msgstr "Способ оплаты {0} не разрешён в настройках отеля"
+
+#: hotel_management/api.py
+msgid "You are not permitted to use Mode of Payment {0}"
+msgstr "У вас нет разрешения на способ оплаты {0}"
+
+#: hotel_management/api.py
+msgid "You are not permitted to use any Mode of Payment from Hotel Settings"
+msgstr "У вас нет разрешения ни на один способ оплаты из настроек отеля"
 
 #: hotel_management/api.py
 #: hotel_management/hotel_management/doctype/hotel_settings/hotel_settings.py
@@ -1134,6 +1146,18 @@ msgstr "Прочее"
 msgid "Room {0} or its room type is disabled"
 msgstr "Номер {0} или его тип номера отключён"
 
-#: hotel_management/hotel_management/doctype/hotel_profile/hotel_profile.py
-msgid "Account {0} is a group account and cannot be selected"
-msgstr "Счёт {0} является группой и не может быть выбран"
+#: hotel_management/hotel_management/doctype/room_booking/room_booking.py
+msgid "Booking {0} cannot be cancelled: Sales Invoice {1} already has payments"
+msgstr "Бронь {0} нельзя отменить: по счёту {1} уже есть оплата"
+
+#: hotel_management/hotel_management/doctype/room_booking/room_booking.py
+msgid "Booking is paid"
+msgstr "Бронь оплачена"
+
+#: hotel_management/hotel_management/doctype/room_booking/room_booking.py
+msgid "Sales Invoice {0} already has payments: room, rate, check in, check out and services can no longer be changed"
+msgstr "По счёту {0} уже есть оплата: номер, тариф, даты заезда и выезда и услуги менять нельзя"
+
+#: hotel_management/api.py
+msgid "Sales Invoice {0} already has payments and cannot be recreated"
+msgstr "По счёту {0} уже есть оплата, пересоздать его нельзя"

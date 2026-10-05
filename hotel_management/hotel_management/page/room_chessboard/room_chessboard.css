@@ -817,7 +817,7 @@
 .rcr-amenity .rc-dot {
 	width: 8px;
 	height: 8px;
-	background: var(--rcr-c);
+	background: var(--text-muted);
 }
 
 .rcr-text {

@@ -147,6 +147,7 @@
    "fieldname": "status",
    "fieldtype": "Select",
    "label": "Status",
+   "no_copy": 1,
    "options": "Booking\nChecked In\nChecked Out\nCompleted\nCancelled",
    "read_only": 1
   },
@@ -247,6 +248,7 @@
    "fieldname": "pay_status",
    "fieldtype": "Select",
    "label": "Pay Status",
+   "no_copy": 1,
    "options": "Unpaid\nPaid",
    "read_only": 1
   },
@@ -255,6 +257,7 @@
    "fieldname": "sales_invoice",
    "fieldtype": "Link",
    "label": "Sales Invoice",
+   "no_copy": 1,
    "options": "Sales Invoice",
    "read_only": 1
   },
@@ -273,7 +276,7 @@
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2026-10-02 12:00:00.000000",
+ "modified": "2026-10-05 12:00:00.000000",
  "modified_by": "Administrator",
  "module": "Hotel Management",
  "name": "Room Booking",

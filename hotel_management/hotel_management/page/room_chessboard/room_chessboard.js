@@ -35,8 +35,6 @@
 	const HOUR = 60 * 60 * 1000;
 	const DAY = 24 * HOUR;
 	const DAY_WIDTH = 112; // ширина колонки дня, px
-	const CHECK_IN_HOUR = 14;
-	const CHECK_OUT_HOUR = 12;
 	const SELECTION_ID = "__selection__";
 	const VIEW_KEY = "room_chessboard_view";
 
@@ -524,7 +522,6 @@
 		}
 
 		tooltip_html(b) {
-			const esc = (v) => frappe.utils.escape_html(v == null ? "" : String(v));
 			const fmt = (v) => moment(parse_dt(v)).format("DD.MM.YYYY HH:mm");
 			const rows = [
 				[__("Room"), b.room],
@@ -902,9 +899,7 @@
 		}
 
 		booking_card_html(doc, b, guests, si) {
-			const esc = (v) => frappe.utils.escape_html(v == null ? "" : String(v));
-			const currency = b.currency || frappe.defaults.get_default("currency");
-			const money = (v) => format_currency(v || 0, currency);
+			const money = money_formatter(b.currency);
 			const dt = (v) => {
 				const d = parse_dt(v);
 				return `${pad2(d.getDate())}.${pad2(d.getMonth() + 1)}.${d.getFullYear()} ${pad2(
@@ -914,8 +909,6 @@
 			const nights = Math.round(
 				(start_of_day(parse_dt(doc.check_out)) - start_of_day(parse_dt(doc.check_in))) / DAY
 			);
-			const row = (label, value) =>
-				`<div class="rcb-row"><span class="rcb-label">${esc(label)}</span><span class="rcb-value">${value}</span></div>`;
 			const link = (doctype, name) =>
 				name
 					? `<a href="/app/${frappe.router.slug(doctype)}/${encodeURIComponent(name)}">${esc(name)}</a>`
@@ -930,7 +923,10 @@
 							)}</span></div>`
 					)
 					.join("");
-			const services = service_rows(doc.items_and_service, (r) => `${r.item} × ${flt(r.qty)}`);
+			const services = service_rows(
+				doc.items_and_service,
+				(r) => `${r.item} × ${flt(r.qty)}${flt(r.markup) ? ` (+${flt(r.markup)}%)` : ""}`
+			);
 			const percentage_services = service_rows(
 				doc.percentage_services,
 				(r) => `${r.item} (${flt(r.percent)}%) × ${flt(r.qty)}`
@@ -951,36 +947,36 @@
 
 					<div class="rcb-grid">
 						<div>
-							${row(__("Customer"), link("Customer", doc.customer))}
-							${row(__("Room"), esc(doc.room))}
-							${row(__("Room Rate"), esc(doc.room_rate))}
-							${row(__("Guests"), guests.length ? guests.map(esc).join("<br>") : "—")}
+							${info_row(__("Customer"), link("Customer", doc.customer))}
+							${info_row(__("Room"), esc(doc.room))}
+							${info_row(__("Room Rate"), esc(doc.room_rate))}
+							${info_row(__("Guests"), guests.length ? guests.map(esc).join("<br>") : "—")}
 						</div>
 						<div>
-							${row(__("Check In"), dt(doc.check_in))}
-							${row(__("Check Out"), dt(doc.check_out))}
-							${row(
+							${info_row(__("Check In"), dt(doc.check_in))}
+							${info_row(__("Check Out"), dt(doc.check_out))}
+							${info_row(
 								__("Duration"),
 								`${__("Nights: {0}", [nights])} · ${flt(doc.total_hours, 1)} ${__("h")}`
 							)}
-							${row(__("Sales Invoice"), link("Sales Invoice", doc.sales_invoice))}
+							${info_row(__("Sales Invoice"), link("Sales Invoice", doc.sales_invoice))}
 						</div>
 					</div>
 
 					<div class="rcb-money">
-						${row(__("Accommodation"), money(doc.amount))}
+						${info_row(__("Accommodation"), money(doc.amount))}
 						${services ? `<div class="rcb-services">${services}</div>` : ""}
-						${services ? row(__("Items and Services"), money(doc.items_and_serivce_amount)) : ""}
+						${services ? info_row(__("Items and Services"), money(doc.items_and_serivce_amount)) : ""}
 						${percentage_services ? `<div class="rcb-services">${percentage_services}</div>` : ""}
 						${
 							percentage_services
-								? row(__("Percentage Services"), money(doc.percentage_services_amount))
+								? info_row(__("Percentage Services"), money(doc.percentage_services_amount))
 								: ""
 						}
-						<div class="rcb-total">${row(__("Total"), money(doc.total_amount))}</div>
+						<div class="rcb-total">${info_row(__("Total"), money(doc.total_amount))}</div>
 						${
 							si && si.docstatus === 1 && flt(si.outstanding_amount) > 0
-								? `<div class="rcb-due">${row(__("Outstanding Amount"), money(si.outstanding_amount))}</div>`
+								? `<div class="rcb-due">${info_row(__("Outstanding Amount"), money(si.outstanding_amount))}</div>`
 								: ""
 						}
 						${
@@ -1000,8 +996,7 @@
 
 		async show_room(name) {
 			const room = await frappe.xcall("hotel_management.api.get_room_card", { room: name });
-			const esc = (v) => frappe.utils.escape_html(v == null ? "" : String(v));
-			const currency = frappe.defaults.get_default("currency");
+			const money = money_formatter();
 
 			// кто сейчас в номере
 			const now = new Date();
@@ -1014,10 +1009,8 @@
 				  )}: ${esc(current.booking.customer_name)} · ${esc(__("until {0}", [fmt_short(current.end)]))}</span>`
 				: `<span class="rcb-badge rcb-paid">${esc(__("Free now"))}</span>`;
 
-			const row = (label, value) =>
-				value || value === 0
-					? `<div class="rcb-row"><span class="rcb-label">${esc(label)}</span><span class="rcb-value">${value}</span></div>`
-					: "";
+			// пустые сведения о номере не показываем
+			const row = (label, value) => (value || value === 0 ? info_row(label, value) : "");
 
 			const [cover, ...thumbs] = room.images || [];
 			const gallery = cover
@@ -1037,13 +1030,14 @@
 			const amenities = (room.amenities || [])
 				.map(
 					(a) =>
-						`<span class="rcr-amenity" style="--rcr-c:${esc(a.color || "var(--text-muted)")}"
-							title="${esc(a.description || "")}"><span class="rc-dot"></span>${esc(a.name)}</span>`
+						`<span class="rcr-amenity" title="${esc(a.description || "")}"><span class="rc-dot"></span>${esc(
+							a.name
+						)}</span>`
 				)
 				.join("");
 
 			const rates = (room.rates || [])
-				.map((r) => row(r.room_rate, `${format_currency(r.rate_by_hour, currency)} / ${esc(__("h"))}`))
+				.map((r) => row(r.room_rate, `${money(r.rate_by_hour)} / ${esc(__("h"))}`))
 				.join("");
 
 			const html = `
@@ -1125,8 +1119,7 @@
 				return;
 			}
 
-			const currency = si.currency || frappe.defaults.get_default("currency");
-			const money = (v) => format_currency(v || 0, currency);
+			const money = money_formatter(si.currency);
 			const outstanding = flt(si.outstanding_amount);
 
 			const dialog = new frappe.ui.Dialog({
@@ -1291,13 +1284,9 @@
 		}
 
 		confirm_payment(doc, si, posting_date, payments, on_done) {
-			const esc = (v) => frappe.utils.escape_html(v == null ? "" : String(v));
-			const currency = si.currency || frappe.defaults.get_default("currency");
-			const money = (v) => format_currency(v || 0, currency);
+			const money = money_formatter(si.currency);
 			const outstanding = flt(si.outstanding_amount);
 			const paid = payments.reduce((sum, p) => sum + flt(p.amount), 0);
-			const row = (label, value) =>
-				`<div class="rcb-row"><span class="rcb-label">${esc(label)}</span><span class="rcb-value">${value}</span></div>`;
 
 			const lines = payments
 				.map(
@@ -1339,12 +1328,12 @@
 				<div class="rcb">
 					<div class="rcb-grid">
 						<div>
-							${row(__("Customer"), esc(si.customer))}
-							${row(__("Room"), esc(doc.room))}
+							${info_row(__("Customer"), esc(si.customer))}
+							${info_row(__("Room"), esc(doc.room))}
 						</div>
 						<div>
-							${row(__("Sales Invoice"), esc(doc.sales_invoice))}
-							${row(__("Posting Date"), esc(frappe.datetime.str_to_user(posting_date)))}
+							${info_row(__("Sales Invoice"), esc(doc.sales_invoice))}
+							${info_row(__("Posting Date"), esc(frappe.datetime.str_to_user(posting_date)))}
 						</div>
 					</div>
 					<div class="rcb-money">
@@ -1396,6 +1385,22 @@
 	};
 
 	// ---------------------------------------------------------------- helpers
+
+	function esc(value) {
+		return frappe.utils.escape_html(value == null ? "" : String(value));
+	}
+
+	// строка карточки «подпись — значение»; value — готовый HTML
+	function info_row(label, value) {
+		return `<div class="rcb-row"><span class="rcb-label">${esc(label)}</span><span class="rcb-value">${value}</span></div>`;
+	}
+
+	// форматирование сумм в валюте документа (или в валюте по умолчанию)
+	function money_formatter(currency) {
+		currency = currency || frappe.defaults.get_default("currency");
+		return (value) => format_currency(value || 0, currency);
+	}
+
 	// Даты в Frappe — «наивные» строки во временной зоне системы. Разбираем их как локальное
 	// время браузера и так же собираем обратно, чтобы часы на шкале совпадали с формой брони.
 

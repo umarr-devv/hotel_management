@@ -124,8 +124,8 @@ def get_rooms(filters):
 	return frappe.get_all(
 		"Hotel Room",
 		filters=room_filters,
-		fields=["name", "room_number", "room_type", "hotel_building", "hotel_floor", "floor_number"],
-		order_by="hotel_building asc, floor_number asc, room_number asc",
+		fields=["name", "room_number", "room_type", "hotel_building", "hotel_floor"],
+		order_by="hotel_building asc, hotel_floor asc, room_number asc",
 	)
 
 

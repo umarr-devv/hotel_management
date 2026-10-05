@@ -9,8 +9,6 @@
  "field_order": [
   "hotel_profile_name",
   "section_break_kidp",
-  "income_account",
-  "column_break_qutq",
   "warehouse",
   "section_break_bibp",
   "default_service"
@@ -27,18 +25,6 @@
   {
    "fieldname": "section_break_kidp",
    "fieldtype": "Section Break"
-  },
-  {
-   "fieldname": "income_account",
-   "fieldtype": "Link",
-   "label": "Income Account",
-   "link_filters": "[[\"Account\",\"account_type\",\"in\",[\"Cash\",\"Bank\"]],[\"Account\",\"is_group\",\"=\",0],[\"Account\",\"disabled\",\"=\",0]]",
-   "options": "Account",
-   "reqd": 1
-  },
-  {
-   "fieldname": "column_break_qutq",
-   "fieldtype": "Column Break"
   },
   {
    "fieldname": "warehouse",
@@ -64,7 +50,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-09-22 23:30:00.000000",
+ "modified": "2026-10-05 12:00:00.000000",
  "modified_by": "Administrator",
  "module": "Hotel Management",
  "name": "Hotel Profile",
