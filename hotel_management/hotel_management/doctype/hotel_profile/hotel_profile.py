@@ -4,6 +4,7 @@
 import frappe
 from frappe import _
 from frappe.model.document import Document
+from frappe.utils import cint
 
 
 class HotelProfile(Document):
@@ -26,6 +27,22 @@ def get_payment_modes(hotel_profile):
 		for row in frappe.get_cached_doc("Hotel Profile", hotel_profile).modes_of_payment
 		if row.mode_of_payment
 	]
+
+
+@frappe.whitelist()
+def payment_mode_query(doctype, txt, searchfield, start, page_len, filters):
+	"""Поиск для полей-ссылок на способ оплаты: включённые способы из таблицы профиля отеля."""
+	modes = get_payment_modes((filters or {}).get("hotel_profile"))
+	if not modes:
+		return []
+
+	txt = (txt or "").lower()
+	enabled = set(
+		frappe.get_all("Mode of Payment", filters={"name": ["in", modes], "enabled": 1}, pluck="name")
+	)
+	found = [(mode,) for mode in modes if mode in enabled and txt in mode.lower()]
+	start = cint(start)
+	return found[start : start + (cint(page_len) or 20)]
 
 
 def get_payment_accounts(hotel_profile):

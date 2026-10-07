@@ -44,6 +44,18 @@
   {
    "child": 0,
    "collapsible": 1,
+   "icon": "shopping-cart",
+   "indent": 0,
+   "keep_closed": 0,
+   "label": "Hotel Expense",
+   "link_to": "Hotel Expense",
+   "link_type": "DocType",
+   "show_arrow": 0,
+   "type": "Link"
+  },
+  {
+   "child": 0,
+   "collapsible": 1,
    "icon": "settings",
    "indent": 0,
    "keep_closed": 0,
@@ -349,7 +361,7 @@
    "type": "Link"
   }
  ],
- "modified": "2026-10-07 12:00:00.000000",
+ "modified": "2026-10-07 18:00:00.000000",
  "modified_by": "Administrator",
  "module": "Hotel Management",
  "name": "Hotel",

@@ -624,6 +624,7 @@ msgid "Mode of Payment is required"
 msgstr "Укажите способ оплаты"
 
 #: hotel_management/api.py
+#: hotel_management/hotel_management/doctype/hotel_expense/hotel_expense.py
 msgid "Mode of Payment {0} is not allowed in Hotel Profile {1}"
 msgstr "Способ оплаты {0} не разрешён в профиле отеля {1}"
 
@@ -1235,3 +1236,65 @@ msgstr "В профиле отеля {0} нет способов оплаты с
 #: hotel_management/hotel_management/report/hotel_cash_flow/hotel_cash_flow.py
 msgid "Set From Date and To Date"
 msgstr "Укажите даты с и по"
+
+# Расходы отеля
+
+#. Name of a DocType; also a sidebar and workspace link
+#: hotel_management/hotel_management/doctype/hotel_expense/hotel_expense.json
+#: hotel_management/workspace_sidebar/hotel.json
+msgid "Hotel Expense"
+msgstr "Расходы отеля"
+
+#. Name of a DocType
+#: hotel_management/hotel_management/doctype/hotel_expense_item/hotel_expense_item.json
+msgid "Hotel Expense Item"
+msgstr "Товар расхода отеля"
+
+#: hotel_management/hotel_management/doctype/hotel_expense/hotel_expense.json
+msgid "Only Modes of Payment of the Hotel Profile"
+msgstr "Только способы оплаты профиля отеля"
+
+#: hotel_management/hotel_management/doctype/hotel_expense/hotel_expense.json
+msgid "Items are received into the warehouse of the Hotel Profile"
+msgstr "Товары приходуются на склад профиля отеля"
+
+#: hotel_management/hotel_management/doctype/hotel_expense_item/hotel_expense_item.json
+msgid "Purchase price per unit; the last purchase rate is suggested"
+msgstr "Закупочная цена за единицу; подставляется цена последней закупки"
+
+#: hotel_management/hotel_management/doctype/hotel_expense/hotel_expense.py
+#: hotel_management/hotel_management/doctype/hotel_expense/hotel_expense_quick_entry.js
+msgid "Add at least one item"
+msgstr "Добавьте хотя бы один товар"
+
+#: hotel_management/hotel_management/doctype/hotel_expense/hotel_expense.py
+msgid "Row {0}: Qty must be greater than zero"
+msgstr "Строка {0}: количество должно быть больше нуля"
+
+#: hotel_management/hotel_management/doctype/hotel_expense/hotel_expense.py
+msgid "Row {0}: Rate must be greater than zero"
+msgstr "Строка {0}: цена должна быть больше нуля"
+
+#: hotel_management/hotel_management/doctype/hotel_expense/hotel_expense.py
+msgid "Set Warehouse in Hotel Profile {0}"
+msgstr "Укажите склад в профиле отеля {0}"
+
+#: hotel_management/hotel_management/doctype/hotel_expense/hotel_expense.py
+msgid "Hotel Expense {0}"
+msgstr "Расход отеля {0}"
+
+#: hotel_management/hotel_management/doctype/hotel_expense/hotel_expense_quick_entry.js
+msgid "New Hotel Expense"
+msgstr "Новый расход отеля"
+
+#: hotel_management/hotel_management/doctype/hotel_expense/hotel_expense_quick_entry.js
+msgid "Save and Submit"
+msgstr "Сохранить и провести"
+
+#: hotel_management/hotel_management/doctype/hotel_expense/hotel_expense_quick_entry.js
+msgid "Hotel Expense {0} submitted"
+msgstr "Расход отеля {0} проведён"
+
+#: hotel_management/hotel_management/doctype/hotel_expense/hotel_expense_quick_entry.js
+msgid "Hotel Expense {0} saved"
+msgstr "Расход отеля {0} сохранён"
