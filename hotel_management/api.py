@@ -9,6 +9,9 @@ from frappe.utils import cint, flt, getdate, nowdate
 from hotel_management.hotel_management.doctype.hotel_profile.hotel_profile import (
 	get_payment_modes as get_hotel_payment_modes,
 )
+from hotel_management.hotel_management.doctype.hotel_profile.hotel_profile import (
+	validate_payment_mode,
+)
 from hotel_management.hotel_management.doctype.room_booking.room_booking import (
 	cancel_sales_invoice,
 	get_rate_with_markup,
@@ -73,18 +76,12 @@ def get_booking_hotel_profile(booking):
 
 def validate_payment_modes(modes, hotel_profile):
 	"""Способы оплаты указаны по разу, есть в профиле отеля и разрешены пользователю."""
-	allowed = get_hotel_payment_modes(hotel_profile)
 	permitted = get_permitted_payment_modes()
 	seen = set()
 	for mode in modes:
 		if not mode:
 			frappe.throw(_("Mode of Payment is required"))
-		if mode not in allowed:
-			frappe.throw(
-				_("Mode of Payment {0} is not allowed in Hotel Profile {1}").format(
-					frappe.bold(mode), frappe.bold(hotel_profile)
-				)
-			)
+		validate_payment_mode(hotel_profile, mode)
 		if permitted is not None and mode not in permitted:
 			frappe.throw(
 				_("You are not permitted to use Mode of Payment {0}").format(frappe.bold(mode)),

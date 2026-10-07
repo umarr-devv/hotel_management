@@ -13,7 +13,7 @@ from frappe import _
 from frappe.model.document import Document
 from frappe.utils import flt
 
-from hotel_management.hotel_management.doctype.hotel_profile.hotel_profile import get_payment_modes
+from hotel_management.hotel_management.doctype.hotel_profile.hotel_profile import validate_payment_mode
 
 
 class HotelExpense(Document):
@@ -36,12 +36,7 @@ class HotelExpense(Document):
 		self.total_amount = flt(total, self.precision("total_amount"))
 
 	def validate_mode_of_payment(self):
-		if self.mode_of_payment not in get_payment_modes(self.hotel_profile):
-			frappe.throw(
-				_("Mode of Payment {0} is not allowed in Hotel Profile {1}").format(
-					frappe.bold(self.mode_of_payment), frappe.bold(self.hotel_profile)
-				)
-			)
+		validate_payment_mode(self.hotel_profile, self.mode_of_payment)
 		# касса/банк должны быть настроены для компании — иначе закупку не провести
 		get_cash_bank_account(self.mode_of_payment, self.company)
 

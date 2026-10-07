@@ -796,6 +796,11 @@ msgstr "История гостей"
 msgid "Cash Flow"
 msgstr "Движение денег"
 
+#. Label of a workspace card
+#: hotel_management/hotel_management/workspace/hotel/hotel.json
+msgid "Cash Desk"
+msgstr "Касса"
+
 # Показатели и колонки отчётов
 
 #: hotel_management/hotel_management/report/hotel_adr_and_revpar/hotel_adr_and_revpar.py

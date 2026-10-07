@@ -103,14 +103,15 @@ def get_accounts(hotel_profile):
 	return accounts
 
 
-def get_income(accounts, start, end):
-	entries = frappe.db.sql(
+def get_payment_entries(accounts, start, end, account_field):
+	"""Проведённые Payment Entry периода, у которых account_field (paid_to / paid_from) — счёт профиля."""
+	return frappe.db.sql(
 		f"""
 		select pe.name, pe.payment_type, pe.party_type, pe.party, pe.party_name, pe.paid_from,
-			pe.paid_to, pe.received_amount, pe.reference_no, pe.remarks, pe.custom_remarks, pe.owner,
-			{PE_DATETIME} as posting_datetime
+			pe.paid_to, pe.paid_amount, pe.received_amount, pe.reference_no, pe.remarks,
+			pe.custom_remarks, pe.owner, {PE_DATETIME} as posting_datetime
 		from `tabPayment Entry` pe
-		where pe.docstatus = 1 and pe.paid_to in %(accounts)s
+		where pe.docstatus = 1 and pe.{account_field} in %(accounts)s
 			and pe.posting_date between %(start_date)s and %(end_date)s
 			and {PE_DATETIME} >= %(start)s and {PE_DATETIME} < %(end)s
 		order by posting_datetime asc, pe.name asc
@@ -118,6 +119,15 @@ def get_income(accounts, start, end):
 		period_values(accounts, start, end),
 		as_dict=True,
 	)
+
+
+def payment_note(pe):
+	"""Примечание платежа: только введённое вручную — автоматическое повторяет колонки отчёта."""
+	return pe.remarks if pe.custom_remarks else ""
+
+
+def get_income(accounts, start, end):
+	entries = get_payment_entries(accounts, start, end, "paid_to")
 	bookings = get_payment_bookings(entries)
 
 	rows = []
@@ -125,7 +135,7 @@ def get_income(accounts, start, end):
 		if pe.payment_type == "Internal Transfer":
 			note = _("Transfer from {0}").format(pe.paid_from)
 		else:
-			note = pe.remarks if pe.custom_remarks else ""
+			note = payment_note(pe)
 		rows.append(
 			make_row(
 				accounts[pe.paid_to],
@@ -189,19 +199,7 @@ def get_payment_bookings(entries):
 
 
 def get_pe_expenses(accounts, start, end):
-	entries = frappe.db.sql(
-		f"""
-		select pe.name, pe.payment_type, pe.party_type, pe.party, pe.party_name, pe.paid_from,
-			pe.paid_to, pe.paid_amount, pe.remarks, pe.custom_remarks, pe.owner,
-			{PE_DATETIME} as posting_datetime
-		from `tabPayment Entry` pe
-		where pe.docstatus = 1 and pe.paid_from in %(accounts)s
-			and pe.posting_date between %(start_date)s and %(end_date)s
-			and {PE_DATETIME} >= %(start)s and {PE_DATETIME} < %(end)s
-		""",
-		period_values(accounts, start, end),
-		as_dict=True,
-	)
+	entries = get_payment_entries(accounts, start, end, "paid_from")
 
 	rows = []
 	for pe in entries:
@@ -216,7 +214,7 @@ def get_pe_expenses(accounts, start, end):
 				pe,
 				"Payment Entry",
 				purpose=purpose,
-				note=pe.remarks if pe.custom_remarks else "",
+				note=payment_note(pe),
 			)
 		)
 	return rows

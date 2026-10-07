@@ -29,6 +29,16 @@ def get_payment_modes(hotel_profile):
 	]
 
 
+def validate_payment_mode(hotel_profile, mode_of_payment):
+	"""Способ оплаты должен быть в таблице профиля отеля."""
+	if mode_of_payment not in get_payment_modes(hotel_profile):
+		frappe.throw(
+			_("Mode of Payment {0} is not allowed in Hotel Profile {1}").format(
+				frappe.bold(mode_of_payment), frappe.bold(hotel_profile)
+			)
+		)
+
+
 @frappe.whitelist()
 def payment_mode_query(doctype, txt, searchfield, start, page_len, filters):
 	"""Поиск для полей-ссылок на способ оплаты: включённые способы из таблицы профиля отеля."""
