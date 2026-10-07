@@ -1107,14 +1107,17 @@
 		}
 
 		async make_payment(doc, si) {
-			// вкладки оплаты — способы оплаты из Hotel Settings
-			const modes = await frappe.xcall("hotel_management.api.get_payment_modes");
+			// вкладки оплаты — способы оплаты из профиля отеля брони
+			const modes = await frappe.xcall("hotel_management.api.get_payment_modes", {
+				room_booking: doc.name,
+			});
 			if (!modes.length) {
+				const profile_url = frappe.utils.get_form_link("Hotel Profile", doc.hotel_profile);
 				frappe.msgprint({
 					title: __("Payment"),
 					indicator: "orange",
-					message: `${__("Add Modes of Payment in Hotel Settings")}<br><br>
-						<a class="btn btn-default btn-sm" href="/app/hotel-settings">${__("Open Hotel Settings")}</a>`,
+					message: `${__("Add Modes of Payment in Hotel Profile {0}", [esc(doc.hotel_profile)])}<br><br>
+						<a class="btn btn-default btn-sm" href="${profile_url}">${__("Open Hotel Profile")}</a>`,
 				});
 				return;
 			}

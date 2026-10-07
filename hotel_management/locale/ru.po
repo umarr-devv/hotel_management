@@ -106,16 +106,10 @@ msgstr "Гость бронирования"
 msgid "Room Booking Percentage Service"
 msgstr "Процентная услуга бронирования"
 
-#. Name of a DocType; also a sidebar and workspace link
-#: hotel_management/hotel_management/doctype/hotel_settings/hotel_settings.json
-#: hotel_management/workspace_sidebar/hotel.json
-msgid "Hotel Settings"
-msgstr "Настройки отеля"
-
 #. Name of a DocType
-#: hotel_management/hotel_management/doctype/hotel_settings_mode_of_payment/hotel_settings_mode_of_payment.json
-msgid "Hotel Settings Mode of Payment"
-msgstr "Способ оплаты в настройках отеля"
+#: hotel_management/hotel_management/doctype/hotel_profile_mode_of_payment/hotel_profile_mode_of_payment.json
+msgid "Hotel Profile Mode of Payment"
+msgstr "Способ оплаты профиля отеля"
 
 # Field labels
 
@@ -227,15 +221,16 @@ msgstr "Процент"
 msgid "Percent of the room's hourly rate"
 msgstr "Процент от часового тарифа номера"
 
-#: hotel_management/hotel_management/doctype/hotel_settings/hotel_settings.json
+#: hotel_management/hotel_management/doctype/hotel_profile/hotel_profile.json
+#: hotel_management/hotel_management/report/hotel_cash_flow/hotel_cash_flow.py
 msgid "Payments"
 msgstr "Платежи"
 
-#: hotel_management/hotel_management/doctype/hotel_settings/hotel_settings.json
+#: hotel_management/hotel_management/doctype/hotel_profile/hotel_profile.json
 msgid "Modes of Payment"
 msgstr "Способы оплаты"
 
-#: hotel_management/hotel_management/doctype/hotel_settings/hotel_settings.json
+#: hotel_management/hotel_management/doctype/hotel_profile/hotel_profile.json
 msgid "Each Mode of Payment becomes a tab in the booking payment dialog"
 msgstr "Каждый способ оплаты — отдельная вкладка в окне оплаты брони"
 
@@ -612,12 +607,12 @@ msgid "Back"
 msgstr "Назад"
 
 #: hotel_management/hotel_management/page/room_chessboard/room_chessboard.js
-msgid "Add Modes of Payment in Hotel Settings"
-msgstr "Добавьте способы оплаты в настройках отеля"
+msgid "Add Modes of Payment in Hotel Profile {0}"
+msgstr "Добавьте способы оплаты в профиле отеля {0}"
 
 #: hotel_management/hotel_management/page/room_chessboard/room_chessboard.js
-msgid "Open Hotel Settings"
-msgstr "Открыть настройки отеля"
+msgid "Open Hotel Profile"
+msgstr "Открыть профиль отеля"
 
 #: hotel_management/hotel_management/page/room_chessboard/room_chessboard.js
 #: hotel_management/api.py
@@ -629,19 +624,23 @@ msgid "Mode of Payment is required"
 msgstr "Укажите способ оплаты"
 
 #: hotel_management/api.py
-msgid "Mode of Payment {0} is not allowed in Hotel Settings"
-msgstr "Способ оплаты {0} не разрешён в настройках отеля"
+msgid "Mode of Payment {0} is not allowed in Hotel Profile {1}"
+msgstr "Способ оплаты {0} не разрешён в профиле отеля {1}"
+
+#: hotel_management/api.py
+msgid "Set Hotel Profile in Room Booking {0}"
+msgstr "Укажите профиль отеля в брони {0}"
 
 #: hotel_management/api.py
 msgid "You are not permitted to use Mode of Payment {0}"
 msgstr "У вас нет разрешения на способ оплаты {0}"
 
 #: hotel_management/api.py
-msgid "You are not permitted to use any Mode of Payment from Hotel Settings"
-msgstr "У вас нет разрешения ни на один способ оплаты из настроек отеля"
+msgid "You are not permitted to use any Mode of Payment from the Hotel Profile"
+msgstr "У вас нет разрешения ни на один способ оплаты из профиля отеля"
 
 #: hotel_management/api.py
-#: hotel_management/hotel_management/doctype/hotel_settings/hotel_settings.py
+#: hotel_management/hotel_management/doctype/hotel_profile/hotel_profile.py
 msgid "Mode of Payment {0} is listed more than once"
 msgstr "Способ оплаты {0} указан несколько раз"
 
@@ -759,6 +758,10 @@ msgstr "Отель: неоплаченные брони"
 msgid "Hotel Guest History"
 msgstr "Отель: история гостей"
 
+#: hotel_management/hotel_management/report/hotel_cash_flow/hotel_cash_flow.json
+msgid "Hotel Cash Flow"
+msgstr "Отель: движение денег"
+
 #: hotel_management/hotel_management/workspace/hotel/hotel.json
 msgid "Arrivals and Departures"
 msgstr "Заезды и выезды"
@@ -786,6 +789,11 @@ msgstr "Неоплаченные брони"
 #: hotel_management/hotel_management/workspace/hotel/hotel.json
 msgid "Guest History"
 msgstr "История гостей"
+
+#: hotel_management/hotel_management/workspace/hotel/hotel.json
+#: hotel_management/workspace_sidebar/hotel.json
+msgid "Cash Flow"
+msgstr "Движение денег"
 
 # Показатели и колонки отчётов
 
@@ -1161,3 +1169,69 @@ msgstr "По счёту {0} уже есть оплата: номер, тариф
 #: hotel_management/api.py
 msgid "Sales Invoice {0} already has payments and cannot be recreated"
 msgstr "По счёту {0} уже есть оплата, пересоздать его нельзя"
+
+# Движение денег отеля
+
+#: hotel_management/hotel_management/report/hotel_cash_flow/hotel_cash_flow.py
+msgid "Expenses"
+msgstr "Расходы"
+
+#: hotel_management/hotel_management/report/hotel_cash_flow/hotel_cash_flow.py
+msgid "Balance at End"
+msgstr "Остаток на конец"
+
+#: hotel_management/hotel_management/report/hotel_cash_flow/hotel_cash_flow.py
+msgid "Net Cash Flow"
+msgstr "Чистый денежный поток"
+
+#: hotel_management/hotel_management/report/hotel_cash_flow/hotel_cash_flow.py
+msgid "Account"
+msgstr "Счёт"
+
+#: hotel_management/hotel_management/report/hotel_cash_flow/hotel_cash_flow.py
+msgid "Expense For"
+msgstr "На что расход"
+
+#: hotel_management/hotel_management/report/hotel_cash_flow/hotel_cash_flow.py
+msgid "Note"
+msgstr "Примечание"
+
+#: hotel_management/hotel_management/report/hotel_cash_flow/hotel_cash_flow.py
+msgid "Employee"
+msgstr "Сотрудник"
+
+#: hotel_management/hotel_management/report/hotel_cash_flow/hotel_cash_flow.py
+msgid "Date and Time"
+msgstr "Дата и время"
+
+#: hotel_management/hotel_management/report/hotel_cash_flow/hotel_cash_flow.py
+msgid "Voucher Type"
+msgstr "Тип документа"
+
+#: hotel_management/hotel_management/report/hotel_cash_flow/hotel_cash_flow.py
+msgid "Voucher No"
+msgstr "Номер документа"
+
+#: hotel_management/hotel_management/report/hotel_cash_flow/hotel_cash_flow.py
+msgid "Currency"
+msgstr "Валюта"
+
+#: hotel_management/hotel_management/report/hotel_cash_flow/hotel_cash_flow.py
+msgid "Transfer from {0}"
+msgstr "Перевод со счёта {0}"
+
+#: hotel_management/hotel_management/report/hotel_cash_flow/hotel_cash_flow.py
+msgid "Transfer to {0}"
+msgstr "Перевод на счёт {0}"
+
+#: hotel_management/hotel_management/report/hotel_cash_flow/hotel_cash_flow.py
+msgid "and {0} more"
+msgstr "и ещё {0}"
+
+#: hotel_management/hotel_management/report/hotel_cash_flow/hotel_cash_flow.py
+msgid "Hotel Profile {0} has no Modes of Payment with default accounts"
+msgstr "В профиле отеля {0} нет способов оплаты со счетами по умолчанию"
+
+#: hotel_management/hotel_management/report/hotel_cash_flow/hotel_cash_flow.py
+msgid "Set From Date and To Date"
+msgstr "Укажите даты с и по"

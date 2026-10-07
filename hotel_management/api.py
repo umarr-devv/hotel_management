@@ -6,7 +6,7 @@ from frappe import _
 from frappe.core.doctype.user_permission.user_permission import get_user_permissions
 from frappe.utils import cint, flt, getdate, nowdate
 
-from hotel_management.hotel_management.doctype.hotel_settings.hotel_settings import (
+from hotel_management.hotel_management.doctype.hotel_profile.hotel_profile import (
 	get_payment_modes as get_hotel_payment_modes,
 )
 from hotel_management.hotel_management.doctype.room_booking.room_booking import (
@@ -19,12 +19,14 @@ from hotel_management.utils import active_room_filters, invoice_has_payments
 
 
 @frappe.whitelist()
-def get_payment_modes():
-	"""Способы оплаты для диалога оплаты брони — из Hotel Settings, в порядке таблицы.
+def get_payment_modes(room_booking: str):
+	"""Способы оплаты для диалога оплаты брони — из профиля отеля брони, в порядке таблицы.
 
 	Показываются только способы, разрешённые пользователю (User Permission на Mode of Payment).
 	"""
-	modes = get_hotel_payment_modes()
+	booking = frappe.get_doc("Room Booking", room_booking)
+	booking.check_permission("read")
+	modes = get_hotel_payment_modes(get_booking_hotel_profile(booking))
 	if not modes:
 		return []
 
@@ -32,7 +34,7 @@ def get_payment_modes():
 	if permitted is not None:
 		modes = [mode for mode in modes if mode in permitted]
 		if not modes:
-			frappe.throw(_("You are not permitted to use any Mode of Payment from Hotel Settings"))
+			frappe.throw(_("You are not permitted to use any Mode of Payment from the Hotel Profile"))
 
 	info = {
 		m.name: m
@@ -63,16 +65,26 @@ def get_permitted_payment_modes():
 	return {perm.get("doc") for perm in permissions}
 
 
-def validate_payment_modes(modes):
-	"""Способы оплаты указаны по разу, есть в Hotel Settings и разрешены пользователю."""
-	allowed = get_hotel_payment_modes()
+def get_booking_hotel_profile(booking):
+	if not booking.hotel_profile:
+		frappe.throw(_("Set Hotel Profile in Room Booking {0}").format(booking.name))
+	return booking.hotel_profile
+
+
+def validate_payment_modes(modes, hotel_profile):
+	"""Способы оплаты указаны по разу, есть в профиле отеля и разрешены пользователю."""
+	allowed = get_hotel_payment_modes(hotel_profile)
 	permitted = get_permitted_payment_modes()
 	seen = set()
 	for mode in modes:
 		if not mode:
 			frappe.throw(_("Mode of Payment is required"))
-		if allowed and mode not in allowed:
-			frappe.throw(_("Mode of Payment {0} is not allowed in Hotel Settings").format(frappe.bold(mode)))
+		if mode not in allowed:
+			frappe.throw(
+				_("Mode of Payment {0} is not allowed in Hotel Profile {1}").format(
+					frappe.bold(mode), frappe.bold(hotel_profile)
+				)
+			)
 		if permitted is not None and mode not in permitted:
 			frappe.throw(
 				_("You are not permitted to use Mode of Payment {0}").format(frappe.bold(mode)),
@@ -97,9 +109,8 @@ def make_booking_payments(room_booking: str, payments: str | list, posting_date:
 	if not payments:
 		frappe.throw(_("Enter an amount in at least one Mode of Payment"))
 
-	validate_payment_modes([p.mode_of_payment for p in payments])
-
 	booking, si = get_payable_invoice(room_booking)
+	validate_payment_modes([p.mode_of_payment for p in payments], get_booking_hotel_profile(booking))
 
 	# долг гасим по порядку способов; переплата уходит в аванс клиента
 	precision = si.precision("outstanding_amount")

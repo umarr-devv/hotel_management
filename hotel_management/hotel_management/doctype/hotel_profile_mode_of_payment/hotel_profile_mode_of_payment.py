@@ -5,5 +5,5 @@
 from frappe.model.document import Document
 
 
-class HotelSettingsModeofPayment(Document):
+class HotelProfileModeofPayment(Document):
 	pass

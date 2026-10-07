@@ -171,18 +171,6 @@
    "type": "Link"
   },
   {
-   "child": 1,
-   "collapsible": 1,
-   "icon": "sliders-horizontal",
-   "indent": 0,
-   "keep_closed": 0,
-   "label": "Hotel Settings",
-   "link_to": "Hotel Settings",
-   "link_type": "DocType",
-   "show_arrow": 0,
-   "type": "Link"
-  },
-  {
    "child": 0,
    "collapsible": 1,
    "icon": "chart-line",
@@ -261,6 +249,18 @@
    "keep_closed": 0,
    "label": "Unpaid Bookings",
    "link_to": "Hotel Unpaid Bookings",
+   "link_type": "Report",
+   "show_arrow": 0,
+   "type": "Link"
+  },
+  {
+   "child": 1,
+   "collapsible": 1,
+   "icon": "piggy-bank",
+   "indent": 0,
+   "keep_closed": 0,
+   "label": "Cash Flow",
+   "link_to": "Hotel Cash Flow",
    "link_type": "Report",
    "show_arrow": 0,
    "type": "Link"
@@ -349,7 +349,7 @@
    "type": "Link"
   }
  ],
- "modified": "2026-10-02 12:00:00.000000",
+ "modified": "2026-10-07 12:00:00.000000",
  "modified_by": "Administrator",
  "module": "Hotel Management",
  "name": "Hotel",
