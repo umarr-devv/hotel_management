@@ -11,15 +11,22 @@
     счёт профиля. Internal Transfer между счетами профиля даёт и расход, и приход;
   * дата и время Payment Entry — дата проводки + время создания документа (своего
     времени у Payment Entry нет), Purchase Invoice — posting_date + posting_time;
+  * платежи и расходы — только документы, созданные сотрудниками профиля (таблица
+    Employees): выбранными в фильтре, а без выбора — всеми. Если сотрудники в профиле
+    не указаны, показываются документы всех пользователей;
   * остаток на конец — баланс счёта по GL на конец периода по всем проводкам, в том
-    числе по документам, которых нет в отчёте (например, Journal Entry).
+    числе по документам, которых нет в отчёте (например, Journal Entry), и не зависит
+    от фильтра сотрудников.
 """
 
 import frappe
 from frappe import _
 from frappe.utils import add_to_date, flt, get_datetime, get_fullname
 
-from hotel_management.hotel_management.doctype.hotel_profile.hotel_profile import get_payment_accounts
+from hotel_management.hotel_management.doctype.hotel_profile.hotel_profile import (
+	get_employees,
+	get_payment_accounts,
+)
 
 # сколько позиций закупки перечислять в колонке «На что расход»
 MAX_ITEMS_IN_PURPOSE = 5
@@ -44,8 +51,11 @@ def execute(filters=None):
 		)
 		return get_columns(), []
 
-	income = get_income(accounts, start, end)
-	expenses = get_pe_expenses(accounts, start, end) + get_pi_expenses(accounts, start, end)
+	owners = get_owners(filters)
+	income = by_owners(get_income(accounts, start, end), owners)
+	expenses = by_owners(
+		get_pe_expenses(accounts, start, end) + get_pi_expenses(accounts, start, end), owners
+	)
 	expenses.sort(key=lambda row: (row["posting_datetime"], row["voucher_no"]))
 	balances = get_balances(accounts, end)
 
@@ -68,6 +78,32 @@ def get_period(filters):
 	if start > end:
 		frappe.throw(_("From Date must be before To Date"))
 	return start, add_to_date(end, seconds=1)
+
+
+def get_owners(filters):
+	"""Чьи документы показывать; None — всех пользователей (сотрудники в профиле не указаны)."""
+	employees = get_employees(filters.hotel_profile)
+	if not employees:
+		return None
+	selected = [user for user in frappe.parse_json(filters.employees or "[]") if user in employees]
+	return set(selected or employees)
+
+
+def by_owners(rows, owners):
+	return rows if owners is None else [row for row in rows if row["owner"] in owners]
+
+
+@frappe.whitelist()
+def get_employee_options(hotel_profile: str, txt: str | None = None):
+	"""Варианты фильтра «Сотрудники»: пользователи из таблицы профиля отеля."""
+	frappe.has_permission("Hotel Profile", "read", hotel_profile, throw=True)
+	txt = (txt or "").lower()
+	options = []
+	for user in get_employees(hotel_profile):
+		full_name = get_fullname(user)
+		if txt in user.lower() or txt in full_name.lower():
+			options.append({"value": user, "description": full_name})
+	return options
 
 
 def period_values(accounts, start, end):

@@ -9,24 +9,37 @@ from frappe.utils import cint
 
 class HotelProfile(Document):
 	def validate(self):
-		seen = set()
-		for row in self.modes_of_payment:
-			if row.mode_of_payment in seen:
-				frappe.throw(
-					_("Mode of Payment {0} is listed more than once").format(frappe.bold(row.mode_of_payment))
-				)
-			seen.add(row.mode_of_payment)
+		validate_unique(
+			self.modes_of_payment, "mode_of_payment", _("Mode of Payment {0} is listed more than once")
+		)
+		validate_unique(self.employees, "user", _("User {0} is listed more than once"))
+
+
+def validate_unique(rows, fieldname, message):
+	seen = set()
+	for row in rows:
+		value = row.get(fieldname)
+		if value in seen:
+			frappe.throw(message.format(frappe.bold(value)))
+		seen.add(value)
+
+
+def get_table_values(hotel_profile, table, fieldname):
+	"""Значения колонки таблицы профиля отеля — в порядке строк, без пустых."""
+	if not hotel_profile:
+		return []
+	rows = frappe.get_cached_doc("Hotel Profile", hotel_profile).get(table)
+	return [row.get(fieldname) for row in rows if row.get(fieldname)]
+
+
+def get_employees(hotel_profile):
+	"""Сотрудники (пользователи) профиля отеля."""
+	return get_table_values(hotel_profile, "employees", "user")
 
 
 def get_payment_modes(hotel_profile):
-	"""Способы оплаты профиля отеля — в порядке таблицы."""
-	if not hotel_profile:
-		return []
-	return [
-		row.mode_of_payment
-		for row in frappe.get_cached_doc("Hotel Profile", hotel_profile).modes_of_payment
-		if row.mode_of_payment
-	]
+	"""Способы оплаты профиля отеля."""
+	return get_table_values(hotel_profile, "modes_of_payment", "mode_of_payment")
 
 
 def validate_payment_mode(hotel_profile, mode_of_payment):

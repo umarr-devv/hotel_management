@@ -13,7 +13,9 @@
   "section_break_bibp",
   "default_service",
   "payments_section",
-  "modes_of_payment"
+  "modes_of_payment",
+  "employees_section",
+  "employees"
  ],
  "fields": [
   {
@@ -59,12 +61,24 @@
    "fieldtype": "Table",
    "label": "Modes of Payment",
    "options": "Hotel Profile Mode of Payment"
+  },
+  {
+   "fieldname": "employees_section",
+   "fieldtype": "Section Break",
+   "label": "Employees"
+  },
+  {
+   "description": "Hotel Cash Flow shows only documents created by these users",
+   "fieldname": "employees",
+   "fieldtype": "Table",
+   "label": "Employees",
+   "options": "Hotel Profile User"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-10-07 12:00:00.000000",
+ "modified": "2026-10-08 12:00:00.000000",
  "modified_by": "Administrator",
  "module": "Hotel Management",
  "name": "Hotel Profile",
@@ -84,9 +98,21 @@
    "write": 1
   },
   {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
    "read": 1,
    "report": 1,
-   "role": "Hotel Manager"
+   "role": "Hotel Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "read": 1,
+   "report": 1,
+   "role": "Hotel Employee"
   }
  ],
  "quick_entry": 1,

@@ -14,13 +14,16 @@ doc_events = {
 }
 
 # сайдбар и иконка рабочего стола лежат в файлах приложения и всегда
-# перезаливаются из них после migrate
-after_migrate = "hotel_management.setup.sync_app_level_docs"
+# перезаливаются из них после migrate; права ролей отеля — из hotel_management/permissions.py
+after_migrate = [
+	"hotel_management.setup.sync_app_level_docs",
+	"hotel_management.permissions.sync_role_permissions",
+]
 
 fixtures = [
 	{
 		"dt": "Role",
-		"filters": [["name", "in", ["Hotel Manager"]]],
+		"filters": [["name", "in", ["Hotel Manager", "Hotel Employee"]]],
 	},
 	{
 		"dt": "Workflow",
@@ -119,7 +122,7 @@ fixtures = [
 # ------------
 
 # before_install = "hotel_management.install.before_install"
-# after_install = "hotel_management.install.after_install"
+after_install = "hotel_management.permissions.sync_role_permissions"
 
 # Uninstallation
 # ------------

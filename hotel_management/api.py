@@ -183,6 +183,9 @@ def make_payment_entry(booking, si, mode_of_payment, amount, allocated, posting_
 
 	pe.set_exchange_rate()
 	pe.set_amounts()
+	# право на бронь и способ оплаты проверены выше — прав на Payment Entry не требуем,
+	# как и на Sales Invoice при выставлении счёта (сотруднику отеля хватает брони)
+	pe.flags.ignore_permissions = True
 	pe.insert()
 	pe.submit()
 	return pe.name

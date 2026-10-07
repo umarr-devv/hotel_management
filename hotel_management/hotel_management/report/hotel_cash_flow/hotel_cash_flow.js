@@ -23,6 +23,26 @@ frappe.query_reports["Hotel Cash Flow"] = {
 			fieldtype: "Link",
 			options: "Hotel Profile",
 			reqd: 1,
+			on_change(report) {
+				// сотрудники у каждого профиля свои — выбор сбрасываем
+				const employees = report.get_filter_value("employees") || [];
+				if (employees.length) report.set_filter_value("employees", []); // отчёт обновится сам
+				else report.refresh();
+			},
+		},
+		{
+			// пусто — документы всех сотрудников профиля
+			fieldname: "employees",
+			label: __("Employees"),
+			fieldtype: "MultiSelectList",
+			get_data(txt) {
+				const hotel_profile = frappe.query_report.get_filter_value("hotel_profile");
+				if (!hotel_profile) return [];
+				return frappe.xcall(
+					"hotel_management.hotel_management.report.hotel_cash_flow.hotel_cash_flow.get_employee_options",
+					{ hotel_profile, txt }
+				);
+			},
 		},
 	],
 

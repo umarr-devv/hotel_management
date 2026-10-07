@@ -39,6 +39,11 @@ msgstr "Настройки"
 msgid "Hotel Manager"
 msgstr "Менеджер отеля"
 
+#. Name of a Role
+#: hotel_management/fixtures/role.json
+msgid "Hotel Employee"
+msgstr "Сотрудник отеля"
+
 # DocType names
 
 #. Name of a DocType
@@ -110,6 +115,11 @@ msgstr "Процентная услуга бронирования"
 #: hotel_management/hotel_management/doctype/hotel_profile_mode_of_payment/hotel_profile_mode_of_payment.json
 msgid "Hotel Profile Mode of Payment"
 msgstr "Способ оплаты профиля отеля"
+
+#. Name of a DocType
+#: hotel_management/hotel_management/doctype/hotel_profile_user/hotel_profile_user.json
+msgid "Hotel Profile User"
+msgstr "Сотрудник профиля отеля"
 
 # Field labels
 
@@ -1303,3 +1313,18 @@ msgstr "Расход отеля {0} проведён"
 #: hotel_management/hotel_management/doctype/hotel_expense/hotel_expense_quick_entry.js
 msgid "Hotel Expense {0} saved"
 msgstr "Расход отеля {0} сохранён"
+
+# Сотрудники профиля отеля
+
+#: hotel_management/hotel_management/doctype/hotel_profile/hotel_profile.json
+#: hotel_management/hotel_management/report/hotel_cash_flow/hotel_cash_flow.js
+msgid "Employees"
+msgstr "Сотрудники"
+
+#: hotel_management/hotel_management/doctype/hotel_profile/hotel_profile.json
+msgid "Hotel Cash Flow shows only documents created by these users"
+msgstr "В отчёте «Движение денег» видны только документы, созданные этими пользователями"
+
+#: hotel_management/hotel_management/doctype/hotel_profile/hotel_profile.py
+msgid "User {0} is listed more than once"
+msgstr "Пользователь {0} указан несколько раз"

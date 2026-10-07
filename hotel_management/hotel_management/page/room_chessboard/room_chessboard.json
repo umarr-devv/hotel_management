@@ -5,7 +5,7 @@
  "doctype": "Page",
  "icon": "calendar-days",
  "idx": 0,
- "modified": "2026-09-20 13:00:00.000000",
+ "modified": "2026-10-08 12:00:00.000000",
  "modified_by": "Administrator",
  "module": "Hotel Management",
  "name": "room-chessboard",
@@ -17,6 +17,9 @@
   },
   {
    "role": "System Manager"
+  },
+  {
+   "role": "Hotel Employee"
   }
  ],
  "script": null,

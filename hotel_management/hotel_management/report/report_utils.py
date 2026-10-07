@@ -9,7 +9,9 @@
     percentage_services_amount — услуги), а не из Sales Invoice: счёт может быть
     ещё не выставлен;
   * если бронь выходит за границы периода, её выручка делится пропорционально
-    часам, попавшим в период.
+    часам, попавшим в период;
+  * брони и номера, скрытые от пользователя по User Permission (например, другой
+    корпус), в отчёт не попадают вовсе — ни в строки, ни в итоги.
 """
 
 import frappe
@@ -33,6 +35,25 @@ BOOKING_FIELDS = """
 BOOKING_FILTER_FIELDS = ("company", "customer", "room", "room_rate", "hotel_profile", "status")
 # фильтры, которые отбирают бронь по номеру
 ROOM_FILTER_FIELDS = ("hotel_building", "hotel_floor", "room_type")
+
+# поля-ссылки строк броней и номеров, по которым действуют User Permission
+BOOKING_LINK_FIELDS = {
+	"name": "Room Booking",
+	"customer": "Customer",
+	"room": "Hotel Room",
+	"room_rate": "Room Rate",
+	"company": "Company",
+	"hotel_profile": "Hotel Profile",
+	"room_type": "Room Type",
+	"hotel_building": "Hotel Building",
+	"hotel_floor": "Hotel Floor",
+}
+ROOM_LINK_FIELDS = {
+	"name": "Hotel Room",
+	"room_type": "Room Type",
+	"hotel_building": "Hotel Building",
+	"hotel_floor": "Hotel Floor",
+}
 
 
 def get_period(filters, default_days=30):
@@ -95,7 +116,7 @@ def get_bookings(filters, from_date=None, to_date=None, include_cancelled=False)
 			conditions.append(f"r.{field} = %({field})s")
 			values[field] = filters.get(field)
 
-	return frappe.db.sql(
+	bookings = frappe.db.sql(
 		f"""
 		select {BOOKING_FIELDS}
 		from `tabRoom Booking` b
@@ -106,6 +127,7 @@ def get_bookings(filters, from_date=None, to_date=None, include_cancelled=False)
 		values,
 		as_dict=True,
 	)
+	return filter_permitted("Room Booking", bookings, BOOKING_LINK_FIELDS)
 
 
 def get_rooms(filters):
@@ -121,12 +143,32 @@ def get_rooms(filters):
 	if filters.get("room"):
 		room_filters.append(["name", "=", filters.get("room")])
 
-	return frappe.get_all(
+	rooms = frappe.get_all(
 		"Hotel Room",
 		filters=room_filters,
 		fields=["name", "room_number", "room_type", "hotel_building", "hotel_floor"],
 		order_by="hotel_building asc, hotel_floor asc, room_number asc",
 	)
+	return filter_permitted("Hotel Room", rooms, ROOM_LINK_FIELDS)
+
+
+def filter_permitted(ref_doctype, rows, link_fields):
+	"""Только строки, разрешённые пользователю по User Permission.
+
+	Frappe и сам отбрасывает такие строки, но уже после execute() и только по колонкам
+	отчёта: итоги в карточках считались бы и по скрытым строкам, а строки без колонки
+	корпуса проходили бы и для чужого корпуса. Здесь проверка та же (get_filtered_data),
+	но по всем ссылкам строки. link_fields — {поле строки: doctype}.
+	"""
+	from frappe.desk.query_report import get_filtered_data
+
+	if not rows:
+		return rows
+	columns = [
+		{"fieldname": fieldname, "fieldtype": "Link", "options": doctype}
+		for fieldname, doctype in link_fields.items()
+	]
+	return get_filtered_data(ref_doctype, columns, rows, frappe.session.user)
 
 
 def overlap_hours(check_in, check_out, start, end):
