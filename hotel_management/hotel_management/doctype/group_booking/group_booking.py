@@ -20,13 +20,15 @@ from frappe.model.workflow import apply_workflow, get_transitions
 from frappe.utils import cint, flt, get_datetime
 
 from hotel_management import billing
-from hotel_management.utils import active_room_filters
+from hotel_management.utils import active_room_filters, natural_key, room_number_key
 
 ORGANIZER_PAYS_ALL = "Organizer Pays All"
 ORGANIZER_PAYS_ACCOMMODATION = "Organizer Pays Accommodation"
 GUESTS_PAY = "Guests Pay"
 
 DATETIME_FIELDS = {"check_in", "check_out"}
+# поля строки, которые после заселения брони менять нельзя (выезд — можно, пока гость живёт)
+LOCKED_FIELDS = ("room", "room_rate", "check_in", "check_out")
 
 
 class GroupBooking(Document):
@@ -84,6 +86,34 @@ class GroupBooking(Document):
 		for row in self.rooms:
 			if row.check_in and row.check_out and get_datetime(row.check_out) <= get_datetime(row.check_in):
 				frappe.throw(_("Row #{0}: Check Out must be after Check In").format(row.idx))
+		self.validate_locked_rows()
+
+	def validate_locked_rows(self):
+		"""У заселённой брони номер, тариф и заезд не меняются, выезд — только пока гость живёт (продление)."""
+		linked = [row.room_booking for row in self.rooms if row.room_booking]
+		if not linked:
+			return
+		bookings = {
+			booking.name: booking
+			for booking in frappe.get_all(
+				"Room Booking",
+				filters={"name": ["in", linked], "docstatus": 1},
+				fields=["name", "status", *LOCKED_FIELDS],
+			)
+		}
+		for row in self.rooms:
+			booking = bookings.get(row.room_booking)
+			if not booking:
+				continue
+			for field in LOCKED_FIELDS:
+				if field == "check_out" and booking.status == "Checked In":
+					continue
+				if not same_value(field, booking.get(field), row.get(field)):
+					frappe.throw(
+						_("Row #{0}: booking {1} is already checked in, {2} can no longer be changed").format(
+							row.idx, frappe.bold(booking.name), _(row.meta.get_label(field))
+						)
+					)
 
 	def validate_removed_rows(self):
 		"""Убрать из группы можно только номер с черновой (не заселённой) бронью."""
@@ -215,6 +245,16 @@ def update_group_totals(group_booking, update_modified=False):
 	return totals
 
 
+def get_booking_actions(room_booking):
+	"""Действия workflow брони, доступные пользователю, без повторов.
+
+	Переход заведён отдельно для каждой роли отеля, поэтому пользователю с обеими ролями
+	get_transitions возвращает одно действие дважды.
+	"""
+	transitions = get_transitions({"doctype": "Room Booking", "name": room_booking})
+	return list(dict.fromkeys(transition.action for transition in transitions))
+
+
 def get_group_summary(group):
 	"""Брони группы, их счета и доступные действия workflow — для формы группы."""
 	bookings = []
@@ -245,8 +285,8 @@ def get_group_summary(group):
 			if row.sales_invoice and row.sales_invoice not in invoices:
 				invoices[row.sales_invoice] = row
 
-		for transition in get_transitions({"doctype": "Room Booking", "name": name}):
-			actions[transition.action] = actions.get(transition.action, 0) + 1
+		for action in get_booking_actions(name):
+			actions[action] = actions.get(action, 0) + 1
 
 	return {
 		"bookings": bookings,
@@ -302,7 +342,7 @@ def get_free_rooms(
 	)
 	exclude = set(frappe.parse_json(exclude) or [])
 	free = [room for room in rooms if room.name not in busy and room.name not in exclude]
-	free.sort(key=lambda room: (room.room_type or "", natural_key(room.room_number or room.name)))
+	free.sort(key=lambda room: (natural_key(room.room_type), room_number_key(room)))
 	if cint(count):
 		free = free[: cint(count)]
 
@@ -350,19 +390,12 @@ def apply_group_action(group_booking: str, action: str):
 
 	done = []
 	for name in get_group_bookings(group.name):
-		doc = {"doctype": "Room Booking", "name": name}
 		if frappe.db.get_value("Room Booking", name, "docstatus") == 2:
 			continue
-		if any(transition.action == action for transition in get_transitions(doc)):
-			apply_workflow(doc, action)
+		if action in get_booking_actions(name):
+			apply_workflow({"doctype": "Room Booking", "name": name}, action)
 			done.append(name)
 
 	if not done:
 		frappe.throw(_("No bookings of the group can take the action {0}").format(frappe.bold(_(action))))
 	return done
-
-
-def natural_key(value):
-	"""«101», «№7», «VIP 7» → сортировка по самому номеру."""
-	digits = "".join(ch for ch in str(value) if ch.isdigit())
-	return (int(digits) if digits else 0, str(value))

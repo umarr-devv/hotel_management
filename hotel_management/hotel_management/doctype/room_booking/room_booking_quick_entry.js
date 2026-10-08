@@ -18,7 +18,7 @@ frappe.ui.form.RoomBookingQuickEntryForm = class RoomBookingQuickEntryForm exten
 
 	constructor(...args) {
 		super(...args);
-		this.rates_by_room = {}; // номер -> Promise<{ тариф: цена за час }>
+		this.rates_by_room = {}; // номер -> Promise<{ тариф: цена за сутки }>
 		// иначе полная форма «сменит» номер при открытии и сбросит выбранный тариф
 		this.run_link_triggers = false;
 	}

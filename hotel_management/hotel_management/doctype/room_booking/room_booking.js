@@ -328,28 +328,7 @@ function create_invoices(frm, rows) {
 		frappe.msgprint(__("Save the booking first"));
 		return;
 	}
-
-	const make = () =>
-		frappe.call({
-			method: "hotel_management.api.make_booking_invoices",
-			args: { room_booking: frm.doc.name },
-			freeze: true,
-			freeze_message: __("Creating Sales Invoice..."),
-			callback: () => frm.reload_doc(),
-		});
-
-	// устаревшие счета отменяются и выставляются заново — спрашиваем
-	const outdated = [
-		...new Set(rows.filter((row) => row.status === "Outdated").map((row) => row.sales_invoice)),
-	];
-	if (outdated.length) {
-		frappe.confirm(
-			__("Sales Invoice {0} will be cancelled and a new one created. Continue?", [outdated.join(", ")]),
-			make
-		);
-	} else {
-		make();
-	}
+	hotel_management.billing.make_invoices(frm.doc.name, rows, () => frm.reload_doc());
 }
 
 function show_group(frm) {

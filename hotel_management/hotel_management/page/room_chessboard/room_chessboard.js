@@ -110,6 +110,12 @@
 		make_layout() {
 			// --- стандартная шапка Frappe: кнопки и фильтры -----------------------------
 			this.page.set_primary_action(__("Booking"), () => this.open_quick_entry({}), "add");
+			// у групповой брони таблица номеров — быстрой формы нет, открывается полная
+			this.page.set_secondary_action(
+				__("Group Booking", null, "Chessboard"),
+				() => frappe.new_doc("Group Booking"),
+				"add"
+			);
 			this.page.add_action_icon("es-line-reload", () => this.reload(), "", __("Refresh"));
 
 			this.$month = $(`
@@ -198,7 +204,7 @@
 			this.timeline = new vis.Timeline(this.$timeline.get(0), this.items, this.groups, {
 				start,
 				end: new Date(start.getTime() + 14 * DAY),
-				locale: (frappe.boot.lang || "en").split("-")[0],
+				locale: lang(),
 				orientation: { axis: "top", item: "top" },
 				timeAxis: { scale: "hour", step: 12 },
 				showMajorLabels: false,
@@ -522,7 +528,7 @@
 			if (b.group_booking) {
 				el.insertAdjacentHTML(
 					"beforeend",
-					`<span class="rc-item-group" title="${esc(b.group_name || b.group_booking)}">${ICONS.group}</span>`
+					`<span class="rc-item-group" title="${esc(b.group_booking)}">${ICONS.group}</span>`
 				);
 			}
 
@@ -542,7 +548,7 @@
 			const fmt = (v) => moment(parse_dt(v)).format("DD.MM.YYYY HH:mm");
 			const rows = [
 				[__("Room"), b.room],
-				...(b.group_booking ? [[__("Group Booking"), b.group_name || b.group_booking]] : []),
+				...(b.group_booking ? [[__("Group Booking"), b.group_booking]] : []),
 				[__("Check In"), fmt(b.check_in)],
 				[__("Check Out"), fmt(b.check_out)],
 				[__("Total Hours"), flt(b.total_hours, 1)],
@@ -827,24 +833,20 @@
 		async show_booking(name) {
 			const item = this.items.get(name);
 			const b = (item && item.booking) || {};
-			const [doc, transitions] = await Promise.all([
-				frappe.db.get_doc("Room Booking", name),
-				frappe
-					.xcall("frappe.model.workflow.get_transitions", { doc: { doctype: "Room Booking", name } })
-					.catch(() => []),
-			]);
-
-			// вспомогательные данные: если у пользователя нет прав на клиентов или группу,
+			// вспомогательные данные: если у пользователя нет прав на счета или клиентов,
 			// карточка всё равно открывается (просто без этих сведений)
 			const safe = (promise, fallback) => Promise.resolve(promise).catch(() => fallback);
 
-			const rows =
-				(await safe(frappe.xcall("hotel_management.api.get_booking_billing", { room_booking: name }), [])) ||
-				[];
-			const group_name = doc.group_booking
-				? ((await safe(frappe.db.get_value("Group Booking", doc.group_booking, "group_name"), {})) || {})
-						.message?.group_name
-				: null;
+			const [doc, transitions, rows] = await Promise.all([
+				frappe.db.get_doc("Room Booking", name),
+				safe(
+					frappe.xcall("frappe.model.workflow.get_transitions", {
+						doc: { doctype: "Room Booking", name },
+					}),
+					[]
+				),
+				safe(frappe.xcall("hotel_management.api.get_booking_billing", { room_booking: name }), []),
+			]);
 
 			const guest_ids = (doc.guests || []).map((g) => g.guest).filter(Boolean);
 			const guest_names = guest_ids.length
@@ -868,7 +870,7 @@
 			this.booking_dialog = dialog;
 			dialog.$wrapper.addClass("rc-booking-dialog");
 			dialog.fields_dict.body.$wrapper.html(
-				this.booking_card_html(doc, b, guest_ids.map((id) => guest_map[id] || id), rows, group_name)
+				this.booking_card_html(doc, b, guest_ids.map((id) => guest_map[id] || id), rows || [])
 			);
 
 			const open_form = () => {
@@ -876,12 +878,14 @@
 				frappe.set_route("Form", "Room Booking", name);
 			};
 
-			// действия workflow (с учётом ролей пользователя); первое — основная кнопка
-			const [first, ...rest] = transitions;
+			// действия workflow (с учётом ролей пользователя); первое — основная кнопка.
+			// Переход заведён отдельно для каждой роли отеля, поэтому пользователю с обеими
+			// ролями одно и то же действие приходит дважды — оставляем по одному
+			const [first, ...rest] = unique_actions(transitions);
 			if (first) {
-				dialog.set_primary_action(__(first.action), () => this.apply_action(doc, first.action));
-				rest.forEach((t) =>
-					dialog.add_custom_action(__(t.action), () => this.apply_action(doc, t.action))
+				dialog.set_primary_action(__(first), () => this.apply_action(doc, first));
+				rest.forEach((action) =>
+					dialog.add_custom_action(__(action), () => this.apply_action(doc, action))
 				);
 				dialog.set_secondary_action(open_form);
 				dialog.set_secondary_action_label(__("Open Full Form"));
@@ -904,7 +908,7 @@
 			dialog.show();
 		}
 
-		booking_card_html(doc, b, guests, rows, group_name) {
+		booking_card_html(doc, b, guests, rows) {
 			const money = money_formatter(b.currency);
 			const dt = (v) => {
 				const d = parse_dt(v);
@@ -965,12 +969,7 @@
 							)}
 							${
 								doc.group_booking
-									? info_row(
-											__("Group Booking"),
-											`<a href="/app/group-booking/${encodeURIComponent(doc.group_booking)}">${esc(
-												group_name || doc.group_booking
-											)}</a>`
-									  )
+									? info_row(__("Group Booking"), link("Group Booking", doc.group_booking))
 									: ""
 							}
 						</div>
@@ -1092,47 +1091,21 @@
 		// ------------------------------------------------------------ счёт и оплата
 
 		create_invoices(doc, rows) {
-			const make = () =>
-				frappe.call({
-					method: "hotel_management.api.make_booking_invoices",
-					args: { room_booking: doc.name },
-					freeze: true,
-					freeze_message: __("Creating Sales Invoice..."),
-					callback: async (r) => {
-						if (r.message && r.message.length) {
-							frappe.show_alert({
-								message: __("Sales Invoices created: {0}", [r.message.join(", ")]),
-								indicator: "green",
-							});
-						}
-						await this.load_bookings_now();
-						this.show_booking(doc.name);
-					},
-				});
-
-			// устаревшие счета отменяются и выставляются заново — спрашиваем
-			const outdated = rows.filter((row) => row.status === "Outdated").map((row) => row.sales_invoice);
-			if (outdated.length) {
-				frappe.confirm(
-					__("Sales Invoice {0} will be cancelled and a new one created. Continue?", [
-						[...new Set(outdated)].join(", "),
-					]),
-					make
-				);
-			} else {
-				make();
-			}
+			hotel_management.billing.make_invoices(doc.name, rows, () => this.refresh_booking(doc.name));
 		}
 
 		pay(doc, rows) {
 			hotel_management.billing.pay(rows, {
 				room: doc.room,
 				before_show: () => this.booking_dialog && this.booking_dialog.hide(),
-				on_done: async () => {
-					await this.load_bookings_now();
-					this.show_booking(doc.name);
-				},
+				on_done: () => this.refresh_booking(doc.name),
 			});
+		}
+
+		// после действия с бронью: свежие данные на шкале и заново открытая карточка
+		async refresh_booking(name) {
+			await this.load_bookings_now();
+			this.show_booking(name);
 		}
 
 		apply_action(doc, action) {
@@ -1142,8 +1115,7 @@
 					action,
 				});
 				frappe.show_alert({ message: __("{0}: {1}", [doc.name, __(updated.status)]), indicator: "green" });
-				await this.load_bookings_now();
-				this.show_booking(doc.name);
+				await this.refresh_booking(doc.name);
 			});
 		}
 
@@ -1169,19 +1141,12 @@
 
 	// ---------------------------------------------------------------- helpers
 
-	function esc(value) {
-		return frappe.utils.escape_html(value == null ? "" : String(value));
-	}
+	// общие помощники карточек — из hotel_billing.js
+	const { esc, info_row, money_formatter } = hotel_management.billing;
 
-	// строка карточки «подпись — значение»; value — готовый HTML
-	function info_row(label, value) {
-		return `<div class="rcb-row"><span class="rcb-label">${esc(label)}</span><span class="rcb-value">${value}</span></div>`;
-	}
-
-	// форматирование сумм в валюте документа (или в валюте по умолчанию)
-	function money_formatter(currency) {
-		currency = currency || frappe.defaults.get_default("currency");
-		return (value) => format_currency(value || 0, currency);
+	// названия действий workflow без повторов, в исходном порядке
+	function unique_actions(transitions) {
+		return [...new Set((transitions || []).map((t) => t.action))];
 	}
 
 	// Даты в Frappe — «наивные» строки во временной зоне системы. Разбираем их как локальное

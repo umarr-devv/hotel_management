@@ -8,6 +8,7 @@
 //
 //   hotel_management.billing.load_css()               — стили сводки, карточек и диалога оплаты;
 //   hotel_management.billing.summary_html(rows)       — плательщики брони и их счета;
+//   hotel_management.billing.make_invoices(booking, rows, on_done) — выставить счета брони;
 //   hotel_management.billing.pay(rows, { on_done })   — выбор счёта (если их несколько) и оплата.
 //
 // rows — счета плательщиков с сервера (hotel_management.billing.get_billing + payer_name).
@@ -80,6 +81,39 @@ frappe.provide("hotel_management.billing");
 
 	billing.needs_invoices = (rows) =>
 		(rows || []).some((row) => row.status === "Not Invoiced" || row.status === "Outdated");
+
+	// выставить недостающие и пересоздать устаревшие счета брони; устаревшие счета
+	// отменяются, поэтому сначала спрашиваем
+	billing.make_invoices = (room_booking, rows, on_done) => {
+		const make = () =>
+			frappe.call({
+				method: "hotel_management.api.make_booking_invoices",
+				args: { room_booking },
+				freeze: true,
+				freeze_message: __("Creating Sales Invoice..."),
+				callback: (r) => {
+					if (r.message && r.message.length) {
+						frappe.show_alert({
+							message: __("Sales Invoices created: {0}", [r.message.join(", ")]),
+							indicator: "green",
+						});
+					}
+					on_done && on_done(r.message || []);
+				},
+			});
+
+		const outdated = [
+			...new Set((rows || []).filter((row) => row.status === "Outdated").map((row) => row.sales_invoice)),
+		];
+		if (outdated.length) {
+			frappe.confirm(
+				__("Sales Invoice {0} will be cancelled and a new one created. Continue?", [outdated.join(", ")]),
+				make
+			);
+		} else {
+			make();
+		}
+	};
 
 	// счета, по которым можно принять оплату (общий счёт группы — один раз)
 	billing.payable = (rows) => {

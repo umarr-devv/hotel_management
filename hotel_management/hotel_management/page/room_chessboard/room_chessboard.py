@@ -1,16 +1,10 @@
 # Copyright (c) 2026, umarr and contributors
 # For license information, please see license.txt
 
-import re
-
 import frappe
-from frappe.utils import cint, get_datetime
+from frappe.utils import get_datetime
 
-from hotel_management.utils import active_room_filters
-
-
-def _natural_key(value):
-	return [cint(part) if part.isdigit() else part.lower() for part in re.split(r"(\d+)", value or "")]
+from hotel_management.utils import active_room_filters, natural_key, room_number_key
 
 
 @frappe.whitelist()
@@ -38,10 +32,10 @@ def get_rooms(hotel_building=None, room_type=None):
 
 	rooms.sort(
 		key=lambda r: (
-			_natural_key(r.hotel_building),
-			_natural_key(r.floor_label),
-			_natural_key(r.hotel_floor),
-			_natural_key(re.sub(r"^\D+", "", r.room_number or r.name)),
+			natural_key(r.hotel_building),
+			natural_key(r.floor_label),
+			natural_key(r.hotel_floor),
+			room_number_key(r),
 		)
 	)
 	return rooms
@@ -109,23 +103,8 @@ def get_bookings(start, end, hotel_building=None, room_type=None, status=None):
 	):
 		guest_count[row.parent] = guest_count.get(row.parent, 0) + 1
 
-	groups = {b.group_booking for b in bookings if b.group_booking}
-	group_names = (
-		dict(
-			frappe.get_all(
-				"Group Booking",
-				filters={"name": ["in", list(groups)]},
-				fields=["name", "group_name"],
-				as_list=True,
-			)
-		)
-		if groups
-		else {}
-	)
-
 	for b in bookings:
 		info = customer_info.get(b.customer) or {}
-		b.group_name = group_names.get(b.group_booking)
 		b.customer_name = info.get("customer_name") or b.customer
 		b.customer_type = info.get("customer_type") or "Individual"
 		b.guests = guest_count.get(b.name, 0)

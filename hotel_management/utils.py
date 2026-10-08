@@ -4,9 +4,10 @@
 """Общие помощники приложения."""
 
 import math
+import re
 
 import frappe
-from frappe.utils import flt
+from frappe.utils import cint, flt
 
 
 def get_disabled_room_types():
@@ -34,3 +35,13 @@ def is_room_active(room):
 def hours_to_days(hours):
 	"""Оплачиваемые сутки брони: часы / 24 с округлением вверх (25 ч — 2 суток)."""
 	return math.ceil(flt(hours) / 24) if flt(hours) > 0 else 0
+
+
+def natural_key(value):
+	"""Ключ «естественной» сортировки: «2» раньше «10», регистр не важен."""
+	return [cint(part) if part.isdigit() else part.lower() for part in re.split(r"(\d+)", value or "")]
+
+
+def room_number_key(room):
+	"""Сортировка номеров по самому номеру: «№7», «7», «VIP 7» → 7."""
+	return natural_key(re.sub(r"^\D+", "", room.room_number or room.name))

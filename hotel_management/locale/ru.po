@@ -1356,10 +1356,6 @@ msgid "Partially Paid"
 msgstr "Частично оплачено"
 
 #: hotel_management/hotel_management/doctype/group_booking/group_booking.json
-msgid "Group Name"
-msgstr "Название группы"
-
-#: hotel_management/hotel_management/doctype/group_booking/group_booking.json
 msgid "Organizer"
 msgstr "Организатор"
 
@@ -1474,6 +1470,15 @@ msgstr "Бронь {0} уже заселена: отмените её, преж�
 #: hotel_management/billing.py
 msgid "Row #{0}: Check Out must be after Check In"
 msgstr "Строка №{0}: выезд должен быть позже заезда"
+
+#: hotel_management/hotel_management/doctype/group_booking/group_booking.py
+msgid "Row #{0}: booking {1} is already checked in, {2} can no longer be changed"
+msgstr "Строка №{0}: бронь {1} уже заселена, поле «{2}» изменить нельзя"
+
+#: hotel_management/hotel_management/page/room_chessboard/room_chessboard.js
+msgctxt "Chessboard"
+msgid "Group Booking"
+msgstr "Групповое бронирование"
 
 #: hotel_management/billing.py
 msgid "No bookings of the group can take the action {0}"
