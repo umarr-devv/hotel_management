@@ -83,6 +83,7 @@ def get_bookings(start, end, hotel_building=None, room_type=None, status=None):
 			"status",
 			"pay_status",
 			"docstatus",
+			"group_booking",
 		],
 		order_by="check_in asc",
 		limit_page_length=0,
@@ -108,8 +109,23 @@ def get_bookings(start, end, hotel_building=None, room_type=None, status=None):
 	):
 		guest_count[row.parent] = guest_count.get(row.parent, 0) + 1
 
+	groups = {b.group_booking for b in bookings if b.group_booking}
+	group_names = (
+		dict(
+			frappe.get_all(
+				"Group Booking",
+				filters={"name": ["in", list(groups)]},
+				fields=["name", "group_name"],
+				as_list=True,
+			)
+		)
+		if groups
+		else {}
+	)
+
 	for b in bookings:
 		info = customer_info.get(b.customer) or {}
+		b.group_name = group_names.get(b.group_booking)
 		b.customer_name = info.get("customer_name") or b.customer
 		b.customer_type = info.get("customer_type") or "Individual"
 		b.guests = guest_count.get(b.name, 0)

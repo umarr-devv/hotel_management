@@ -1,20 +1,25 @@
 # Copyright (c) 2026, umarr and contributors
 # For license information, please see license.txt
 
-"""Неоплаченные брони: сколько денег отель ещё не получил.
+"""Неоплаченные брони: сколько денег отель ещё не получил и с кого.
 
-В отчёт попадают брони, по которым остался долг:
-  * счёт не выставлен, а бронь не помечена как оплаченная, либо
-  * счёт выставлен и по нему есть остаток (outstanding_amount > 0).
+Строка отчёта — плательщик брони, у которого остался долг:
+  * счёт плательщику не выставлен (или устарел) — долг на сумму без оплаченного;
+  * счёт выставлен и по нему есть остаток.
+
+У общего счёта группы оплата делится между бронями пропорционально их суммам.
 """
 
 import frappe
 from frappe import _
 from frappe.utils import date_diff, flt, getdate, nowdate
 
-from hotel_management.hotel_management.report.report_utils import get_bookings, get_period
-
-NOT_INVOICED = "Not Invoiced"
+from hotel_management.billing import NOT_INVOICED
+from hotel_management.hotel_management.report.report_utils import (
+	get_bookings,
+	get_payer_billing,
+	get_period,
+)
 
 
 def execute(filters=None):
@@ -22,62 +27,38 @@ def execute(filters=None):
 	from_date, to_date = get_period(filters, default_days=90)
 
 	bookings = get_bookings(filters, from_date, to_date)
-	invoices = get_invoices(bookings)
+	if filters.get("only_checked_out"):
+		bookings = [booking for booking in bookings if booking.status in ("Checked Out", "Completed")]
+	payer_billing = get_payer_billing(bookings)
 
 	rows = []
 	for booking in bookings:
-		invoice = invoices.get(booking.sales_invoice)
-		row = make_row(booking, invoice)
-		if flt(row["balance_due"]) <= 0:
-			continue
-		if filters.get("only_checked_out") and booking.status not in ("Checked Out", "Completed"):
-			continue
-		rows.append(row)
+		for state in payer_billing.get(booking.name, []):
+			if flt(state.balance_due) > 0:
+				rows.append(make_row(booking, state))
 
 	rows.sort(key=lambda row: flt(row["balance_due"]), reverse=True)
 
 	return get_columns(), rows, None, None, get_report_summary(rows)
 
 
-def get_invoices(bookings):
-	names = [booking.sales_invoice for booking in bookings if booking.sales_invoice]
-	if not names:
-		return {}
-
-	invoices = frappe.get_all(
-		"Sales Invoice",
-		filters={"name": ("in", names), "docstatus": ("<", 2)},
-		fields=["name", "status", "docstatus", "grand_total", "outstanding_amount"],
-	)
-	return {invoice.name: invoice for invoice in invoices}
-
-
-def make_row(booking, invoice):
-	invoiced = flt(invoice.grand_total) if invoice else 0.0
-	outstanding = flt(invoice.outstanding_amount) if invoice else 0.0
-
-	if invoice:
-		# черновик счёта ещё ничего не требует — долгом считаем всю сумму брони
-		balance_due = outstanding if invoice.docstatus == 1 else flt(booking.total_amount)
-		invoice_status = invoice.status
-	else:
-		balance_due = 0.0 if booking.pay_status == "Paid" else flt(booking.total_amount)
-		invoice_status = NOT_INVOICED
-
+def make_row(booking, state):
 	return {
 		"booking": booking.name,
 		"status": booking.status,
 		"customer": booking.customer,
+		"payer": state.payer,
 		"room": booking.room,
 		"check_in": booking.check_in,
 		"check_out": booking.check_out,
-		"total_amount": flt(booking.total_amount),
-		"sales_invoice": booking.sales_invoice,
-		"invoice_status": invoice_status,
-		"invoiced_amount": invoiced,
-		"paid_amount": flt(invoiced - outstanding) if invoice and invoice.docstatus == 1 else 0.0,
-		"balance_due": flt(balance_due),
-		"pay_status": booking.pay_status,
+		"payer_amount": flt(state.amount),
+		"sales_invoice": state.sales_invoice,
+		"invoice_status": _(state.status),
+		"not_invoiced": state.status == NOT_INVOICED,
+		"invoiced_amount": flt(state.invoiced_amount),
+		"paid_amount": flt(state.paid_amount),
+		"balance_due": flt(state.balance_due),
+		"pay_status": _(booking.pay_status),
 		"days_since_check_out": max(date_diff(getdate(nowdate()), getdate(booking.check_out)), 0),
 	}
 
@@ -85,7 +66,11 @@ def make_row(booking, invoice):
 def get_report_summary(rows):
 	overdue = [row for row in rows if row["days_since_check_out"] > 0]
 	return [
-		{"label": _("Bookings with Balance"), "value": len(rows), "datatype": "Int"},
+		{
+			"label": _("Bookings with Balance"),
+			"value": len({row["booking"] for row in rows}),
+			"datatype": "Int",
+		},
 		{
 			"label": _("Balance Due"),
 			"value": sum(flt(row["balance_due"]) for row in rows),
@@ -100,7 +85,7 @@ def get_report_summary(rows):
 		},
 		{
 			"label": _("Not Invoiced"),
-			"value": sum(flt(row["balance_due"]) for row in rows if row["invoice_status"] == NOT_INVOICED),
+			"value": sum(flt(row["balance_due"]) for row in rows if row["not_invoiced"]),
 			"datatype": "Currency",
 		},
 	]
@@ -121,7 +106,14 @@ def get_columns():
 			"label": _("Customer"),
 			"fieldtype": "Link",
 			"options": "Customer",
-			"width": 180,
+			"width": 160,
+		},
+		{
+			"fieldname": "payer",
+			"label": _("Payer"),
+			"fieldtype": "Link",
+			"options": "Customer",
+			"width": 160,
 		},
 		{
 			"fieldname": "room",
@@ -133,8 +125,8 @@ def get_columns():
 		{"fieldname": "check_in", "label": _("Check In"), "fieldtype": "Datetime", "width": 160},
 		{"fieldname": "check_out", "label": _("Check Out"), "fieldtype": "Datetime", "width": 160},
 		{
-			"fieldname": "total_amount",
-			"label": _("Booking Amount"),
+			"fieldname": "payer_amount",
+			"label": _("Payer Amount"),
 			"fieldtype": "Currency",
 			"width": 140,
 		},
@@ -164,7 +156,7 @@ def get_columns():
 			"fieldtype": "Currency",
 			"width": 140,
 		},
-		{"fieldname": "pay_status", "label": _("Payment"), "fieldtype": "Data", "width": 100},
+		{"fieldname": "pay_status", "label": _("Payment"), "fieldtype": "Data", "width": 120},
 		{
 			"fieldname": "days_since_check_out",
 			"label": _("Days Since Check Out"),

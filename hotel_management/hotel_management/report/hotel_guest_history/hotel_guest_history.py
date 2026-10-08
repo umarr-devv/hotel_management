@@ -16,6 +16,7 @@ from frappe.utils import flt, getdate
 from hotel_management.hotel_management.report.report_utils import (
 	booking_hours,
 	get_bookings,
+	get_payer_billing,
 	get_period,
 	service_amount,
 	stay_nights,
@@ -27,12 +28,18 @@ def execute(filters=None):
 	from_date, to_date = get_period(filters, default_days=365)
 	min_stays = max(int(filters.get("min_stays") or 0), 0)
 
+	bookings = [
+		booking
+		for booking in get_bookings(filters, from_date, to_date, include_cancelled=True)
+		# бронь только пересекает период, а заезд был раньше — в историю не берём
+		if from_date <= getdate(booking.check_in) <= to_date
+	]
+	payer_billing = get_payer_billing(bookings)
+
 	guests = {}
-	for booking in get_bookings(filters, from_date, to_date, include_cancelled=True):
-		if not (from_date <= getdate(booking.check_in) <= to_date):
-			# бронь только пересекает период, а заезд был раньше — в историю не берём
-			continue
-		add_booking(guests.setdefault(booking.customer, new_guest()), booking)
+	for booking in bookings:
+		unpaid = sum(row.balance_due for row in payer_billing.get(booking.name, []))
+		add_booking(guests.setdefault(booking.customer, new_guest()), booking, unpaid)
 
 	rows = []
 	for customer, guest in guests.items():
@@ -78,7 +85,7 @@ def new_guest():
 	)
 
 
-def add_booking(guest, booking):
+def add_booking(guest, booking, unpaid):
 	if booking.status == "Cancelled":
 		guest.cancelled += 1
 		return
@@ -88,8 +95,7 @@ def add_booking(guest, booking):
 	guest.hours += booking_hours(booking)
 	guest.room_revenue += flt(booking.amount)
 	guest.service_revenue += service_amount(booking)
-	if booking.pay_status != "Paid":
-		guest.unpaid_amount += flt(booking.total_amount)
+	guest.unpaid_amount += flt(unpaid)
 	if booking.room_type:
 		guest.room_types[booking.room_type] += 1
 

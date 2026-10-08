@@ -11,6 +11,10 @@ doc_events = {
 		"on_submit": "hotel_management.api.update_booking_payment_status",
 		"on_cancel": "hotel_management.api.update_booking_payment_status",
 	},
+	# счёт брони отменили вручную — статус оплаты брони пересчитывается
+	"Sales Invoice": {
+		"on_cancel": "hotel_management.api.update_invoice_bookings_pay_status",
+	},
 }
 
 # сайдбар и иконка рабочего стола лежат в файлах приложения и всегда

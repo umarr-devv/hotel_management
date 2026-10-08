@@ -6,103 +6,258 @@ from frappe import _
 from frappe.model.document import Document
 from frappe.utils import flt, get_datetime, time_diff_in_hours
 
-from hotel_management.utils import hours_to_days, invoice_has_payments, is_room_active
+from hotel_management.billing import (
+	OUTDATED,
+	add_payer_names,
+	cancel_sales_invoice,
+	get_billing,
+	get_currency_precision,
+	get_invoice_states,
+	get_pay_status,
+	get_rate_with_markup,
+	set_payer_amounts,
+	update_pay_status,
+)
+from hotel_management.hotel_management.doctype.group_booking.group_booking import update_group_totals
+from hotel_management.utils import hours_to_days, is_room_active
 
-# после оплаты счёта менять нельзя ни эти поля, ни состав услуг: сумма брони разойдётся со счётом
-PAID_LOCKED_FIELDS = ("room", "room_rate", "check_in", "check_out")
-ITEM_FIELDS = ("item", "price_list", "qty", "rate", "markup")
+# от этих полей и строк зависят суммы брони и её плательщиков
+PRICING_FIELDS = ("room", "room_rate", "check_in", "check_out")
+ITEM_FIELDS = ("item", "price_list", "qty", "rate", "markup", "payer")
 PERCENTAGE_SERVICE_FIELDS = ("item", "percent", "qty")
-NUMERIC_ROW_FIELDS = {"qty", "rate", "markup", "percent"}
+PAYER_FIELDS = ("payer", "share")
+NUMERIC_ROW_FIELDS = {"qty", "rate", "markup", "percent", "share"}
+
+# допуск при проверке суммы долей плательщиков
+SHARE_TOLERANCE = 0.01
 
 
 class RoomBooking(Document):
 	def onload(self):
-		# форма по этому флагу блокирует поля и прячет кнопку счёта
-		self.set_onload("invoice_has_payments", invoice_has_payments(self.sales_invoice))
+		# форма по счетам плательщиков показывает сводку, кнопки и блокирует поля
+		self.set_onload("billing", add_payer_names(get_billing(self)))
 
 	def validate(self):
+		self.set_default_payers()
+		self.restore_invoice_links()
+
 		# validate() контроллера вызывается ДО стандартной проверки обязательных полей.
 		# Если чего-то не хватает — выходим и даём Frappe показать понятное
 		# «Заполните обязательные поля», вместо ложных ошибок про даты/тариф.
 		if not (self.room and self.room_rate and self.check_in and self.check_out):
 			return
 
-		self.validate_paid_changes()
 		self.validate_room()
 		self.validate_dates()
 		self.set_rate_per_day()
 		self.calculate_totals()
+		self.validate_payers()
+		self.validate_paid_payers()
 		self.validate_overlap()
+		self.pay_status = get_pay_status(get_billing(self))
 
 	def before_update_after_submit(self):
-		# После проведения разрешено только продление/сокращение (check_out)
-		# и изменение доп. и процентных услуг. Тариф остаётся зафиксированным.
-		self.validate_paid_changes()
+		# После проведения разрешено только продление/сокращение (check_out),
+		# изменение доп. и процентных услуг и плательщиков. Тариф остаётся зафиксированным.
+		self.restore_invoice_links()
 		if self.has_value_changed("check_out") and self.status != "Checked In":
 			frappe.throw(_("Check Out can only be changed for a checked in booking"))
 
+		# смена статуса по workflow суммы не пересчитывает
 		before = self.get_doc_before_save()
-		# смена статуса по workflow суммы не трогает: иначе старые брони,
-		# посчитанные по часам, пересчитались бы по суткам при выезде
 		if before and not self.pricing_changed(before):
 			return
 
-		old_total = flt(before and before.total_amount)
 		self.validate_dates()
 		self.calculate_totals()
+		self.validate_payers()
+		self.validate_paid_payers()
 		self.validate_overlap()
-		self.warn_outdated_invoice(old_total)
+		self.pay_status = get_pay_status(get_billing(self))
+
+	def on_update(self):
+		self.after_pricing_saved()
+
+	def on_update_after_submit(self):
+		self.after_pricing_saved()
+
+	def on_trash(self):
+		# удалённая бронь выходит из группы, иначе строка группы не даст её удалить
+		if self.group_booking:
+			frappe.db.delete("Group Booking Room", {"room_booking": self.name})
 
 	def before_cancel(self):
 		# отменить можно только бронь без оплат: счёт с оплатами отменить нельзя
-		if invoice_has_payments(self.sales_invoice):
+		paid = [
+			name
+			for name, state in get_invoice_states(row.sales_invoice for row in self.payers).items()
+			if state.has_payments
+		]
+		if paid:
 			frappe.throw(
 				_("Booking {0} cannot be cancelled: Sales Invoice {1} already has payments").format(
-					frappe.bold(self.name), frappe.bold(self.sales_invoice)
+					frappe.bold(self.name), frappe.bold(", ".join(paid))
 				),
 				title=_("Booking is paid"),
 			)
 
 	def on_cancel(self):
-		# счёт — часть брони: отменяем его, даже если у пользователя нет прав на счета
-		cancel_sales_invoice(self.sales_invoice, ignore_permissions=True)
+		# счета — часть брони: отменяем их, даже если у пользователя нет прав на счета.
+		# Общий счёт группы тоже отменяется — его заново выставят по оставшимся броням.
+		invoices = list(dict.fromkeys(row.sales_invoice for row in self.payers if row.sales_invoice))
+		others = set()
+		for name in invoices:
+			others.update(get_other_invoice_bookings(name, self.name))
+			cancel_sales_invoice(name, ignore_permissions=True)
+		update_pay_status(others)
+		if self.group_booking:
+			update_group_totals(self.group_booking, update_modified=True)
 
-	def warn_outdated_invoice(self, old_total):
-		"""Сумма брони изменилась после выставления счёта — предупреждаем, счёт сам не меняется."""
-		if not self.sales_invoice or flt(old_total) == flt(self.total_amount):
+	def after_pricing_saved(self):
+		before = self.get_doc_before_save()
+		if before and not self.pricing_changed(before):
+			return
+		self.cancel_orphan_invoices(before)
+		self.warn_outdated_invoices(before)
+		self.update_group_row()
+
+	# --- плательщики ------------------------------------------------------------
+
+	def set_default_payers(self):
+		"""Без плательщиков платит заказчик; единственный плательщик-заказчик меняется вместе с ним."""
+		if not self.customer:
+			return
+		if not self.payers:
+			self.append("payers", {"payer": self.customer, "share": 100})
+			return
+
+		before = self.get_doc_before_save()
+		if before and before.customer != self.customer and len(self.payers) == 1:
+			row = self.payers[0]
+			if row.payer == before.customer and not row.sales_invoice:
+				row.payer = self.customer
+
+	def restore_invoice_links(self):
+		"""Счёт плательщика ставит только сервер: ссылки берём из сохранённой брони по плательщику."""
+		before = self.get_doc_before_save()
+		invoices = {row.payer: row.sales_invoice for row in before.payers} if before else {}
+		for row in self.payers:
+			row.sales_invoice = invoices.get(row.payer)
+
+	def validate_payers(self):
+		if not self.payers:
+			frappe.throw(_("Add at least one payer"))
+
+		payers = [row.payer for row in self.payers]
+		duplicates = {payer for payer in payers if payers.count(payer) > 1}
+		if duplicates:
+			frappe.throw(_("Payer {0} is listed more than once").format(frappe.bold(", ".join(duplicates))))
+
+		total_share = sum(flt(row.share) for row in self.payers)
+		if abs(total_share - 100) > SHARE_TOLERANCE:
+			frappe.throw(
+				_("Payer shares must add up to 100% (now {0}%)").format(flt(total_share, 2)),
+				title=_("Payers"),
+			)
+
+		for row in self.items_and_service:
+			if row.payer and row.payer not in payers:
+				frappe.throw(
+					_("Row #{0}: payer {1} of item {2} is not in the Payers table").format(
+						row.idx, frappe.bold(row.payer), frappe.bold(row.item)
+					)
+				)
+
+	def validate_paid_payers(self):
+		"""Сумма плательщика, по счёту которого уже есть оплата, меняться не может."""
+		before = self.get_doc_before_save()
+		if not before:
+			return
+
+		states = get_invoice_states(row.sales_invoice for row in before.payers)
+		precision = get_currency_precision()
+		current = {row.payer: row for row in self.payers}
+		for old in before.payers:
+			state = states.get(old.sales_invoice)
+			if not (state and state.has_payments):
+				continue
+			row = current.get(old.payer)
+			new_amount = flt(row.amount, precision) if row else 0
+			if not row or new_amount != flt(old.amount, precision):
+				frappe.throw(
+					_(
+						"Sales Invoice {0} of payer {1} already has payments: the payer's amount can no longer change ({2} → {3})"
+					).format(
+						frappe.bold(old.sales_invoice),
+						frappe.bold(old.payer),
+						frappe.bold(flt(old.amount, precision)),
+						frappe.bold(new_amount),
+					),
+					title=_("Booking is paid"),
+				)
+
+	def cancel_orphan_invoices(self, before):
+		"""Счета, которые больше не нужны ни одному плательщику, отменяем (оплат по ним нет)."""
+		if not before:
+			return
+		current = {row.sales_invoice for row in self.payers if row.sales_invoice}
+		for row in before.payers:
+			name = row.sales_invoice
+			if name and name not in current and not get_other_invoice_bookings(name, self.name):
+				cancel_sales_invoice(name, ignore_permissions=True)
+
+	def warn_outdated_invoices(self, before):
+		"""Сумма плательщика изменилась после выставления счёта — счёт сам не меняется."""
+		if not before:
+			return
+		outdated = [row.sales_invoice for row in get_billing(self) if row.status == OUTDATED]
+		if not outdated:
 			return
 		frappe.msgprint(
 			_(
-				"Booking total changed ({0} → {1}), but invoice {2} still holds the old amount. Recreate the invoice."
-			).format(frappe.bold(old_total), frappe.bold(self.total_amount), frappe.bold(self.sales_invoice)),
+				"Booking total changed ({0} → {1}), but invoices {2} still hold the old amounts. Recreate the invoices."
+			).format(
+				frappe.bold(flt(before.total_amount)),
+				frappe.bold(flt(self.total_amount)),
+				frappe.bold(", ".join(dict.fromkeys(outdated))),
+			),
 			title=_("Invoice is outdated"),
 			indicator="orange",
 		)
 
+	def update_group_row(self):
+		"""Бронь изменили в её форме — переносим номер, тариф и даты в строку группы.
+
+		Группа при этом отмечается изменённой: её открытая форма с прежними значениями
+		не сохранится поверх, а попросит перезагрузку.
+		"""
+		if not self.group_booking or self.flags.from_group:
+			return
+		for name in frappe.get_all("Group Booking Room", filters={"room_booking": self.name}, pluck="name"):
+			frappe.db.set_value(
+				"Group Booking Room",
+				name,
+				{
+					"room": self.room,
+					"room_rate": self.room_rate,
+					"check_in": self.check_in,
+					"check_out": self.check_out,
+				},
+				update_modified=False,
+			)
+		update_group_totals(self.group_booking, update_modified=True)
+
 	# --- validations ---------------------------------------------------------
 
-	def validate_paid_changes(self):
-		"""По счёту уже есть оплата — номер, тариф, даты и услуги менять нельзя."""
-		before = self.get_doc_before_save()
-		if not before or not invoice_has_payments(self.sales_invoice):
-			return
-
-		if self.pricing_changed(before):
-			frappe.throw(
-				_(
-					"Sales Invoice {0} already has payments: room, rate, check in, check out and services can no longer be changed"
-				).format(frappe.bold(self.sales_invoice)),
-				title=_("Booking is paid"),
-			)
-
 	def pricing_changed(self, before):
-		"""Изменилось ли то, от чего зависит сумма брони: номер, тариф, даты или услуги."""
+		"""Изменилось ли то, от чего зависят суммы: номер, тариф, даты, услуги или плательщики."""
 		return (
-			any(self.has_value_changed(field) for field in PAID_LOCKED_FIELDS)
+			any(self.has_value_changed(field) for field in PRICING_FIELDS)
 			or rows_signature(self.items_and_service, ITEM_FIELDS)
 			!= rows_signature(before.items_and_service, ITEM_FIELDS)
 			or rows_signature(self.percentage_services, PERCENTAGE_SERVICE_FIELDS)
 			!= rows_signature(before.percentage_services, PERCENTAGE_SERVICE_FIELDS)
+			or rows_signature(self.payers, PAYER_FIELDS) != rows_signature(before.payers, PAYER_FIELDS)
 		)
 
 	def validate_room(self):
@@ -176,14 +331,7 @@ class RoomBooking(Document):
 			self.amount + self.items_and_serivce_amount + self.percentage_services_amount,
 			self.precision("total_amount"),
 		)
-
-
-def get_rate_with_markup(row):
-	"""Цена доп. товара/услуги с наценкой — по ней строка входит в сумму брони и в счёт.
-
-	Округляется до точности цены, чтобы сумма строки совпала с суммой строки счёта.
-	"""
-	return flt(flt(row.rate) * (1 + flt(row.markup) / 100), row.precision("rate"))
+		set_payer_amounts(self)
 
 
 def rows_signature(rows, fields):
@@ -194,17 +342,18 @@ def rows_signature(rows, fields):
 	]
 
 
-def cancel_sales_invoice(name, ignore_permissions=False):
-	"""Отменить проведённый счёт или удалить его черновик."""
-	if not (name and frappe.db.exists("Sales Invoice", name)):
-		return
-
-	si = frappe.get_doc("Sales Invoice", name)
-	si.flags.ignore_permissions = ignore_permissions
-	if si.docstatus == 1:
-		si.cancel()
-	elif si.docstatus == 0:
-		si.delete(ignore_permissions=ignore_permissions)
+def get_other_invoice_bookings(sales_invoice, booking):
+	"""Другие действующие брони со ссылкой на тот же счёт (общий счёт группы)."""
+	return frappe.db.sql_list(
+		"""
+		select distinct p.parent
+		from `tabRoom Booking Payer` p
+		inner join `tabRoom Booking` b on b.name = p.parent
+		where p.parenttype = 'Room Booking' and b.docstatus < 2
+			and p.sales_invoice = %s and p.parent != %s
+		""",
+		(sales_invoice, booking),
+	)
 
 
 def get_overlapping_booking(room, check_in, check_out, exclude=None):

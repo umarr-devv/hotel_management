@@ -376,6 +376,18 @@
 	color: var(--rc-c);
 }
 
+/* значок групповой брони */
+.rc-item-group {
+	display: inline-flex;
+	flex: none;
+	color: var(--rc-c);
+}
+
+.rc-item-group .rc-icon {
+	width: 14px;
+	height: 14px;
+}
+
 .rc-timeline .vis-item.rc-item:hover::after {
 	filter: brightness(0.97);
 }
@@ -563,172 +575,6 @@
 	border-bottom: 1px solid var(--rc-line);
 }
 
-/* --- карточка брони (диалог по клику) ------------------------------------------ */
-
-.rcb {
-	display: flex;
-	flex-direction: column;
-	gap: 14px;
-	font-size: var(--text-base);
-}
-
-.rcb-badges {
-	display: flex;
-	flex-wrap: wrap;
-	align-items: center;
-	gap: 8px;
-}
-
-.rcb-badge {
-	display: inline-flex;
-	align-items: center;
-	gap: 6px;
-	padding: 3px 10px;
-	border-radius: 999px;
-	font-size: var(--text-sm);
-	font-weight: 500;
-	background: var(--rc-bg, var(--subtle-fg));
-	color: var(--text-color);
-	max-width: 100%;
-	overflow-wrap: anywhere;
-}
-
-.rcb-badge .rc-dot {
-	width: 8px;
-	height: 8px;
-}
-
-.rcb-badge .rc-icon {
-	width: 14px;
-	height: 14px;
-}
-
-.rcb-paid {
-	background: var(--bg-green);
-	color: var(--text-on-green);
-}
-
-.rcb-unpaid {
-	background: var(--bg-red, var(--subtle-fg));
-	color: var(--text-on-red, var(--text-color));
-}
-
-.rcb-name {
-	min-width: 0;
-	margin-left: auto;
-	overflow-wrap: anywhere;
-	font-size: var(--text-sm);
-	color: var(--text-muted);
-}
-
-.rcb-grid {
-	display: grid;
-	/* minmax(0, …): иначе колонка растягивается под самый длинный текст и вылезает из диалога */
-	grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-	gap: 0 24px;
-}
-
-@media (max-width: 576px) {
-	.rcb-grid {
-		grid-template-columns: minmax(0, 1fr);
-	}
-}
-
-.rcb-row {
-	display: flex;
-	justify-content: space-between;
-	gap: 12px;
-	padding: 6px 0;
-	border-bottom: 1px solid var(--border-color);
-}
-
-.rcb-label {
-	flex: none;
-	color: var(--text-muted);
-	white-space: nowrap;
-}
-
-.rcb-value {
-	min-width: 0;
-	text-align: right;
-	font-weight: 500;
-	overflow-wrap: anywhere;
-}
-
-.rcb-money {
-	padding: 4px 12px;
-	border-radius: var(--border-radius-md);
-	background: var(--subtle-fg);
-}
-
-.rcb-money .rcb-row:last-child {
-	border-bottom: none;
-}
-
-.rcb-services {
-	padding: 4px 0 4px 12px;
-	font-size: var(--text-sm);
-	color: var(--text-muted);
-}
-
-.rcb-service {
-	display: flex;
-	justify-content: space-between;
-	gap: 12px;
-	padding: 2px 0;
-}
-
-.rcb-service span:first-child {
-	min-width: 0;
-	overflow-wrap: anywhere;
-}
-
-.rcb-service span:last-child {
-	flex: none;
-	white-space: nowrap;
-}
-
-.rcb-total .rcb-row {
-	border-bottom: none;
-	font-size: var(--text-lg, 16px);
-}
-
-.rcb-total .rcb-value {
-	font-weight: 700;
-}
-
-.rcb-due .rcb-row {
-	border-bottom: none;
-	color: var(--text-on-red, var(--red-500));
-	font-weight: 600;
-}
-
-.rc-booking-dialog .rcb-action {
-	display: inline-flex;
-	align-items: center;
-	gap: 6px;
-}
-
-.rc-booking-dialog .rcb-action .rc-icon {
-	width: 15px;
-	height: 15px;
-}
-
-/* длинное имя клиента в заголовке диалога переносится, а не выталкивает кнопки */
-.rc-booking-dialog .modal-header .title-section,
-.rc-booking-dialog .modal-header .modal-title {
-	min-width: 0;
-}
-
-.rc-booking-dialog .modal-header .modal-title {
-	white-space: normal;
-	overflow-wrap: anywhere;
-}
-
-.rcb-value a {
-	overflow-wrap: anywhere;
-}
-
 /* vis-timeline сдвигает текст брони, чтобы он оставался в видимой части шкалы.
    Отключаем: текст стоит на месте и просто уходит за край вместе с плашкой */
 .rc-timeline .vis-item.rc-item .vis-item-content {
@@ -791,13 +637,6 @@
 	height: 32px;
 }
 
-.rcr-title {
-	margin-bottom: 6px;
-	font-size: var(--text-sm);
-	font-weight: 600;
-	color: var(--text-muted);
-}
-
 .rcr-amenities {
 	display: flex;
 	flex-wrap: wrap;
@@ -827,98 +666,4 @@
 
 .rcr .rcb-money .rcr-title {
 	margin: 6px 0 0;
-}
-
-.rcb-warning {
-	margin: 4px 0 6px;
-	padding: 6px 10px;
-	border-radius: 6px;
-	background: var(--bg-orange);
-	color: var(--text-on-orange);
-	font-size: var(--text-sm);
-}
-
-/* --- оплата: вкладки способов оплаты -------------------------------------------- */
-
-.rcp-tabs {
-	display: flex;
-	flex-wrap: wrap;
-	gap: 4px;
-	margin-bottom: 12px;
-	border-bottom: 1px solid var(--border-color);
-}
-
-.rcp-tab {
-	display: inline-flex;
-	align-items: center;
-	gap: 6px;
-	margin-bottom: -1px;
-	padding: 6px 12px;
-	border: none;
-	border-bottom: 2px solid transparent;
-	background: none;
-	color: var(--text-muted);
-	font-weight: 500;
-}
-
-.rcp-tab:hover {
-	color: var(--text-color);
-}
-
-.rcp-tab.active {
-	border-bottom-color: var(--primary, var(--blue-500));
-	color: var(--text-color);
-}
-
-.rcp-tab-amount {
-	padding: 0 8px;
-	border-radius: 999px;
-	background: var(--bg-green);
-	color: var(--text-on-green);
-	font-size: var(--text-xs);
-}
-
-.rcp-tab-amount:empty {
-	display: none;
-}
-
-.rcp-pane {
-	display: none;
-}
-
-.rcp-pane.active {
-	display: block;
-}
-
-.rcp-pane-grid {
-	display: grid;
-	grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-	gap: 0 24px;
-}
-
-@media (max-width: 576px) {
-	.rcp-pane-grid {
-		grid-template-columns: minmax(0, 1fr);
-	}
-}
-
-.rcp-balance {
-	margin-top: 12px;
-}
-
-/* в окне подтверждения отступы задаёт .rcb (gap) */
-.rcb .rcp-balance {
-	margin-top: 0;
-}
-
-.rcp-due .rcb-row {
-	color: var(--text-on-red, var(--red-500));
-}
-
-.rcp-over .rcb-row {
-	color: var(--text-on-orange, var(--orange-500));
-}
-
-.rcp-settled .rcb-row {
-	color: var(--text-on-green, var(--green-500));
 }

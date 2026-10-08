@@ -206,16 +206,16 @@ def get_payment_bookings(entries):
 		order_by="idx asc",
 	)
 	invoices = list({ref.reference_name for ref in references})
+	# у общего счёта группы броней несколько — берём первую
 	booking_by_invoice = {}
 	if invoices:
-		booking_by_invoice = dict(
-			frappe.get_all(
-				"Room Booking",
-				filters={"sales_invoice": ["in", invoices], "docstatus": ["<", 2]},
-				fields=["sales_invoice", "name"],
-				as_list=True,
-			)
-		)
+		for row in frappe.get_all(
+			"Room Booking Payer",
+			filters={"parenttype": "Room Booking", "sales_invoice": ["in", invoices]},
+			fields=["sales_invoice", "parent"],
+			order_by="parent asc",
+		):
+			booking_by_invoice.setdefault(row.sales_invoice, row.parent)
 
 	bookings = {}
 	for ref in references:

@@ -18,6 +18,7 @@ import frappe
 from frappe import _
 from frappe.utils import add_days, date_diff, flt, get_datetime, getdate, nowdate
 
+from hotel_management import billing
 from hotel_management.utils import active_room_filters, hours_to_days
 
 # ограничение на длину периода: отчёты считают номеро-сутки в цикле по дням
@@ -27,7 +28,7 @@ BOOKING_FIELDS = """
 	b.name, b.customer, b.room, b.room_rate, b.status, b.pay_status, b.check_in, b.check_out,
 	b.total_hours, b.total_days, b.rate_per_day, b.amount, b.items_and_serivce_amount, b.percentage_services_amount,
 	b.total_amount,
-	b.sales_invoice, b.company, b.hotel_profile,
+	b.group_booking, b.company, b.hotel_profile,
 	r.room_type, r.hotel_building, r.hotel_floor
 """
 
@@ -200,6 +201,28 @@ def days_share(booking, hours):
 	"""Сколько оплачиваемых суток брони приходится на `hours` часов."""
 	total = booking_hours(booking)
 	return booking_days(booking) * hours / total if total else 0.0
+
+
+def get_payer_billing(bookings):
+	"""Счета плательщиков броней: {бронь: [состояние счёта плательщика]} — без загрузки броней."""
+	names = [booking.name for booking in bookings]
+	if not names:
+		return {}
+
+	rows = frappe.get_all(
+		"Room Booking Payer",
+		filters={"parenttype": "Room Booking", "parent": ["in", names]},
+		fields=["name", "parent", "payer", "share", "amount", "sales_invoice"],
+		order_by="idx asc",
+	)
+	invoices = [row.sales_invoice for row in rows]
+	states = billing.get_invoice_states(invoices)
+	totals = billing.get_invoice_totals(invoices)
+
+	by_booking = {}
+	for row in rows:
+		by_booking.setdefault(row.parent, []).append(row)
+	return {name: billing.get_rows_billing(rows, states, totals) for name, rows in by_booking.items()}
 
 
 def service_amount(booking):

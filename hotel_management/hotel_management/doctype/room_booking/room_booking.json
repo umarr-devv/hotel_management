@@ -13,6 +13,7 @@
   "section_break_kbxh",
   "customer",
   "hotel_profile",
+  "group_booking",
   "column_break_ukqj",
   "room",
   "room_rate",
@@ -34,15 +35,16 @@
   "items_and_service",
   "section_break_pcsv",
   "percentage_services",
+  "billing_tab",
+  "payers",
+  "billing_summary",
+  "pay_status",
   "other_tab",
   "section_break_gpfe",
   "guests",
   "amended_from",
   "section_break_kslf",
-  "status",
-  "column_break_cjoi",
-  "pay_status",
-  "sales_invoice"
+  "status"
  ],
  "fields": [
   {
@@ -186,7 +188,7 @@
    "fieldtype": "Table",
    "label": "Items and Serivce",
    "options": "Room Booking Item",
-   "read_only_depends_on": "eval:doc.pay_status=='Paid' || doc.status=='Completed'"
+   "read_only_depends_on": "eval:doc.status=='Completed'"
   },
   {
    "fieldname": "section_break_pcsv",
@@ -198,7 +200,7 @@
    "fieldtype": "Table",
    "label": "Percentage Services",
    "options": "Room Booking Percentage Service",
-   "read_only_depends_on": "eval:doc.pay_status=='Paid' || doc.status=='Completed'"
+   "read_only_depends_on": "eval:doc.status=='Completed'"
   },
   {
    "fieldname": "section_break_kslf",
@@ -248,25 +250,14 @@
    "reqd": 1
   },
   {
-   "fieldname": "column_break_cjoi",
-   "fieldtype": "Column Break"
-  },
-  {
    "allow_on_submit": 1,
+   "default": "Unpaid",
    "fieldname": "pay_status",
    "fieldtype": "Select",
+   "in_standard_filter": 1,
    "label": "Pay Status",
    "no_copy": 1,
-   "options": "Unpaid\nPaid",
-   "read_only": 1
-  },
-  {
-   "allow_on_submit": 1,
-   "fieldname": "sales_invoice",
-   "fieldtype": "Link",
-   "label": "Sales Invoice",
-   "no_copy": 1,
-   "options": "Sales Invoice",
+   "options": "Unpaid\nPartially Paid\nPaid",
    "read_only": 1
   },
   {
@@ -278,13 +269,41 @@
    "fieldname": "other_tab",
    "fieldtype": "Tab Break",
    "label": "Other"
+  },
+  {
+   "fieldname": "group_booking",
+   "fieldtype": "Link",
+   "label": "Group Booking",
+   "no_copy": 1,
+   "options": "Group Booking",
+   "read_only": 1,
+   "search_index": 1
+  },
+  {
+   "fieldname": "billing_tab",
+   "fieldtype": "Tab Break",
+   "label": "Billing"
+  },
+  {
+   "allow_on_submit": 1,
+   "description": "Accommodation and percentage services are split by share; each payer gets a separate Sales Invoice",
+   "fieldname": "payers",
+   "fieldtype": "Table",
+   "label": "Payers",
+   "options": "Room Booking Payer",
+   "read_only_depends_on": "eval:doc.status=='Completed'"
+  },
+  {
+   "fieldname": "billing_summary",
+   "fieldtype": "HTML",
+   "label": "Invoices"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2026-10-08 13:00:00.000000",
+ "modified": "2026-10-08 14:00:00.000000",
  "modified_by": "Administrator",
  "module": "Hotel Management",
  "name": "Room Booking",

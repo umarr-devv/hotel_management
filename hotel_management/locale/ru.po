@@ -393,16 +393,6 @@ msgstr "Оплачено"
 msgid "Complete"
 msgstr "Завершить"
 
-# Client Script button labels
-
-#: hotel_management/hotel_management/doctype/room_booking/room_booking.js
-msgid "Create Sales Invoice"
-msgstr "Создать счёт продажи"
-
-#: hotel_management/hotel_management/doctype/room_booking/room_booking.js
-msgid "Recreate Sales Invoice"
-msgstr "Пересоздать счёт продажи"
-
 # Room Chessboard page
 
 #: hotel_management/hotel_management/page/room_chessboard/room_chessboard.js
@@ -555,10 +545,6 @@ msgid "Pay"
 msgstr "Оплатить"
 
 #: hotel_management/hotel_management/page/room_chessboard/room_chessboard.js
-msgid "Create Payment Invoice"
-msgstr "Создать счёт на оплату"
-
-#: hotel_management/hotel_management/page/room_chessboard/room_chessboard.js
 msgid "Payment"
 msgstr "Оплата"
 
@@ -589,10 +575,6 @@ msgstr "Для банковских платежей; по умолчанию �
 #: hotel_management/hotel_management/page/room_chessboard/room_chessboard.js
 msgid "Creating Sales Invoice..."
 msgstr "Создание счёта..."
-
-#: hotel_management/hotel_management/page/room_chessboard/room_chessboard.js
-msgid "Sales Invoice {0} created"
-msgstr "Счёт {0} создан"
 
 #: hotel_management/hotel_management/page/room_chessboard/room_chessboard.js
 msgid "Creating Payment Entry..."
@@ -635,14 +617,6 @@ msgid "Back"
 msgstr "Назад"
 
 #: hotel_management/hotel_management/page/room_chessboard/room_chessboard.js
-msgid "Add Modes of Payment in Hotel Profile {0}"
-msgstr "Добавьте способы оплаты в профиле отеля {0}"
-
-#: hotel_management/hotel_management/page/room_chessboard/room_chessboard.js
-msgid "Open Hotel Profile"
-msgstr "Открыть профиль отеля"
-
-#: hotel_management/hotel_management/page/room_chessboard/room_chessboard.js
 #: hotel_management/api.py
 msgid "Enter an amount in at least one Mode of Payment"
 msgstr "Введите сумму хотя бы для одного способа оплаты"
@@ -672,10 +646,6 @@ msgstr "У вас нет разрешения ни на один способ о
 #: hotel_management/hotel_management/doctype/hotel_profile/hotel_profile.py
 msgid "Mode of Payment {0} is listed more than once"
 msgstr "Способ оплаты {0} указан несколько раз"
-
-#: hotel_management/api.py
-msgid "Create a Sales Invoice for this booking first"
-msgstr "Сначала создайте счёт для этой брони"
 
 #: hotel_management/api.py
 msgid "Sales Invoice {0} is not submitted"
@@ -752,10 +722,6 @@ msgstr "Бронь {0} сохранена"
 #: hotel_management/hotel_management/doctype/room_booking/room_booking_quick_entry.js
 msgid "Save"
 msgstr "Сохранить"
-
-#: hotel_management/hotel_management/page/room_chessboard/room_chessboard.js
-msgid "Invoice total {0} differs from booking total — recreate the invoice"
-msgstr "Счёт на {0} не совпадает с итогом брони — пересоздайте счёт"
 
 # Названия отчётов
 
@@ -1153,10 +1119,6 @@ msgid "Check Out can only be changed for a checked in booking"
 msgstr "Дату выезда можно менять только у заселённой брони (Checked In)"
 
 #: hotel_management/hotel_management/doctype/room_booking/room_booking.py
-msgid "Booking total changed ({0} → {1}), but invoice {2} still holds the old amount. Recreate the invoice."
-msgstr "Сумма брони изменилась ({0} → {1}), а счёт {2} выставлен на старую сумму. Пересоздайте счёт."
-
-#: hotel_management/hotel_management/doctype/room_booking/room_booking.py
 msgid "Invoice is outdated"
 msgstr "Счёт устарел"
 
@@ -1195,10 +1157,6 @@ msgstr "Бронь {0} нельзя отменить: по счёту {1} уже
 #: hotel_management/hotel_management/doctype/room_booking/room_booking.py
 msgid "Booking is paid"
 msgstr "Бронь оплачена"
-
-#: hotel_management/hotel_management/doctype/room_booking/room_booking.py
-msgid "Sales Invoice {0} already has payments: room, rate, check in, check out and services can no longer be changed"
-msgstr "По счёту {0} уже есть оплата: номер, тариф, даты заезда и выезда и услуги менять нельзя"
 
 #: hotel_management/api.py
 msgid "Sales Invoice {0} already has payments and cannot be recreated"
@@ -1346,3 +1304,269 @@ msgstr "В отчёте «Движение денег» видны только 
 #: hotel_management/hotel_management/doctype/hotel_profile/hotel_profile.py
 msgid "User {0} is listed more than once"
 msgstr "Пользователь {0} указан несколько раз"
+
+# Групповая бронь и плательщики
+
+#: hotel_management/hotel_management/doctype/group_booking/group_booking.json
+msgid "Group Booking"
+msgstr "Групповая бронь"
+
+#: hotel_management/hotel_management/doctype/group_booking/group_booking.json
+msgid "Group Booking Room"
+msgstr "Номер групповой брони"
+
+#: hotel_management/hotel_management/doctype/group_booking/group_booking.json
+msgid "Room Booking Payer"
+msgstr "Плательщик брони"
+
+#: hotel_management/hotel_management/doctype/group_booking/group_booking.json
+msgid "Payer"
+msgstr "Плательщик"
+
+#: hotel_management/hotel_management/doctype/group_booking/group_booking.json
+msgid "Payers"
+msgstr "Плательщики"
+
+#: hotel_management/hotel_management/doctype/group_booking/group_booking.json
+msgid "Share"
+msgstr "Доля"
+
+#: hotel_management/hotel_management/doctype/group_booking/group_booking.json
+msgid "Share of accommodation and percentage services"
+msgstr "Доля проживания и процентных услуг"
+
+#: hotel_management/hotel_management/doctype/group_booking/group_booking.json
+msgid "Accommodation and percentage services are split by share; each payer gets a separate Sales Invoice"
+msgstr "Проживание и процентные услуги делятся по долям; каждому плательщику выставляется свой счёт"
+
+#: hotel_management/hotel_management/doctype/group_booking/group_booking.json
+msgid "Who pays for this row; empty — the booking customer or the first payer"
+msgstr "Кто платит за эту строку; если пусто — заказчик брони или первый плательщик"
+
+#: hotel_management/hotel_management/doctype/group_booking/group_booking.json
+msgid "Billing"
+msgstr "Оплата"
+
+#: hotel_management/hotel_management/doctype/group_booking/group_booking.json
+msgid "Invoices"
+msgstr "Счета"
+
+#: hotel_management/hotel_management/doctype/group_booking/group_booking.json
+msgid "Partially Paid"
+msgstr "Частично оплачено"
+
+#: hotel_management/hotel_management/doctype/group_booking/group_booking.json
+msgid "Group Name"
+msgstr "Название группы"
+
+#: hotel_management/hotel_management/doctype/group_booking/group_booking.json
+msgid "Organizer"
+msgstr "Организатор"
+
+#: hotel_management/hotel_management/doctype/group_booking/group_booking.json
+msgid "Pays for the group according to the billing mode"
+msgstr "Платит за группу по схеме оплаты"
+
+#: hotel_management/hotel_management/doctype/group_booking/group_booking.json
+msgid "Stay"
+msgstr "Проживание"
+
+#: hotel_management/hotel_management/doctype/group_booking/group_booking.json
+msgid "Default rate for new rooms of the group"
+msgstr "Тариф по умолчанию для новых номеров группы"
+
+#: hotel_management/hotel_management/doctype/group_booking/group_booking.json
+msgid "Organizer Pays All"
+msgstr "Всё оплачивает организатор"
+
+#: hotel_management/hotel_management/doctype/group_booking/group_booking.json
+msgid "Organizer Pays Accommodation"
+msgstr "Организатор оплачивает проживание"
+
+#: hotel_management/hotel_management/doctype/group_booking/group_booking.json
+msgid "Guests Pay"
+msgstr "Гости платят сами"
+
+#: hotel_management/hotel_management/doctype/group_booking/group_booking.json
+msgid "Organizer Pays All — one group invoice for everything. Organizer Pays Accommodation — the organizer pays for rooms, guests pay for their services. Guests Pay — every guest pays for their own room"
+msgstr "«Всё оплачивает организатор» — один общий счёт группы. «Организатор оплачивает проживание» — организатор платит за номера, гости — за свои услуги. «Гости платят сами» — каждый гость платит за свой номер"
+
+#: hotel_management/hotel_management/doctype/group_booking/group_booking.json
+msgid "Summary"
+msgstr "Сводка"
+
+#: hotel_management/hotel_management/doctype/group_booking/group_booking.json
+msgid "Total Rooms"
+msgstr "Всего номеров"
+
+#: hotel_management/hotel_management/doctype/group_booking/group_booking.json
+msgid "Organizer Invoice"
+msgstr "Счёт организатора"
+
+#: hotel_management/hotel_management/doctype/group_booking/group_booking.json
+msgid "One invoice for everything the organizer pays in the group"
+msgstr "Один счёт на всё, что оплачивает организатор в группе"
+
+#: hotel_management/hotel_management/doctype/group_booking/group_booking.json
+msgid "Main guest of the room; the booking customer, otherwise the organizer"
+msgstr "Основной гость номера — заказчик его брони; если не указан, заказчик — организатор"
+
+#: hotel_management/billing.py
+msgid "Nothing to Pay"
+msgstr "Нечего оплачивать"
+
+#: hotel_management/billing.py
+msgid "Outdated"
+msgstr "Устарел"
+
+#: hotel_management/billing.py
+msgid "Outstanding"
+msgstr "К оплате"
+
+#: hotel_management/billing.py
+msgid "Room {0}: {1} – {2}"
+msgstr "Номер {0}: {1} – {2}"
+
+#: hotel_management/billing.py
+msgid "Add at least one payer"
+msgstr "Добавьте хотя бы одного плательщика"
+
+#: hotel_management/billing.py
+msgid "Payer {0} is listed more than once"
+msgstr "Плательщик {0} указан несколько раз"
+
+#: hotel_management/billing.py
+msgid "Payer shares must add up to 100% (now {0}%)"
+msgstr "Сумма долей плательщиков должна быть 100% (сейчас {0}%)"
+
+#: hotel_management/billing.py
+msgid "Row #{0}: payer {1} of item {2} is not in the Payers table"
+msgstr "Строка №{0}: плательщика {1} позиции {2} нет в таблице плательщиков"
+
+#: hotel_management/billing.py
+msgid "Sales Invoice {0} of payer {1} already has payments: the payer's amount can no longer change ({2} → {3})"
+msgstr "По счёту {0} плательщика {1} уже есть оплата: его сумму менять нельзя ({2} → {3})"
+
+#: hotel_management/billing.py
+msgid "Booking total changed ({0} → {1}), but invoices {2} still hold the old amounts. Recreate the invoices."
+msgstr "Сумма брони изменилась ({0} → {1}), а счета {2} выставлены на старые суммы. Пересоздайте счета."
+
+#: hotel_management/billing.py
+msgid "Sales Invoice {0} does not belong to a room booking"
+msgstr "Счёт {0} не относится к брони номера"
+
+#: hotel_management/billing.py
+msgid "Booking {0} is cancelled"
+msgstr "Бронь {0} отменена"
+
+#: hotel_management/billing.py
+msgid "All invoices are up to date"
+msgstr "Все счета актуальны"
+
+#: hotel_management/billing.py
+msgid "Booking {0} is already checked in: cancel it before deleting the group"
+msgstr "Бронь {0} уже заселена: отмените её, прежде чем удалять группу"
+
+#: hotel_management/billing.py
+msgid "Booking {0} is already checked in: cancel it before removing the room from the group"
+msgstr "Бронь {0} уже заселена: отмените её, прежде чем убирать номер из группы"
+
+#: hotel_management/billing.py
+msgid "Row #{0}: Check Out must be after Check In"
+msgstr "Строка №{0}: выезд должен быть позже заезда"
+
+#: hotel_management/billing.py
+msgid "No bookings of the group can take the action {0}"
+msgstr "Ни к одной брони группы нельзя применить действие {0}"
+
+#: hotel_management/public/js/hotel_billing.js
+msgid "Create Invoices"
+msgstr "Выставить счета"
+
+#: hotel_management/public/js/hotel_billing.js
+msgid "Sales Invoices created: {0}"
+msgstr "Выставлены счета: {0}"
+
+#: hotel_management/public/js/hotel_billing.js
+msgid "group invoice {0}"
+msgstr "общий счёт группы {0}"
+
+#: hotel_management/public/js/hotel_billing.js
+msgid "There are no invoices to pay"
+msgstr "Нет счетов к оплате"
+
+#: hotel_management/public/js/hotel_billing.js
+msgid "Choose Invoice"
+msgstr "Выберите счёт"
+
+#: hotel_management/public/js/hotel_billing.js
+msgid "Add Modes of Payment in the Hotel Profile of the booking"
+msgstr "Добавьте способы оплаты в профиль отеля брони"
+
+#: hotel_management/public/js/hotel_billing.js
+msgid "Add Guests"
+msgstr "Добавить гостей"
+
+#: hotel_management/public/js/hotel_billing.js
+msgid "All guests are already payers"
+msgstr "Все гости уже среди плательщиков"
+
+#: hotel_management/public/js/hotel_billing.js
+msgid "Split Equally"
+msgstr "Разделить поровну"
+
+#: hotel_management/public/js/hotel_billing.js
+msgid "Invoices appear here after they are created"
+msgstr "Здесь появятся счета после выставления"
+
+#: hotel_management/public/js/hotel_billing.js
+msgid "Save the booking first"
+msgstr "Сначала сохраните бронь"
+
+#: hotel_management/public/js/hotel_billing.js
+msgid "Part of group booking {0}"
+msgstr "Входит в групповую бронь {0}"
+
+#: hotel_management/public/js/hotel_billing.js
+msgid "Add Free Rooms"
+msgstr "Добавить свободные номера"
+
+#: hotel_management/public/js/hotel_billing.js
+msgid "Set Check In and Check Out of the group first"
+msgstr "Сначала укажите заезд и выезд группы"
+
+#: hotel_management/public/js/hotel_billing.js
+msgid "Number of Rooms"
+msgstr "Количество номеров"
+
+#: hotel_management/public/js/hotel_billing.js
+msgid "No free rooms for these dates"
+msgstr "На эти даты нет свободных номеров"
+
+#: hotel_management/public/js/hotel_billing.js
+msgid "Only {0} free rooms found, all of them added"
+msgstr "Найдено только {0} свободных номеров, все добавлены"
+
+#: hotel_management/public/js/hotel_billing.js
+msgid "Rooms added: {0}"
+msgstr "Добавлено номеров: {0}"
+
+#: hotel_management/public/js/hotel_billing.js
+msgid "Room bookings are created when the group is saved"
+msgstr "Брони номеров создаются при сохранении группы"
+
+#: hotel_management/public/js/hotel_billing.js
+msgid "Save the group first"
+msgstr "Сначала сохраните группу"
+
+#: hotel_management/public/js/hotel_billing.js
+msgid "Apply action {0} to {1} bookings of the group?"
+msgstr "Применить действие {0} к броням группы ({1})?"
+
+#: hotel_management/public/js/hotel_billing.js
+msgid "{0}: {1} bookings"
+msgstr "{0}: броней — {1}"
+
+#: hotel_management/public/js/hotel_billing.js
+msgid "Payer Amount"
+msgstr "Сумма плательщика"

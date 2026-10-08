@@ -5,7 +5,7 @@
 
 Карта прав — источник правды для двух ролей приложения:
   * Hotel Manager — всё в модуле Hotel Management и связанные документы ERPNext;
-  * Hotel Employee — бронирования и расходы, справочники отеля только на просмотр,
+  * Hotel Employee — бронирования (в том числе групповые) и расходы, справочники отеля только на просмотр,
     связанные документы — сколько нужно, чтобы создавать брони и расходы.
 
 Права на DocType модуля лежат в их JSON (те же строки, что в MODULE_PERMISSIONS), но
@@ -30,6 +30,7 @@ FULL_SUBMIT = (*FULL, "submit", "cancel", "amend")
 # DocType модуля: {doctype: {роль: права}}
 MODULE_PERMISSIONS = {
 	"Room Booking": {HOTEL_MANAGER: FULL_SUBMIT, HOTEL_EMPLOYEE: SUBMIT},
+	"Group Booking": {HOTEL_MANAGER: FULL, HOTEL_EMPLOYEE: WRITE},
 	"Hotel Expense": {HOTEL_MANAGER: FULL_SUBMIT, HOTEL_EMPLOYEE: SUBMIT},
 	"Hotel Room": {HOTEL_MANAGER: FULL, HOTEL_EMPLOYEE: READ_REPORT},
 	"Room Type": {HOTEL_MANAGER: FULL, HOTEL_EMPLOYEE: READ_REPORT},

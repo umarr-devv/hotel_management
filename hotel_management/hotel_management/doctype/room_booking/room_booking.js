@@ -3,20 +3,34 @@
 //
 // Логика формы брони. Раньше это был Client Script «Room Booking Calculation».
 // Расчёты дублируют серверный контроллер, чтобы суммы обновлялись сразу при вводе.
+// Счета плательщиков и оплата — общий модуль hotel_billing.js:
+// {% include 'hotel_management/public/js/hotel_billing.js' %}
 
 frappe.ui.form.on("Room Booking", {
 	setup(frm) {
 		// отключённые номера и номера отключённых типов в выборе не показываются
 		frm.set_query("room", () => ({ query: "hotel_management.api.active_room_query" }));
+		// плательщик услуги — только из таблицы плательщиков брони
+		frm.set_query("payer", "items_and_service", () => ({
+			filters: { name: ["in", (frm.doc.payers || []).map((row) => row.payer).filter(Boolean)] },
+		}));
+		hotel_management.billing.load_css();
 	},
 
 	async refresh(frm) {
 		await load_rates(frm);
 		set_room_rate_query(frm);
 		lock_paid_fields(frm);
-		add_sales_invoice_button(frm);
+		render_billing(frm);
+		add_billing_buttons(frm);
+		add_payer_buttons(frm);
+		show_group(frm);
 		// новая бронь из быстрой формы приходит с тарифом, но без цены и сумм
 		if (frm.is_new() && frm.doc.room_rate && !frm.doc.rate_per_day) apply_rate(frm);
+	},
+
+	customer(frm) {
+		set_default_payer(frm);
 	},
 
 	async room(frm) {
@@ -47,9 +61,18 @@ frappe.ui.form.on("Room Booking Item", {
 	rate: update_item_amount,
 	markup: update_item_amount,
 
+	payer: calculate_payer_amounts,
+
 	items_and_service_remove(frm) {
 		calculate_items_amount(frm);
 	},
+});
+
+// плательщики: проживание и процентные услуги делятся по долям, у каждого свой счёт
+frappe.ui.form.on("Room Booking Payer", {
+	payer: calculate_payer_amounts,
+	share: calculate_payer_amounts,
+	payers_remove: calculate_payer_amounts,
 });
 
 // процентные услуги: цена — процент от суточного тарифа номера, количество всегда 1
@@ -176,53 +199,164 @@ function calculate_total_amount(frm) {
 			flt(frm.doc.items_and_serivce_amount) +
 			flt(frm.doc.percentage_services_amount)
 	);
+	calculate_payer_amounts(frm);
 }
 
-// --- счёт ------------------------------------------------------------------
+// --- плательщики -------------------------------------------------------------
+// Делёж — как в hotel_management/billing.py: копейки от округления получает последний
+// плательщик с долей, услуги без плательщика — заказчик брони или первый плательщик.
 
-function invoice_has_payments(frm) {
-	return !!(frm.doc.__onload && frm.doc.__onload.invoice_has_payments);
+function split_amount(amount, rows, prec) {
+	const with_share = rows.filter((row) => row.payer && flt(row.share) > 0);
+	const parts = {};
+	let rest = flt(amount, prec);
+	with_share.slice(0, -1).forEach((row) => {
+		const part = flt((flt(amount) * flt(row.share)) / 100, prec);
+		parts[row.payer] = part;
+		rest = flt(rest - part, prec);
+	});
+	if (with_share.length) parts[with_share[with_share.length - 1].payer] = rest;
+	return parts;
 }
 
-// после оплаты счёта номер, тариф, даты и услуги менять нельзя (проверяет и сервер)
-function lock_paid_fields(frm) {
-	const locked = invoice_has_payments(frm) ? 1 : 0;
-	["room", "room_rate", "check_in", "check_out", "items_and_service", "percentage_services"].forEach(
-		(field) => frm.set_df_property(field, "read_only", locked)
+function calculate_payer_amounts(frm) {
+	const rows = frm.doc.payers || [];
+	if (!rows.length) return;
+
+	const prec = precision("amount");
+	const totals = {};
+	const add = (payer, amount) => {
+		if (payer) totals[payer] = (totals[payer] || 0) + flt(amount);
+	};
+	const add_split = (amount) =>
+		Object.entries(split_amount(amount, rows, prec)).forEach(([payer, part]) => add(payer, part));
+
+	add_split(frm.doc.amount);
+	(frm.doc.percentage_services || []).forEach((row) => add_split(row.amount));
+
+	const payers = rows.map((row) => row.payer).filter(Boolean);
+	const default_payer = payers.includes(frm.doc.customer) ? frm.doc.customer : payers[0];
+	(frm.doc.items_and_service || []).forEach((row) => add(row.payer || default_payer, row.amount));
+
+	rows.forEach((row) => (row.amount = flt(totals[row.payer] || 0, precision("amount", row))));
+	frm.refresh_field("payers");
+}
+
+// без плательщиков платит заказчик; единственный плательщик без счёта меняется вместе с заказчиком
+function set_default_payer(frm) {
+	if (!frm.doc.customer) return;
+	const rows = frm.doc.payers || [];
+	if (!rows.length) {
+		frm.add_child("payers", { payer: frm.doc.customer, share: 100 });
+	} else if (rows.length === 1 && !rows[0].sales_invoice) {
+		rows[0].payer = frm.doc.customer;
+	} else {
+		return;
+	}
+	calculate_payer_amounts(frm);
+}
+
+function add_payer_buttons(frm) {
+	const grid = frm.fields_dict.payers.grid;
+	grid.clear_custom_buttons && grid.clear_custom_buttons();
+	if (frm.doc.status === "Completed" || frm.doc.docstatus === 2) return;
+
+	// гости брони становятся плательщиками с нулевой долей
+	grid.add_custom_button(__("Add Guests"), () => {
+		const payers = new Set((frm.doc.payers || []).map((row) => row.payer));
+		const guests = (frm.doc.guests || []).map((row) => row.guest).filter((g) => g && !payers.has(g));
+		if (!guests.length) {
+			frappe.show_alert({ message: __("All guests are already payers"), indicator: "orange" });
+			return;
+		}
+		guests.forEach((guest) => frm.add_child("payers", { payer: guest, share: 0 }));
+		calculate_payer_amounts(frm);
+	});
+
+	// проживание поровну; остаток доли — последнему, чтобы в сумме было ровно 100%
+	grid.add_custom_button(__("Split Equally"), () => {
+		const rows = frm.doc.payers || [];
+		if (!rows.length) return;
+		const share = flt(100 / rows.length, 2);
+		rows.forEach((row, i) => {
+			row.share = i === rows.length - 1 ? flt(100 - share * (rows.length - 1), 2) : share;
+		});
+		frm.dirty();
+		calculate_payer_amounts(frm);
+	});
+}
+
+// --- счета -------------------------------------------------------------------
+
+function billing_rows(frm) {
+	return (frm.doc.__onload && frm.doc.__onload.billing) || [];
+}
+
+function render_billing(frm) {
+	const rows = frm.is_new() ? [] : billing_rows(frm);
+	frm.fields_dict.billing_summary.$wrapper.html(
+		rows.length
+			? hotel_management.billing.summary_html(rows)
+			: `<div class="text-muted small">${__("Invoices appear here after they are created")}</div>`
 	);
 }
 
-function add_sales_invoice_button(frm) {
-	// счёт с оплатами пересоздать нельзя
-	if (frm.is_new() || frm.doc.pay_status === "Paid" || invoice_has_payments(frm)) return;
+// плательщик с долей проживания уже платил — номер, тариф и даты менять нельзя (проверяет и сервер)
+function lock_paid_fields(frm) {
+	const locked = billing_rows(frm).some((row) => row.has_payments && flt(row.share) > 0) ? 1 : 0;
+	["room", "room_rate", "check_in", "check_out"].forEach((field) =>
+		frm.set_df_property(field, "read_only", locked)
+	);
+}
 
-	const label = frm.doc.sales_invoice
-		? __("Recreate Sales Invoice")
-		: __("Create Sales Invoice");
+function add_billing_buttons(frm) {
+	if (frm.is_new() || frm.doc.docstatus === 2) return;
+	const rows = billing_rows(frm);
 
-	frm.add_custom_button(label, () => {
-		const proceed = () =>
-			frappe.call({
-				method: "hotel_management.api.make_sales_invoice_from_booking",
-				args: { room_booking: frm.doc.name },
-				freeze: true,
-				freeze_message: __("Creating Sales Invoice..."),
-				callback: (r) => {
-					if (!r.message) return;
-					frm.reload_doc();
-					frappe.set_route("Form", "Sales Invoice", r.message);
-				},
-			});
+	if (hotel_management.billing.needs_invoices(rows)) {
+		frm.add_custom_button(__("Create Invoices"), () => create_invoices(frm, rows));
+	}
+	if (hotel_management.billing.payable(rows).length) {
+		frm.add_custom_button(__("Pay"), () =>
+			hotel_management.billing.pay(rows, { room: frm.doc.room, on_done: () => frm.reload_doc() })
+		);
+	}
+}
 
-		if (frm.doc.sales_invoice) {
-			frappe.confirm(
-				__("Sales Invoice {0} will be cancelled and a new one created. Continue?", [
-					frm.doc.sales_invoice,
-				]),
-				proceed
-			);
-		} else {
-			proceed();
-		}
-	});
+function create_invoices(frm, rows) {
+	if (frm.is_dirty()) {
+		frappe.msgprint(__("Save the booking first"));
+		return;
+	}
+
+	const make = () =>
+		frappe.call({
+			method: "hotel_management.api.make_booking_invoices",
+			args: { room_booking: frm.doc.name },
+			freeze: true,
+			freeze_message: __("Creating Sales Invoice..."),
+			callback: () => frm.reload_doc(),
+		});
+
+	// устаревшие счета отменяются и выставляются заново — спрашиваем
+	const outdated = [
+		...new Set(rows.filter((row) => row.status === "Outdated").map((row) => row.sales_invoice)),
+	];
+	if (outdated.length) {
+		frappe.confirm(
+			__("Sales Invoice {0} will be cancelled and a new one created. Continue?", [outdated.join(", ")]),
+			make
+		);
+	} else {
+		make();
+	}
+}
+
+function show_group(frm) {
+	if (!frm.doc.group_booking) return;
+	const link = `<a href="${frappe.utils.get_form_link(
+		"Group Booking",
+		frm.doc.group_booking
+	)}">${frappe.utils.escape_html(frm.doc.group_booking)}</a>`;
+	frm.dashboard.set_headline(__("Part of group booking {0}", [link]));
 }

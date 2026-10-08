@@ -18,7 +18,7 @@
    "hidden": 0,
    "is_query_report": 0,
    "label": "Bookings",
-   "link_count": 3,
+   "link_count": 4,
    "onboard": 0,
    "type": "Card Break"
   },
@@ -29,6 +29,17 @@
    "label": "Room Booking",
    "link_count": 0,
    "link_to": "Room Booking",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "dependencies": "",
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Group Booking",
+   "link_count": 0,
+   "link_to": "Group Booking",
    "link_type": "DocType",
    "onboard": 0,
    "type": "Link"
@@ -346,7 +357,7 @@
    "type": "Link"
   }
  ],
- "modified": "2026-10-07 20:00:00.000000",
+ "modified": "2026-10-08 14:00:00.000000",
  "modified_by": "Administrator",
  "module": "Hotel Management",
  "name": "Hotel",

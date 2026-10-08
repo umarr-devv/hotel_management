@@ -5,6 +5,8 @@
 // сборка ассетов для него не нужна. Быстрая форма Room Booking вставляется ниже через include:
 // шахматка открывает её напрямую, не загружая перед этим мету Room Booking.
 // {% include 'hotel_management/hotel_management/doctype/room_booking/room_booking_quick_entry.js' %}
+// Счета и оплата — общий модуль hotel_billing.js (его стили грузятся вместе со страницей).
+// {% include 'hotel_management/public/js/hotel_billing.js' %}
 
 (() => {
 	frappe.pages["room-chessboard"].on_page_load = function (wrapper) {
@@ -18,6 +20,7 @@
 			.require([
 				"/assets/hotel_management/js/lib/vis-timeline.min.js",
 				"/assets/hotel_management/css/lib/vis-timeline.min.css",
+				"/assets/hotel_management/css/hotel_billing.css",
 			])
 			.then(() => {
 				wrapper.chessboard = new hotel_management.RoomChessboard(page, wrapper);
@@ -58,6 +61,10 @@
 			stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${body}</svg>`;
 	const ICONS = {
 		user: svg('<circle cx="12" cy="8" r="4"/><path d="M4.5 21a7.5 7.5 0 0 1 15 0"/>'),
+		group: svg(
+			'<circle cx="9" cy="8" r="3.5"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0"/>' +
+				'<path d="M16 4.6a3.5 3.5 0 0 1 0 6.8M18 14.2a6.5 6.5 0 0 1 3.5 5.8"/>'
+		),
 		company: svg(
 			'<rect x="4" y="3" width="16" height="18" rx="2"/><path d="M9 21v-4h6v4"/>' +
 				'<path d="M8 7h.01M12 7h.01M16 7h.01M8 11h.01M12 11h.01M16 11h.01"/>'
@@ -441,7 +448,10 @@
 					"rc-item",
 					`rc-status-${slug(b.status)}`,
 					b.pay_status === "Paid" ? "rc-paid" : "rc-unpaid",
-				].join(" "),
+					b.group_booking ? "rc-group-item" : "",
+				]
+					.filter(Boolean)
+					.join(" "),
 				title: this.tooltip_html(b),
 				booking: b,
 			}));
@@ -508,6 +518,13 @@
 
 			const b = item.booking;
 			el.insertAdjacentHTML("beforeend", b.customer_type === "Company" ? ICONS.company : ICONS.user);
+			// бронь группы помечаем значком группы
+			if (b.group_booking) {
+				el.insertAdjacentHTML(
+					"beforeend",
+					`<span class="rc-item-group" title="${esc(b.group_name || b.group_booking)}">${ICONS.group}</span>`
+				);
+			}
 
 			const title = document.createElement("span");
 			title.className = "rc-item-title";
@@ -525,6 +542,7 @@
 			const fmt = (v) => moment(parse_dt(v)).format("DD.MM.YYYY HH:mm");
 			const rows = [
 				[__("Room"), b.room],
+				...(b.group_booking ? [[__("Group Booking"), b.group_name || b.group_booking]] : []),
 				[__("Check In"), fmt(b.check_in)],
 				[__("Check Out"), fmt(b.check_out)],
 				[__("Total Hours"), flt(b.total_hours, 1)],
@@ -816,21 +834,16 @@
 					.catch(() => []),
 			]);
 
-			// вспомогательные данные: если у пользователя нет прав на счёт или клиентов,
+			// вспомогательные данные: если у пользователя нет прав на клиентов или группу,
 			// карточка всё равно открывается (просто без этих сведений)
 			const safe = (promise, fallback) => Promise.resolve(promise).catch(() => fallback);
 
-			const si = doc.sales_invoice
-				? ((await safe(
-						frappe.db.get_value("Sales Invoice", doc.sales_invoice, [
-							"docstatus",
-							"outstanding_amount",
-							"grand_total",
-							"customer",
-							"currency",
-						]),
-						{}
-				  )) || {}).message || null
+			const rows =
+				(await safe(frappe.xcall("hotel_management.api.get_booking_billing", { room_booking: name }), [])) ||
+				[];
+			const group_name = doc.group_booking
+				? ((await safe(frappe.db.get_value("Group Booking", doc.group_booking, "group_name"), {})) || {})
+						.message?.group_name
 				: null;
 
 			const guest_ids = (doc.guests || []).map((g) => g.guest).filter(Boolean);
@@ -855,7 +868,7 @@
 			this.booking_dialog = dialog;
 			dialog.$wrapper.addClass("rc-booking-dialog");
 			dialog.fields_dict.body.$wrapper.html(
-				this.booking_card_html(doc, b, guest_ids.map((id) => guest_map[id] || id), si)
+				this.booking_card_html(doc, b, guest_ids.map((id) => guest_map[id] || id), rows, group_name)
 			);
 
 			const open_form = () => {
@@ -876,30 +889,22 @@
 				dialog.set_primary_action(__("Open Full Form"), open_form);
 			}
 
-			// счёт и оплата — в зависимости от статуса оплаты
-			if (doc.pay_status !== "Paid") {
-				if (invoice_outdated(doc, si)) {
-					// сумма брони изменилась — сначала пересоздаём счёт, как в полной форме
-					dialog.add_custom_action(
-						`${ICONS.refresh} ${__("Recreate Sales Invoice")}`,
-						() => this.recreate_invoice(doc),
-						"rcb-action"
-					);
-				} else if (si && si.docstatus === 1 && flt(si.outstanding_amount) > 0) {
-					dialog.add_custom_action(`${ICONS.unpaid} ${__("Pay")}`, () => this.make_payment(doc, si), "rcb-action");
-				} else if (!si || si.docstatus !== 1) {
-					dialog.add_custom_action(
-						`${ICONS.add} ${__("Create Payment Invoice")}`,
-						() => this.create_invoice(doc),
-						"rcb-action"
-					);
-				}
+			// счета плательщиков и оплата
+			if (doc.docstatus < 2 && hotel_management.billing.needs_invoices(rows)) {
+				dialog.add_custom_action(
+					`${ICONS.add} ${__("Create Invoices")}`,
+					() => this.create_invoices(doc, rows),
+					"rcb-action"
+				);
+			}
+			if (hotel_management.billing.payable(rows).length) {
+				dialog.add_custom_action(`${ICONS.unpaid} ${__("Pay")}`, () => this.pay(doc, rows), "rcb-action");
 			}
 
 			dialog.show();
 		}
 
-		booking_card_html(doc, b, guests, si) {
+		booking_card_html(doc, b, guests, rows, group_name) {
 			const money = money_formatter(b.currency);
 			const dt = (v) => {
 				const d = parse_dt(v);
@@ -958,7 +963,16 @@
 								__("Duration"),
 								`${__("Days: {0}", [days])} · ${flt(doc.total_hours, 1)} ${__("h")}`
 							)}
-							${info_row(__("Sales Invoice"), link("Sales Invoice", doc.sales_invoice))}
+							${
+								doc.group_booking
+									? info_row(
+											__("Group Booking"),
+											`<a href="/app/group-booking/${encodeURIComponent(doc.group_booking)}">${esc(
+												group_name || doc.group_booking
+											)}</a>`
+									  )
+									: ""
+							}
 						</div>
 					</div>
 
@@ -973,21 +987,15 @@
 								: ""
 						}
 						<div class="rcb-total">${info_row(__("Total"), money(doc.total_amount))}</div>
-						${
-							si && si.docstatus === 1 && flt(si.outstanding_amount) > 0
-								? `<div class="rcb-due">${info_row(__("Outstanding Amount"), money(si.outstanding_amount))}</div>`
-								: ""
-						}
-						${
-							invoice_outdated(doc, si)
-								? `<div class="rcb-warning">${esc(
-										__("Invoice total {0} differs from booking total — recreate the invoice", [
-											money(si.grand_total),
-										])
-								  )}</div>`
-								: ""
-						}
 					</div>
+					${
+						rows.length
+							? `<div><div class="rcr-title">${esc(__("Payers"))}</div>${hotel_management.billing.summary_html(
+									rows,
+									b.currency
+							  )}</div>`
+							: ""
+					}
 				</div>`;
 		}
 
@@ -1083,275 +1091,48 @@
 
 		// ------------------------------------------------------------ счёт и оплата
 
-		create_invoice(doc) {
-			frappe.call({
-				method: "hotel_management.api.make_sales_invoice_from_booking",
-				args: { room_booking: doc.name },
-				freeze: true,
-				freeze_message: __("Creating Sales Invoice..."),
-				callback: async (r) => {
-					if (!r.message) return;
-					frappe.show_alert({ message: __("Sales Invoice {0} created", [r.message]), indicator: "green" });
+		create_invoices(doc, rows) {
+			const make = () =>
+				frappe.call({
+					method: "hotel_management.api.make_booking_invoices",
+					args: { room_booking: doc.name },
+					freeze: true,
+					freeze_message: __("Creating Sales Invoice..."),
+					callback: async (r) => {
+						if (r.message && r.message.length) {
+							frappe.show_alert({
+								message: __("Sales Invoices created: {0}", [r.message.join(", ")]),
+								indicator: "green",
+							});
+						}
+						await this.load_bookings_now();
+						this.show_booking(doc.name);
+					},
+				});
+
+			// устаревшие счета отменяются и выставляются заново — спрашиваем
+			const outdated = rows.filter((row) => row.status === "Outdated").map((row) => row.sales_invoice);
+			if (outdated.length) {
+				frappe.confirm(
+					__("Sales Invoice {0} will be cancelled and a new one created. Continue?", [
+						[...new Set(outdated)].join(", "),
+					]),
+					make
+				);
+			} else {
+				make();
+			}
+		}
+
+		pay(doc, rows) {
+			hotel_management.billing.pay(rows, {
+				room: doc.room,
+				before_show: () => this.booking_dialog && this.booking_dialog.hide(),
+				on_done: async () => {
 					await this.load_bookings_now();
 					this.show_booking(doc.name);
 				},
 			});
-		}
-
-		recreate_invoice(doc) {
-			frappe.confirm(
-				__("Sales Invoice {0} will be cancelled and a new one created. Continue?", [doc.sales_invoice]),
-				() => this.create_invoice(doc)
-			);
-		}
-
-		async make_payment(doc, si) {
-			// вкладки оплаты — способы оплаты из профиля отеля брони
-			const modes = await frappe.xcall("hotel_management.api.get_payment_modes", {
-				room_booking: doc.name,
-			});
-			if (!modes.length) {
-				const profile_url = frappe.utils.get_form_link("Hotel Profile", doc.hotel_profile);
-				frappe.msgprint({
-					title: __("Payment"),
-					indicator: "orange",
-					message: `${__("Add Modes of Payment in Hotel Profile {0}", [esc(doc.hotel_profile)])}<br><br>
-						<a class="btn btn-default btn-sm" href="${profile_url}">${__("Open Hotel Profile")}</a>`,
-				});
-				return;
-			}
-
-			const money = money_formatter(si.currency);
-			const outstanding = flt(si.outstanding_amount);
-
-			const dialog = new frappe.ui.Dialog({
-				title: __("Payment"),
-				size: "large",
-				fields: [
-					{
-						fieldname: "customer",
-						label: __("Customer"),
-						fieldtype: "Link",
-						options: "Customer",
-						read_only: 1,
-						default: si.customer,
-					},
-					{
-						fieldname: "posting_date",
-						label: __("Posting Date"),
-						fieldtype: "Date",
-						reqd: 1,
-						default: frappe.datetime.get_today(),
-					},
-					{ fieldtype: "Column Break" },
-					{
-						fieldname: "sales_invoice",
-						label: __("Sales Invoice"),
-						fieldtype: "Link",
-						options: "Sales Invoice",
-						read_only: 1,
-						default: doc.sales_invoice,
-					},
-					{
-						fieldname: "outstanding_amount",
-						label: __("Outstanding Amount"),
-						fieldtype: "Currency",
-						read_only: 1,
-						default: outstanding,
-					},
-					{ fieldtype: "Section Break" },
-					{ fieldname: "payments", fieldtype: "HTML" },
-					{ fieldname: "balance", fieldtype: "HTML" },
-				],
-				primary_action_label: __("Pay"),
-				primary_action: (values) => {
-					const payments = get_payments();
-					if (!payments.length) {
-						frappe.msgprint(__("Enter an amount in at least one Mode of Payment"));
-						return;
-					}
-					this.confirm_payment(doc, si, values.posting_date, payments, () => dialog.hide());
-				},
-			});
-			dialog.$wrapper.addClass("rc-booking-dialog");
-
-			// --- вкладки: по одной на способ оплаты --------------------------------------
-			const $root = $(`<div class="rcp">
-				<div class="rcp-tabs" role="tablist"></div>
-				<div class="rcp-panes"></div>
-			</div>`).appendTo(dialog.fields_dict.payments.$wrapper.empty());
-			const $balance = dialog.fields_dict.balance.$wrapper;
-
-			const tabs = modes.map((mode, i) => {
-				const $tab = $(`<button type="button" class="rcp-tab" role="tab">
-					<span class="rcp-tab-label"></span><span class="rcp-tab-amount"></span>
-				</button>`).appendTo($root.find(".rcp-tabs"));
-				$tab.find(".rcp-tab-label").text(__(mode.mode_of_payment));
-
-				const $pane = $(`<div class="rcp-pane" role="tabpanel">
-					<div class="rcp-pane-grid">
-						<div class="rcp-amount"></div>
-						<div class="rcp-reference"></div>
-					</div>
-					<button type="button" class="btn btn-default btn-xs rcp-fill">${__("Fill Remaining")}</button>
-				</div>`).appendTo($root.find(".rcp-panes"));
-
-				const amount = frappe.ui.form.make_control({
-					parent: $pane.find(".rcp-amount"),
-					df: {
-						fieldtype: "Currency",
-						fieldname: `amount_${i}`,
-						label: __("Paid Amount"),
-						non_negative: 1,
-						change: () => update_balance(),
-					},
-					render_input: true,
-				});
-				amount.refresh();
-				// остаток пересчитываем прямо при вводе, не дожидаясь ухода с поля
-				amount.$input.on("input", () => update_balance());
-
-				// номер документа нужен для банковских платежей; для наличных поле не показываем
-				const reference =
-					mode.type !== "Cash"
-						? frappe.ui.form.make_control({
-								parent: $pane.find(".rcp-reference"),
-								df: {
-									fieldtype: "Data",
-									fieldname: `reference_no_${i}`,
-									label: __("Reference No"),
-									description: __("For bank payments; defaults to the booking number"),
-								},
-								render_input: true,
-						  })
-						: null;
-				reference && reference.refresh();
-
-				const tab = { mode, $tab, $pane, amount, reference };
-				$tab.on("click", () => activate(tab));
-				$pane.find(".rcp-fill").on("click", () => {
-					const remaining = outstanding - total_paid();
-					if (remaining <= 0) return;
-					amount.set_value(amount_of(tab) + remaining);
-				});
-				return tab;
-			});
-
-			const amount_of = (tab) => Math.max(flt(tab.amount.get_value()), 0);
-			const total_paid = () => tabs.reduce((sum, tab) => sum + amount_of(tab), 0);
-			const get_payments = () =>
-				tabs
-					.filter((tab) => amount_of(tab) > 0)
-					.map((tab) => ({
-						mode_of_payment: tab.mode.mode_of_payment,
-						amount: amount_of(tab),
-						reference_no: (tab.reference && tab.reference.get_value()) || "",
-					}));
-
-			const activate = (active) => {
-				tabs.forEach((tab) => {
-					tab.$tab.toggleClass("active", tab === active).attr("aria-selected", tab === active);
-					tab.$pane.toggleClass("active", tab === active);
-				});
-				setTimeout(() => active.amount.set_focus(), 0);
-			};
-
-			const update_balance = () => {
-				tabs.forEach((tab) => tab.$tab.find(".rcp-tab-amount").text(amount_of(tab) ? money(amount_of(tab)) : ""));
-				const paid = total_paid();
-				$balance.html(this.payment_balance_html(outstanding, paid, money));
-			};
-
-			// по умолчанию вся сумма — первым способом оплаты
-			tabs[0].amount.set_value(outstanding);
-			activate(tabs[0]);
-			update_balance();
-
-			this.booking_dialog && this.booking_dialog.hide();
-			dialog.show();
-		}
-
-		payment_balance_html(outstanding, paid, money) {
-			const remaining = flt(outstanding - paid, 2);
-			const state = remaining > 0 ? "rcp-due" : remaining < 0 ? "rcp-over" : "rcp-settled";
-			return `<div class="rcb-money rcp-balance">
-				<div class="rcb-row"><span class="rcb-label">${__("Outstanding Amount")}</span>
-					<span class="rcb-value">${money(outstanding)}</span></div>
-				<div class="rcb-row"><span class="rcb-label">${__("Paying Now")}</span>
-					<span class="rcb-value">${money(paid)}</span></div>
-				<div class="rcb-total ${state}"><div class="rcb-row">
-					<span class="rcb-label">${remaining < 0 ? __("Overpayment") : __("Remaining to Pay")}</span>
-					<span class="rcb-value">${money(Math.abs(remaining))}</span></div></div>
-			</div>`;
-		}
-
-		confirm_payment(doc, si, posting_date, payments, on_done) {
-			const money = money_formatter(si.currency);
-			const outstanding = flt(si.outstanding_amount);
-			const paid = payments.reduce((sum, p) => sum + flt(p.amount), 0);
-
-			const lines = payments
-				.map(
-					(p) =>
-						`<div class="rcb-service"><span>${esc(__(p.mode_of_payment))}${
-							p.reference_no ? ` · ${esc(p.reference_no)}` : ""
-						}</span><span>${money(p.amount)}</span></div>`
-				)
-				.join("");
-
-			const confirm = new frappe.ui.Dialog({
-				title: __("Confirm Payment"),
-				fields: [{ fieldtype: "HTML", fieldname: "body" }],
-				primary_action_label: __("Confirm"),
-				primary_action: () => {
-					frappe.call({
-						method: "hotel_management.api.make_booking_payments",
-						args: { room_booking: doc.name, payments, posting_date },
-						freeze: true,
-						freeze_message: __("Creating Payment Entry..."),
-						callback: async (r) => {
-							if (!r.message) return;
-							confirm.hide();
-							on_done && on_done();
-							frappe.show_alert({
-								message: __("Payment Entries {0} created", [r.message.join(", ")]),
-								indicator: "green",
-							});
-							await this.load_bookings_now();
-							this.show_booking(doc.name);
-						},
-					});
-				},
-				secondary_action_label: __("Back"),
-				secondary_action: () => confirm.hide(),
-			});
-			confirm.$wrapper.addClass("rc-booking-dialog");
-			confirm.fields_dict.body.$wrapper.html(`
-				<div class="rcb">
-					<div class="rcb-grid">
-						<div>
-							${info_row(__("Customer"), esc(si.customer))}
-							${info_row(__("Room"), esc(doc.room))}
-						</div>
-						<div>
-							${info_row(__("Sales Invoice"), esc(doc.sales_invoice))}
-							${info_row(__("Posting Date"), esc(frappe.datetime.str_to_user(posting_date)))}
-						</div>
-					</div>
-					<div class="rcb-money">
-						<div class="rcr-title">${esc(__("Mode of Payment"))}</div>
-						<div class="rcb-services">${lines}</div>
-					</div>
-					${this.payment_balance_html(outstanding, paid, money)}
-					${
-						paid > outstanding
-							? `<div class="rcb-warning">${esc(
-									__("Overpayment of {0} will be recorded as an advance", [money(paid - outstanding)])
-							  )}</div>`
-							: ""
-					}
-				</div>`);
-			confirm.show();
 		}
 
 		apply_action(doc, action) {
@@ -1423,11 +1204,6 @@
 
 	function pad2(n) {
 		return String(n).padStart(2, "0");
-	}
-
-	// проведённый счёт выставлен не на текущий итог брони (бронь продлили, добавили услуги)
-	function invoice_outdated(doc, si) {
-		return !!si && si.docstatus === 1 && flt(si.grand_total) !== flt(doc.total_amount);
 	}
 
 	function half_day(time) {
