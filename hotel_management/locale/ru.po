@@ -218,11 +218,11 @@ msgstr "Сумма"
 
 #: hotel_management/hotel_management/doctype/room_booking/room_booking.json
 msgid "Items and Serivce"
-msgstr "Товары и услуги"
+msgstr "Продукты и услуги"
 
 #: hotel_management/hotel_management/doctype/room_booking/room_booking.json
 msgid "Items and Service Amount"
-msgstr "Сумма товаров и услуг"
+msgstr "Сумма продуктов и услуг"
 
 #: hotel_management/hotel_management/doctype/room_booking/room_booking.json
 msgid "Percentage Services"
@@ -534,7 +534,7 @@ msgstr "Проживание"
 
 #: hotel_management/hotel_management/page/room_chessboard/room_chessboard.js
 msgid "Items and Services"
-msgstr "Товары и услуги"
+msgstr "Продукты и услуги"
 
 #: hotel_management/hotel_management/page/room_chessboard/room_chessboard.js
 msgid "Apply action {0}?"
@@ -701,7 +701,7 @@ msgstr "Забронировать"
 
 #: hotel_management/hotel_management/page/room_chessboard/room_chessboard.js
 msgid "Item"
-msgstr "Товар"
+msgstr "Продукт"
 
 #: hotel_management/hotel_management/page/room_chessboard/room_chessboard.js
 msgid "Rate"
@@ -1132,7 +1132,7 @@ msgstr "Нет активного тарифа {0} для типа номера 
 
 #: hotel_management/hotel_management/doctype/room_booking/room_booking.js
 msgid "No price found for this item in the selected price list"
-msgstr "Цена не найдена для этого товара в выбранном прайс-листе"
+msgstr "Цена не найдена для этой продукции в выбранном прайс-листе"
 
 #: hotel_management/hotel_management/doctype/room_booking/room_booking.js
 msgid "Sales Invoice {0} will be cancelled and a new one created. Continue?"
@@ -1239,7 +1239,7 @@ msgstr "Расходы отеля"
 #. Name of a DocType
 #: hotel_management/hotel_management/doctype/hotel_expense_item/hotel_expense_item.json
 msgid "Hotel Expense Item"
-msgstr "Товар расхода отеля"
+msgstr "Продукция расхода отеля"
 
 #: hotel_management/hotel_management/doctype/hotel_expense/hotel_expense.json
 msgid "Only Modes of Payment of the Hotel Profile"
@@ -1247,7 +1247,7 @@ msgstr "Только способы оплаты профиля отеля"
 
 #: hotel_management/hotel_management/doctype/hotel_expense/hotel_expense.json
 msgid "Items are received into the warehouse of the Hotel Profile"
-msgstr "Товары приходуются на склад профиля отеля"
+msgstr "Продукция приходуются на склад профиля отеля"
 
 #: hotel_management/hotel_management/doctype/hotel_expense_item/hotel_expense_item.json
 msgid "Purchase price per unit; the last purchase rate is suggested"
@@ -1256,7 +1256,7 @@ msgstr "Закупочная цена за единицу; подставляе�
 #: hotel_management/hotel_management/doctype/hotel_expense/hotel_expense.py
 #: hotel_management/hotel_management/doctype/hotel_expense/hotel_expense_quick_entry.js
 msgid "Add at least one item"
-msgstr "Добавьте хотя бы один товар"
+msgstr "Добавьте хотя бы один продукт"
 
 #: hotel_management/hotel_management/doctype/hotel_expense/hotel_expense.py
 msgid "Row {0}: Qty must be greater than zero"
