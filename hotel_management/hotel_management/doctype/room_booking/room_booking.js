@@ -16,12 +16,12 @@ frappe.ui.form.on("Room Booking", {
 		lock_paid_fields(frm);
 		add_sales_invoice_button(frm);
 		// новая бронь из быстрой формы приходит с тарифом, но без цены и сумм
-		if (frm.is_new() && frm.doc.room_rate && !frm.doc.rate_by_hour) apply_rate(frm);
+		if (frm.is_new() && frm.doc.room_rate && !frm.doc.rate_per_day) apply_rate(frm);
 	},
 
 	async room(frm) {
 		frm.set_value("room_rate", "");
-		frm.set_value("rate_by_hour", 0);
+		frm.set_value("rate_per_day", 0);
 		calculate_percentage_services(frm);
 		await load_rates(frm);
 		set_room_rate_query(frm);
@@ -52,22 +52,21 @@ frappe.ui.form.on("Room Booking Item", {
 	},
 });
 
-// процентные услуги: цена — процент от часового тарифа номера
+// процентные услуги: цена — процент от суточного тарифа номера, количество всегда 1
 frappe.ui.form.on("Room Booking Percentage Service", {
 	percent: calculate_percentage_services,
-	qty: calculate_percentage_services,
 	percentage_services_remove: calculate_percentage_services,
 });
 
 // --- тарифы ----------------------------------------------------------------
 
-// активные тарифы типа выбранного номера: { название тарифа: цена за час }
+// активные тарифы типа выбранного номера: { название тарифа: цена за сутки }
 async function load_rates(frm) {
 	frm.room_rates = {};
 	if (!frm.doc.room) return;
 
 	const rows = await frappe.xcall("hotel_management.api.get_room_rates", { room: frm.doc.room });
-	(rows || []).forEach((row) => (frm.room_rates[row.room_rate] = flt(row.rate_by_hour)));
+	(rows || []).forEach((row) => (frm.room_rates[row.room_rate] = flt(row.rate_per_day)));
 }
 
 function set_room_rate_query(frm) {
@@ -83,11 +82,11 @@ function apply_rate(frm) {
 	const rate = (frm.room_rates || {})[frm.doc.room_rate];
 	if (rate == null) {
 		frappe.msgprint(__("No active rates for this room type"));
-		frm.set_value("rate_by_hour", 0);
+		frm.set_value("rate_per_day", 0);
 		return;
 	}
 
-	frm.set_value("rate_by_hour", rate);
+	frm.set_value("rate_per_day", rate);
 	calculate_percentage_services(frm);
 	calculate_totals(frm);
 }
@@ -97,15 +96,22 @@ function apply_rate(frm) {
 function calculate_totals(frm) {
 	if (!frm.doc.check_in || !frm.doc.check_out) return;
 
-	const hours = moment(frm.doc.check_out).diff(moment(frm.doc.check_in), "hours", true);
+	const hours = flt(
+		moment(frm.doc.check_out).diff(moment(frm.doc.check_in), "hours", true),
+		precision("total_hours")
+	);
 
 	if (hours <= 0) {
 		frappe.msgprint(__("Check Out must be after Check In"));
 		frm.set_value("total_hours", 0);
+		frm.set_value("total_days", 0);
 		frm.set_value("amount", 0);
 	} else {
+		// тариф суточный: платятся начатые сутки (25 ч — 2 суток), как на сервере
+		const days = Math.ceil(hours / 24);
 		frm.set_value("total_hours", hours);
-		frm.set_value("amount", flt(frm.doc.rate_by_hour * hours, precision("amount")));
+		frm.set_value("total_days", days);
+		frm.set_value("amount", flt(frm.doc.rate_per_day * days, precision("amount")));
 	}
 
 	calculate_total_amount(frm);
@@ -153,8 +159,9 @@ function calculate_items_amount(frm) {
 function calculate_percentage_services(frm) {
 	let total = 0;
 	(frm.doc.percentage_services || []).forEach((row) => {
-		row.rate = flt((flt(frm.doc.rate_by_hour) * flt(row.percent)) / 100, precision("rate", row));
-		row.amount = flt(row.rate * flt(row.qty), precision("amount", row));
+		row.qty = 1;
+		row.rate = flt((flt(frm.doc.rate_per_day) * flt(row.percent)) / 100, precision("rate", row));
+		row.amount = row.rate;
 		total += row.amount;
 	});
 	frm.refresh_field("percentage_services");

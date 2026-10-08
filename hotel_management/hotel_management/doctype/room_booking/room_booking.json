@@ -21,8 +21,9 @@
   "column_break_wunz",
   "check_out",
   "section_break_pzpp",
-  "rate_by_hour",
+  "rate_per_day",
   "total_hours",
+  "total_days",
   "column_break_fydx",
   "amount",
   "items_and_serivce_amount",
@@ -152,9 +153,9 @@
    "read_only": 1
   },
   {
-   "fieldname": "rate_by_hour",
+   "fieldname": "rate_per_day",
    "fieldtype": "Currency",
-   "label": "Rate by Hour",
+   "label": "Rate per Day",
    "read_only": 1
   },
   {
@@ -162,6 +163,14 @@
    "fieldname": "total_hours",
    "fieldtype": "Float",
    "label": "Total Hours",
+   "read_only": 1
+  },
+  {
+   "allow_on_submit": 1,
+   "description": "Total hours / 24, rounded up",
+   "fieldname": "total_days",
+   "fieldtype": "Int",
+   "label": "Total Days",
    "read_only": 1
   },
   {
@@ -275,7 +284,7 @@
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2026-10-08 12:00:00.000000",
+ "modified": "2026-10-08 13:00:00.000000",
  "modified_by": "Administrator",
  "module": "Hotel Management",
  "name": "Room Booking",

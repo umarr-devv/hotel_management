@@ -45,9 +45,7 @@ def execute(filters=None):
 				"room_revenue": flt(group.room_revenue, 2),
 				"adr": flt(group.room_revenue / occupied, 2) if occupied else 0,
 				"revpar": flt(group.room_revenue / available, 2) if available else 0,
-				"rate_per_hour": flt(group.room_revenue / group.occupied_hours, 2)
-				if group.occupied_hours
-				else 0,
+				"rate_per_day": flt(group.room_revenue / group.billed_days, 2) if group.billed_days else 0,
 				"service_revenue": flt(group.service_revenue, 2),
 				"total_revenue": flt(total_revenue, 2),
 				"trevpar": flt(total_revenue / available, 2) if available else 0,
@@ -125,8 +123,8 @@ def get_columns(group_by):
 		{"fieldname": "adr", "label": _("ADR"), "fieldtype": "Currency", "width": 120},
 		{"fieldname": "revpar", "label": _("RevPAR"), "fieldtype": "Currency", "width": 120},
 		{
-			"fieldname": "rate_per_hour",
-			"label": _("Avg Rate / Hour"),
+			"fieldname": "rate_per_day",
+			"label": _("Avg Rate / Day"),
 			"fieldtype": "Currency",
 			"width": 140,
 		},

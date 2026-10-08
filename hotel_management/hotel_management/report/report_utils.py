@@ -18,14 +18,14 @@ import frappe
 from frappe import _
 from frappe.utils import add_days, date_diff, flt, get_datetime, getdate, nowdate
 
-from hotel_management.utils import active_room_filters
+from hotel_management.utils import active_room_filters, hours_to_days
 
 # ограничение на длину периода: отчёты считают номеро-сутки в цикле по дням
 MAX_PERIOD_DAYS = 366
 
 BOOKING_FIELDS = """
 	b.name, b.customer, b.room, b.room_rate, b.status, b.pay_status, b.check_in, b.check_out,
-	b.total_hours, b.rate_by_hour, b.amount, b.items_and_serivce_amount, b.percentage_services_amount,
+	b.total_hours, b.total_days, b.rate_per_day, b.amount, b.items_and_serivce_amount, b.percentage_services_amount,
 	b.total_amount,
 	b.sales_invoice, b.company, b.hotel_profile,
 	r.room_type, r.hotel_building, r.hotel_floor
@@ -188,6 +188,20 @@ def booking_hours(booking):
 	return overlap_hours(booking.check_in, booking.check_out, booking.check_in, booking.check_out)
 
 
+def booking_days(booking):
+	"""Оплачиваемые сутки брони; у старых броней, посчитанных по часам, — из часов."""
+	days = flt(booking.get("total_days"))
+	if days > 0:
+		return days
+	return hours_to_days(booking_hours(booking))
+
+
+def days_share(booking, hours):
+	"""Сколько оплачиваемых суток брони приходится на `hours` часов."""
+	total = booking_hours(booking)
+	return booking_days(booking) * hours / total if total else 0.0
+
+
 def service_amount(booking):
 	"""Услуги брони: товары и услуги + процентные услуги."""
 	return flt(booking.get("items_and_serivce_amount")) + flt(booking.get("percentage_services_amount"))
@@ -253,6 +267,7 @@ def new_group():
 		available_room_days=0,
 		occupied_room_days=set(),
 		occupied_hours=0.0,
+		billed_days=0.0,
 		room_revenue=0.0,
 		service_revenue=0.0,
 		bookings=set(),
@@ -293,6 +308,7 @@ def build_daily_stats(filters, from_date, to_date, group_by):
 			group = bucket(group_key(group_by, day, room))
 			group.occupied_room_days.add((booking.room, day))
 			group.occupied_hours += hours
+			group.billed_days += days_share(booking, hours)
 			group.bookings.add(booking.name)
 			room_revenue, service_revenue = revenue_share(booking, hours)
 			group.room_revenue += room_revenue

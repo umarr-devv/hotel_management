@@ -3,6 +3,8 @@
 
 """Общие помощники приложения."""
 
+import math
+
 import frappe
 from frappe.utils import flt
 
@@ -45,3 +47,8 @@ def invoice_has_payments(sales_invoice):
 	total = flt(si.rounded_total) or flt(si.grand_total)
 	precision = frappe.get_precision("Sales Invoice", "outstanding_amount")
 	return flt(si.outstanding_amount, precision) < flt(total, precision)
+
+
+def hours_to_days(hours):
+	"""Оплачиваемые сутки брони: часы / 24 с округлением вверх (25 ч — 2 суток)."""
+	return math.ceil(flt(hours) / 24) if flt(hours) > 0 else 0

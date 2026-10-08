@@ -204,7 +204,7 @@ def get_room_rates(room: str):
 	return frappe.get_all(
 		"Room Type Rate",
 		filters={"parent": room_type, "parenttype": "Room Type", "enabled": 1},
-		fields=["room_rate", "rate_by_hour"],
+		fields=["room_rate", "rate_per_day"],
 		order_by="idx asc",
 	)
 

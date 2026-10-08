@@ -6,7 +6,7 @@ from frappe import _
 from frappe.model.document import Document
 from frappe.utils import flt, get_datetime, time_diff_in_hours
 
-from hotel_management.utils import invoice_has_payments, is_room_active
+from hotel_management.utils import hours_to_days, invoice_has_payments, is_room_active
 
 # после оплаты счёта менять нельзя ни эти поля, ни состав услуг: сумма брони разойдётся со счётом
 PAID_LOCKED_FIELDS = ("room", "room_rate", "check_in", "check_out")
@@ -30,7 +30,7 @@ class RoomBooking(Document):
 		self.validate_paid_changes()
 		self.validate_room()
 		self.validate_dates()
-		self.set_rate_by_hour()
+		self.set_rate_per_day()
 		self.calculate_totals()
 		self.validate_overlap()
 
@@ -42,6 +42,11 @@ class RoomBooking(Document):
 			frappe.throw(_("Check Out can only be changed for a checked in booking"))
 
 		before = self.get_doc_before_save()
+		# смена статуса по workflow суммы не трогает: иначе старые брони,
+		# посчитанные по часам, пересчитались бы по суткам при выезде
+		if before and not self.pricing_changed(before):
+			return
+
 		old_total = flt(before and before.total_amount)
 		self.validate_dates()
 		self.calculate_totals()
@@ -82,20 +87,23 @@ class RoomBooking(Document):
 		if not before or not invoice_has_payments(self.sales_invoice):
 			return
 
-		changed = (
-			any(self.has_value_changed(field) for field in PAID_LOCKED_FIELDS)
-			or rows_signature(self.items_and_service, ITEM_FIELDS)
-			!= rows_signature(before.items_and_service, ITEM_FIELDS)
-			or rows_signature(self.percentage_services, PERCENTAGE_SERVICE_FIELDS)
-			!= rows_signature(before.percentage_services, PERCENTAGE_SERVICE_FIELDS)
-		)
-		if changed:
+		if self.pricing_changed(before):
 			frappe.throw(
 				_(
 					"Sales Invoice {0} already has payments: room, rate, check in, check out and services can no longer be changed"
 				).format(frappe.bold(self.sales_invoice)),
 				title=_("Booking is paid"),
 			)
+
+	def pricing_changed(self, before):
+		"""Изменилось ли то, от чего зависит сумма брони: номер, тариф, даты или услуги."""
+		return (
+			any(self.has_value_changed(field) for field in PAID_LOCKED_FIELDS)
+			or rows_signature(self.items_and_service, ITEM_FIELDS)
+			!= rows_signature(before.items_and_service, ITEM_FIELDS)
+			or rows_signature(self.percentage_services, PERCENTAGE_SERVICE_FIELDS)
+			!= rows_signature(before.percentage_services, PERCENTAGE_SERVICE_FIELDS)
+		)
 
 	def validate_room(self):
 		# новая бронь или смена номера — только на включённый номер включённого типа;
@@ -119,12 +127,12 @@ class RoomBooking(Document):
 
 	# --- calculations --------------------------------------------------------
 
-	def set_rate_by_hour(self):
+	def set_rate_per_day(self):
 		room_type = frappe.db.get_value("Hotel Room", self.room, "room_type")
 		rate = frappe.db.get_value(
 			"Room Type Rate",
 			{"parent": room_type, "parenttype": "Room Type", "room_rate": self.room_rate, "enabled": 1},
-			"rate_by_hour",
+			"rate_per_day",
 		)
 		if rate is None:
 			frappe.throw(
@@ -132,13 +140,15 @@ class RoomBooking(Document):
 					frappe.bold(self.room_rate), frappe.bold(room_type)
 				)
 			)
-		self.rate_by_hour = flt(rate)
+		self.rate_per_day = flt(rate)
 
 	def calculate_totals(self):
 		self.total_hours = flt(
 			time_diff_in_hours(self.check_out, self.check_in), self.precision("total_hours")
 		)
-		self.amount = flt(self.rate_by_hour * self.total_hours, self.precision("amount"))
+		# тариф суточный: платятся начатые сутки (25 ч — 2 суток)
+		self.total_days = hours_to_days(self.total_hours)
+		self.amount = flt(self.rate_per_day * self.total_days, self.precision("amount"))
 
 		items_amount = 0
 		for row in self.items_and_service:
@@ -153,11 +163,12 @@ class RoomBooking(Document):
 
 		self.items_and_serivce_amount = flt(items_amount, self.precision("items_and_serivce_amount"))
 
-		# процентные услуги: цена = процент от часового тарифа номера
+		# процентные услуги: цена = процент от суточного тарифа номера, количество всегда 1
 		percentage_amount = 0
 		for row in self.percentage_services:
-			row.rate = flt(flt(self.rate_by_hour) * flt(row.percent) / 100, row.precision("rate"))
-			row.amount = flt(row.rate * flt(row.qty), row.precision("amount"))
+			row.qty = 1
+			row.rate = flt(flt(self.rate_per_day) * flt(row.percent) / 100, row.precision("rate"))
+			row.amount = row.rate
 			percentage_amount += row.amount
 
 		self.percentage_services_amount = flt(percentage_amount, self.precision("percentage_services_amount"))

@@ -7,3 +7,4 @@
 hotel_management.patches.v0_1.remove_booking_check_server_scripts
 hotel_management.patches.v0_1.remove_script_records
 hotel_management.patches.v0_1.move_payment_modes_to_hotel_profile
+hotel_management.patches.v0_1.rename_rate_by_hour_to_rate_per_day

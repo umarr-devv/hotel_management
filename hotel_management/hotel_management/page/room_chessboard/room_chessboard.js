@@ -528,6 +528,7 @@
 				[__("Check In"), fmt(b.check_in)],
 				[__("Check Out"), fmt(b.check_out)],
 				[__("Total Hours"), flt(b.total_hours, 1)],
+				[__("Total Days"), Math.ceil(flt(b.total_hours) / 24)],
 				[__("Guests"), b.guests],
 				[__("Status"), __(b.status)],
 				[__("Pay Status"), __(b.pay_status || "Unpaid")],
@@ -906,9 +907,7 @@
 					d.getHours()
 				)}:${pad2(d.getMinutes())}`;
 			};
-			const nights = Math.round(
-				(start_of_day(parse_dt(doc.check_out)) - start_of_day(parse_dt(doc.check_in))) / DAY
-			);
+			const days = Math.ceil(flt(doc.total_hours) / 24);
 			const link = (doctype, name) =>
 				name
 					? `<a href="/app/${frappe.router.slug(doctype)}/${encodeURIComponent(name)}">${esc(name)}</a>`
@@ -957,7 +956,7 @@
 							${info_row(__("Check Out"), dt(doc.check_out))}
 							${info_row(
 								__("Duration"),
-								`${__("Nights: {0}", [nights])} · ${flt(doc.total_hours, 1)} ${__("h")}`
+								`${__("Days: {0}", [days])} · ${flt(doc.total_hours, 1)} ${__("h")}`
 							)}
 							${info_row(__("Sales Invoice"), link("Sales Invoice", doc.sales_invoice))}
 						</div>
@@ -1037,7 +1036,7 @@
 				.join("");
 
 			const rates = (room.rates || [])
-				.map((r) => row(r.room_rate, `${money(r.rate_by_hour)} / ${esc(__("h"))}`))
+				.map((r) => row(r.room_rate, `${money(r.rate_per_day)} / ${esc(__("day"))}`))
 				.join("");
 
 			const html = `

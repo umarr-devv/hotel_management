@@ -14,6 +14,7 @@ from frappe.utils import flt
 from hotel_management.hotel_management.report.report_utils import (
 	daterange,
 	day_bounds,
+	days_share,
 	get_bookings,
 	get_period,
 	overlap_hours,
@@ -52,10 +53,13 @@ def execute(filters=None):
 		room_revenue, service_revenue = revenue_share(booking, hours)
 		group = groups.setdefault(
 			booking.get(field) or _("Not Set"),
-			frappe._dict(bookings=0, room_days=0, hours=0.0, room_revenue=0.0, service_revenue=0.0),
+			frappe._dict(
+				bookings=0, room_days=0, hours=0.0, billed_days=0.0, room_revenue=0.0, service_revenue=0.0
+			),
 		)
 		group.bookings += 1
 		group.hours += hours
+		group.billed_days += days_share(booking, hours)
 		group.room_days += count_room_days(booking, from_date, to_date)
 		group.room_revenue += room_revenue
 		group.service_revenue += service_revenue
@@ -74,7 +78,7 @@ def execute(filters=None):
 				"room_revenue": flt(group.room_revenue, 2),
 				"service_revenue": flt(group.service_revenue, 2),
 				"total_revenue": flt(revenue, 2),
-				"rate_per_hour": flt(group.room_revenue / group.hours, 2) if group.hours else 0,
+				"rate_per_day": flt(group.room_revenue / group.billed_days, 2) if group.billed_days else 0,
 				"adr": flt(group.room_revenue / group.room_days, 2) if group.room_days else 0,
 				"share": flt(percent(revenue, total_revenue), 2),
 			}
@@ -172,8 +176,8 @@ def get_columns(group_by, link_doctype):
 			"width": 140,
 		},
 		{
-			"fieldname": "rate_per_hour",
-			"label": _("Avg Rate / Hour"),
+			"fieldname": "rate_per_day",
+			"label": _("Avg Rate / Day"),
 			"fieldtype": "Currency",
 			"width": 140,
 		},

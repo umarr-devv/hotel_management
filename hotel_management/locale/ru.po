@@ -196,12 +196,21 @@ msgid "Status"
 msgstr "Статус"
 
 #: hotel_management/hotel_management/doctype/room_booking/room_booking.json
-msgid "Rate by Hour"
-msgstr "Почасовой тариф"
+msgid "Rate per Day"
+msgstr "Тариф за сутки"
 
 #: hotel_management/hotel_management/doctype/room_booking/room_booking.json
 msgid "Total Hours"
 msgstr "Всего часов"
+
+#: hotel_management/hotel_management/doctype/room_booking/room_booking.json
+#: hotel_management/hotel_management/page/room_chessboard/room_chessboard.js
+msgid "Total Days"
+msgstr "Всего суток"
+
+#: hotel_management/hotel_management/doctype/room_booking/room_booking.json
+msgid "Total hours / 24, rounded up"
+msgstr "Всего часов / 24 с округлением вверх"
 
 #: hotel_management/hotel_management/doctype/room_booking/room_booking.json
 msgid "Amount"
@@ -228,8 +237,8 @@ msgid "Percent"
 msgstr "Процент"
 
 #: hotel_management/hotel_management/doctype/room_booking_percentage_service/room_booking_percentage_service.json
-msgid "Percent of the room's hourly rate"
-msgstr "Процент от часового тарифа номера"
+msgid "Percent of the room's daily rate"
+msgstr "Процент от суточного тарифа номера"
 
 #: hotel_management/hotel_management/doctype/hotel_profile/hotel_profile.json
 #: hotel_management/hotel_management/report/hotel_cash_flow/hotel_cash_flow.py
@@ -489,8 +498,17 @@ msgid "Room is occupied for the selected dates"
 msgstr "Номер занят на выбранные даты"
 
 #: hotel_management/hotel_management/page/room_chessboard/room_chessboard.js
-msgid "Nights: {0}"
-msgstr "Ночей: {0}"
+msgid "Days: {0}"
+msgstr "Суток: {0}"
+
+#: hotel_management/hotel_management/page/room_chessboard/room_chessboard.js
+#: hotel_management/hotel_management/doctype/room_booking/room_booking_quick_entry.js
+msgid "day"
+msgstr "сут."
+
+#: hotel_management/hotel_management/doctype/room_booking/room_booking_quick_entry.js
+msgid "Days"
+msgstr "Суток"
 
 #: hotel_management/hotel_management/page/room_chessboard/room_chessboard.js
 msgid "More Information"
@@ -886,8 +904,8 @@ msgid "Total Revenue"
 msgstr "Общая выручка"
 
 #: hotel_management/hotel_management/report/hotel_adr_and_revpar/hotel_adr_and_revpar.py
-msgid "Avg Rate / Hour"
-msgstr "Средняя цена часа"
+msgid "Avg Rate / Day"
+msgstr "Средняя цена суток"
 
 #: hotel_management/hotel_management/report/hotel_guest_history/hotel_guest_history.py
 msgid "Avg per Stay"

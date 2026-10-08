@@ -105,7 +105,7 @@ frappe.ui.form.RoomBookingQuickEntryForm = class RoomBookingQuickEntryForm exten
 		if (!this.rates_by_room[room]) {
 			this.rates_by_room[room] = frappe
 				.xcall("hotel_management.api.get_room_rates", { room })
-				.then((rows) => Object.fromEntries((rows || []).map((r) => [r.room_rate, flt(r.rate_by_hour)])))
+				.then((rows) => Object.fromEntries((rows || []).map((r) => [r.room_rate, flt(r.rate_per_day)])))
 				.catch((e) => {
 					delete this.rates_by_room[room]; // при следующем обращении попробуем снова
 					throw e;
@@ -178,16 +178,18 @@ frappe.ui.form.RoomBookingQuickEntryForm = class RoomBookingQuickEntryForm exten
 		const now = this.current_values();
 		if (Object.keys(values).some((field) => values[field] !== now[field])) return;
 
-		// сумма считается так же, как в контроллере брони: цена за час × часы
+		// сумма считается так же, как в контроллере брони: цена за сутки × начатые сутки;
+		// часы сначала округляются до точности поля total_hours, как на сервере
 		const currency = frappe.defaults.get_default("currency");
-		const nights = moment(check_out).startOf("day").diff(moment(check_in).startOf("day"), "days");
+		const float_precision = cint(frappe.boot.sysdefaults.float_precision) || 3;
+		const days = Math.ceil(flt(hours, float_precision) / 24);
 		const rate = room_rate ? rates[room_rate] : undefined;
 
-		const parts = [`${__("Nights")}: <b>${nights}</b>`, `${__("Hours")}: <b>${flt(hours, 1)}</b>`];
+		const parts = [`${__("Days")}: <b>${days}</b>`, `${__("Hours")}: <b>${flt(hours, 1)}</b>`];
 		if (rate != null) {
 			parts.push(
-				`${__("Rate")}: ${format_currency(rate, currency)} / ${__("h")}`,
-				`${__("Amount")}: <b>${format_currency(flt(rate * hours, 2), currency)}</b>`
+				`${__("Rate")}: ${format_currency(rate, currency)} / ${__("day")}`,
+				`${__("Amount")}: <b>${format_currency(flt(rate * days, 2), currency)}</b>`
 			);
 		} else {
 			parts.push(`${__("Amount")}: <b>—</b>`);
