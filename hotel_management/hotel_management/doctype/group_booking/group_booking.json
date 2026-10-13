@@ -20,11 +20,13 @@
   "section_break_gbrm",
   "rooms",
   "section_break_gbtt",
-  "summary",
-  "column_break_gbtt",
   "total_rooms",
+  "column_break_gbtt",
   "total_amount",
+  "column_break_gbiv",
   "sales_invoice",
+  "section_break_gbsm",
+  "summary",
   "section_break_gbnt",
   "notes"
  ],
@@ -122,20 +124,15 @@
    "label": "Billing"
   },
   {
-   "fieldname": "summary",
-   "fieldtype": "HTML",
-   "label": "Summary"
-  },
-  {
-   "fieldname": "column_break_gbtt",
-   "fieldtype": "Column Break"
-  },
-  {
    "fieldname": "total_rooms",
    "fieldtype": "Int",
    "label": "Total Rooms",
    "no_copy": 1,
    "read_only": 1
+  },
+  {
+   "fieldname": "column_break_gbtt",
+   "fieldtype": "Column Break"
   },
   {
    "fieldname": "total_amount",
@@ -146,6 +143,10 @@
    "read_only": 1
   },
   {
+   "fieldname": "column_break_gbiv",
+   "fieldtype": "Column Break"
+  },
+  {
    "description": "One invoice for everything the organizer pays in the group",
    "fieldname": "sales_invoice",
    "fieldtype": "Link",
@@ -153,6 +154,15 @@
    "no_copy": 1,
    "options": "Sales Invoice",
    "read_only": 1
+  },
+  {
+   "fieldname": "section_break_gbsm",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "summary",
+   "fieldtype": "HTML",
+   "label": "Summary"
   },
   {
    "collapsible": 1,
@@ -169,7 +179,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-10-08 18:00:00.000000",
+ "modified": "2026-10-13 12:00:00.000000",
  "modified_by": "Administrator",
  "module": "Hotel Management",
  "name": "Group Booking",

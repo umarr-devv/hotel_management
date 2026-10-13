@@ -192,23 +192,28 @@ function render_summary(frm) {
 		)
 		.join("");
 
+	// таблица в обёртке: на узком экране прокручивается сама, а не вылезает за форму
 	$wrapper.html(`
-		<table class="hb-bookings">
-			<thead><tr>
-				<th>${__("Room Booking")}</th><th>${__("Room")}</th><th>${__("Customer")}</th>
-				<th>${__("Status")}</th><th>${__("Pay Status")}</th><th class="hb-num">${__("Total")}</th>
-			</tr></thead>
-			<tbody>${bookings}</tbody>
-		</table>
+		<div class="hb-table">
+			<table class="hb-bookings">
+				<thead><tr>
+					<th>${__("Room Booking")}</th><th>${__("Room")}</th><th>${__("Customer")}</th>
+					<th>${__("Status")}</th><th>${__("Pay Status")}</th><th class="hb-num">${__("Total")}</th>
+				</tr></thead>
+				<tbody>${bookings}</tbody>
+			</table>
+		</div>
 		${
 			invoices
-				? `<table class="hb-bookings" style="margin-top: 16px">
-					<thead><tr>
-						<th>${__("Sales Invoice")}</th><th colspan="2">${__("Payer")}</th><th>${__("Status")}</th>
-						<th class="hb-num">${__("Invoiced")}</th><th class="hb-num">${__("Outstanding")}</th>
-					</tr></thead>
-					<tbody>${invoices}</tbody>
-				</table>`
+				? `<div class="hb-table">
+					<table class="hb-bookings">
+						<thead><tr>
+							<th>${__("Sales Invoice")}</th><th colspan="2">${__("Payer")}</th><th>${__("Status")}</th>
+							<th class="hb-num">${__("Invoiced")}</th><th class="hb-num">${__("Outstanding")}</th>
+						</tr></thead>
+						<tbody>${invoices}</tbody>
+					</table>
+				</div>`
 				: ""
 		}
 	`);

@@ -321,9 +321,28 @@
 
 /* брони группы */
 
+.hb-table {
+	overflow-x: auto;
+}
+
+.hb-table + .hb-table {
+	margin-top: 16px;
+}
+
 .hb-bookings {
 	width: 100%;
 	font-size: var(--text-sm);
+}
+
+.hb-bookings td {
+	vertical-align: middle;
+}
+
+/* статусы и номера документов не переносим по словам */
+.hb-bookings th,
+.hb-bookings .indicator-pill,
+.hb-bookings td:first-child {
+	white-space: nowrap;
 }
 
 .hb-bookings th {
