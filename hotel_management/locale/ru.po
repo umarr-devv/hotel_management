@@ -370,6 +370,12 @@ msgstr "Выселен"
 #. Option for the status (Select) field in DocType 'Room Booking'; also a Workflow State
 #: hotel_management/hotel_management/doctype/room_booking/room_booking.json
 #: hotel_management/fixtures/workflow_state.json
+msgid "Cleaning"
+msgstr "Уборка"
+
+#. Option for the status (Select) field in DocType 'Room Booking'; also a Workflow State
+#: hotel_management/hotel_management/doctype/room_booking/room_booking.json
+#: hotel_management/fixtures/workflow_state.json
 msgid "Completed"
 msgstr "Завершено"
 
@@ -392,6 +398,11 @@ msgstr "Оплачено"
 #: hotel_management/fixtures/workflow_action_master.json
 msgid "Complete"
 msgstr "Завершить"
+
+#. Name of a Workflow Action
+#: hotel_management/fixtures/workflow_action_master.json
+msgid "Start Cleaning"
+msgstr "Начать уборку"
 
 # Room Chessboard page
 
@@ -1575,3 +1586,89 @@ msgstr "{0}: броней — {1}"
 #: hotel_management/public/js/hotel_billing.js
 msgid "Payer Amount"
 msgstr "Сумма плательщика"
+
+# Скидка, печать и удаление брони
+
+#: hotel_management/hotel_management/doctype/room_booking/room_booking.json
+msgid "Discount Amount"
+msgstr "Сумма скидки"
+
+#: hotel_management/hotel_management/doctype/room_booking/room_booking.json
+msgid "Discount Reason"
+msgstr "Причина скидки"
+
+#: hotel_management/hotel_management/doctype/room_booking/room_booking.json
+msgid "Discount on accommodation and percentage services, split between payers by share; can be changed until the booking has payments"
+msgstr "Скидка на проживание и процентные услуги, делится между плательщиками по долям; меняется, пока по брони нет оплат"
+
+#: hotel_management/public/js/hotel_billing.js
+msgid "Discount"
+msgstr "Скидка"
+
+#: hotel_management/public/js/hotel_billing.js
+msgid "Apply"
+msgstr "Применить"
+
+#: hotel_management/public/js/hotel_billing.js
+msgid "Total without Discount"
+msgstr "Сумма без скидки"
+
+#: hotel_management/public/js/hotel_billing.js
+msgid "Discount {0} applied to booking {1}"
+msgstr "Скидка {0} применена к брони {1}"
+
+#: hotel_management/public/js/hotel_billing.js
+msgid "Discount removed from booking {0}"
+msgstr "Скидка брони {0} снята"
+
+#: hotel_management/public/js/hotel_billing.js
+msgid "Discount cannot exceed the accommodation and percentage services amount {0}"
+msgstr "Скидка не может быть больше суммы проживания и процентных услуг {0}"
+
+#: hotel_management/hotel_management/doctype/room_booking/room_booking.py
+msgid "Discount {0} cannot exceed the accommodation and percentage services amount {1}"
+msgstr "Скидка {0} не может быть больше суммы проживания и процентных услуг {1}"
+
+#: hotel_management/hotel_management/doctype/room_booking/room_booking.py
+msgid "Enter the reason for the discount"
+msgstr "Укажите причину скидки"
+
+#: hotel_management/hotel_management/doctype/room_booking/room_booking.py
+msgid "Discount cannot be negative"
+msgstr "Скидка не может быть отрицательной"
+
+#: hotel_management/hotel_management/doctype/room_booking/room_booking.py
+msgid "Discount cannot be changed: Sales Invoice {0} already has payments"
+msgstr "Скидку изменить нельзя: по счёту {0} уже есть оплаты"
+
+#: hotel_management/hotel_management/doctype/room_booking/room_booking.py
+msgid "Booking {0} cannot be deleted: Sales Invoice {1} already has payments"
+msgstr "Бронь {0} нельзя удалить: по счёту {1} уже есть оплаты"
+
+#: hotel_management/public/js/hotel_billing.js
+msgid "Print"
+msgstr "Печать"
+
+#: hotel_management/public/js/hotel_billing.js
+msgid "Payment Entry"
+msgstr "Платёж"
+
+#: hotel_management/public/js/hotel_billing.js
+msgid "Delete"
+msgstr "Удалить"
+
+#: hotel_management/public/js/hotel_billing.js
+msgid "Delete booking {0}?"
+msgstr "Удалить бронь {0}?"
+
+#: hotel_management/public/js/hotel_billing.js
+msgid "Delete booking {0}? Its Sales Invoices {1} will be cancelled and deleted."
+msgstr "Удалить бронь {0}? Её счета {1} будут отменены и удалены."
+
+#: hotel_management/public/js/hotel_billing.js
+msgid "Deleting {0}..."
+msgstr "Удаление {0}..."
+
+#: hotel_management/public/js/hotel_billing.js
+msgid "Booking {0} deleted"
+msgstr "Бронь {0} удалена"

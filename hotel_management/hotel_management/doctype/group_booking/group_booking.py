@@ -44,8 +44,10 @@ class GroupBooking(Document):
 
 	def on_update(self):
 		self.sync_bookings()
-		# итоги — и в базе, и в документе, который вернётся в форму
+		# итоги — и в базе, и в документе, который вернётся в форму; общий счёт мог
+		# удалиться вместе с убранными бронями
 		self.update(update_group_totals(self.name))
+		self.sales_invoice = frappe.db.get_value("Group Booking", self.name, "sales_invoice")
 
 	def on_trash(self):
 		# вместе с группой удаляются её черновые брони; заселённые — только после отмены
@@ -58,7 +60,7 @@ class GroupBooking(Document):
 					)
 				)
 			if docstatus == 0:
-				frappe.delete_doc("Room Booking", name)
+				frappe.delete_doc("Room Booking", name, flags={"from_group": True})
 
 	# --- проверки --------------------------------------------------------------
 
@@ -142,7 +144,7 @@ class GroupBooking(Document):
 		for row in old_rows.values():
 			if row.room_booking and row.room_booking not in current:
 				if frappe.db.get_value("Room Booking", row.room_booking, "docstatus") == 0:
-					frappe.delete_doc("Room Booking", row.room_booking)
+					frappe.delete_doc("Room Booking", row.room_booking, flags={"from_group": True})
 
 		billing_changed = not before or before.billing != self.billing or before.organizer != self.organizer
 		for row in self.rooms:

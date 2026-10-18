@@ -408,6 +408,11 @@
 	--rc-bg: var(--bg-blue);
 }
 
+.rc-status-cleaning {
+	--rc-c: var(--red-500);
+	--rc-bg: var(--bg-red);
+}
+
 .rc-status-completed {
 	--rc-c: var(--green-500);
 	--rc-bg: var(--bg-green);
@@ -426,6 +431,11 @@
 .rc-timeline .vis-item.rc-item.rc-status-checked-out {
 	--rc-c: var(--blue-500);
 	--rc-bg: var(--bg-blue);
+}
+
+.rc-timeline .vis-item.rc-item.rc-status-cleaning {
+	--rc-c: var(--red-500);
+	--rc-bg: var(--bg-red);
 }
 
 .rc-timeline .vis-item.rc-item.rc-status-completed {

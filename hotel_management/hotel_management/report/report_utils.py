@@ -7,7 +7,7 @@
   * учитываются только проведённые брони (docstatus = 1), кроме отменённых;
   * суммы берутся из самой брони (amount — проживание; items_and_serivce_amount и
     percentage_services_amount — услуги), а не из Sales Invoice: счёт может быть
-    ещё не выставлен;
+    ещё не выставлен; скидка брони уменьшает проживание и процентные услуги;
   * если бронь выходит за границы периода, её выручка делится пропорционально
     часам, попавшим в период;
   * брони и номера, скрытые от пользователя по User Permission (например, другой
@@ -27,7 +27,7 @@ MAX_PERIOD_DAYS = 366
 BOOKING_FIELDS = """
 	b.name, b.customer, b.room, b.room_rate, b.status, b.pay_status, b.check_in, b.check_out,
 	b.total_hours, b.total_days, b.rate_per_day, b.amount, b.items_and_serivce_amount, b.percentage_services_amount,
-	b.total_amount,
+	b.discount_amount, b.total_amount,
 	b.group_booking, b.company, b.hotel_profile,
 	r.room_type, r.hotel_building, r.hotel_floor
 """
@@ -230,11 +230,26 @@ def service_amount(booking):
 	return flt(booking.get("items_and_serivce_amount")) + flt(booking.get("percentage_services_amount"))
 
 
+def net_revenue(booking):
+	"""Выручка брони за вычетом скидки: (проживание, услуги).
+
+	Скидка — на проживание и процентные услуги: делится между ними пропорционально суммам.
+	"""
+	room, services = flt(booking.get("amount")), service_amount(booking)
+	percentage = flt(booking.get("percentage_services_amount"))
+	base = room + percentage
+	discount = min(flt(booking.get("discount_amount")), base)
+	if discount <= 0:
+		return room, services
+	return room - discount * room / base, services - discount * percentage / base
+
+
 def revenue_share(booking, hours):
-	"""Выручка брони за `hours` часов: (проживание, услуги)."""
+	"""Выручка брони за `hours` часов: (проживание, услуги) — за вычетом скидки."""
 	total = booking_hours(booking)
 	share = (hours / total) if total else 0.0
-	return flt(booking.get("amount")) * share, service_amount(booking) * share
+	room, services = net_revenue(booking)
+	return room * share, services * share
 
 
 def stay_nights(check_in, check_out):

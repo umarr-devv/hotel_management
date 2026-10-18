@@ -11,6 +11,11 @@
 //   hotel_management.billing.make_invoices(booking, rows, on_done) — выставить счета брони;
 //   hotel_management.billing.pay(rows, { on_done })   — выбор счёта (если их несколько) и оплата.
 //
+// Действия с бронью — те же в карточке на шахматке и в форме брони:
+//   hotel_management.billing.discount_dialog(doc, { currency, on_done }) — скидка брони;
+//   hotel_management.billing.print_dialog(booking)    — бронь, её счета и платежи на печать;
+//   hotel_management.billing.delete_booking(booking, rows, on_done) — удалить бронь с её счетами.
+//
 // rows — счета плательщиков с сервера (hotel_management.billing.get_billing + payer_name).
 
 frappe.provide("hotel_management.billing");
@@ -323,6 +328,198 @@ frappe.provide("hotel_management.billing");
 
 		options.before_show && options.before_show();
 		dialog.show();
+	};
+
+	// --- скидка, печать и удаление брони ---------------------------------------------
+
+	// по брони уже платили: скидку менять и бронь удалять нельзя (проверяет и сервер)
+	billing.has_payments = (doc, rows) =>
+		(doc.pay_status || "Unpaid") !== "Unpaid" || (rows || []).some((row) => row.has_payments);
+
+	billing.can_discount = (doc, rows) =>
+		doc.docstatus < 2 && !billing.has_payments(doc, rows) && frappe.model.can_write("Room Booking");
+
+	// удалить можно только бронь в статусе «Бронирование» (черновик) без оплат
+	billing.can_delete = (doc, rows) =>
+		doc.docstatus === 0 &&
+		doc.status === "Booking" &&
+		!billing.has_payments(doc, rows) &&
+		frappe.model.can_delete("Room Booking");
+
+	// скидка — фиксированная сумма с причиной, на проживание и процентные услуги (делится
+	// между плательщиками по долям, как они); счета с прежней суммой станут устаревшими
+	billing.discount_dialog = (doc, options = {}) => {
+		const esc = billing.esc;
+		const money = billing.money_formatter(options.currency);
+		const subtotal = flt(doc.total_amount) + flt(doc.discount_amount);
+		const limit = flt(doc.amount) + flt(doc.percentage_services_amount);
+		const limit_message = () =>
+			__("Discount cannot exceed the accommodation and percentage services amount {0}", [money(limit)]);
+
+		const dialog = new frappe.ui.Dialog({
+			title: __("Discount"),
+			fields: [
+				{
+					fieldname: "discount_amount",
+					label: __("Discount Amount"),
+					fieldtype: "Currency",
+					non_negative: 1,
+					default: flt(doc.discount_amount),
+					change: () => update_summary(),
+				},
+				{
+					fieldname: "discount_reason",
+					label: __("Discount Reason"),
+					fieldtype: "Small Text",
+					default: doc.discount_reason || "",
+				},
+				{ fieldname: "summary", fieldtype: "HTML" },
+			],
+			primary_action_label: __("Apply"),
+			primary_action: (values) => {
+				const amount = flt(values.discount_amount);
+				const reason = (values.discount_reason || "").trim();
+				if (amount > limit) {
+					frappe.msgprint(limit_message());
+					return;
+				}
+				if (amount > 0 && !reason) {
+					frappe.msgprint(__("Enter the reason for the discount"));
+					return;
+				}
+				frappe.call({
+					method: "frappe.client.set_value",
+					args: {
+						doctype: "Room Booking",
+						name: doc.name,
+						fieldname: { discount_amount: amount, discount_reason: amount ? reason : "" },
+					},
+					freeze: true,
+					callback: (r) => {
+						if (r.exc) return;
+						dialog.hide();
+						frappe.show_alert({
+							message: amount
+								? __("Discount {0} applied to booking {1}", [money(amount), doc.name])
+								: __("Discount removed from booking {0}", [doc.name]),
+							indicator: "green",
+						});
+						options.on_done && options.on_done(r.message);
+					},
+				});
+			},
+		});
+		dialog.$wrapper.addClass("rc-booking-dialog");
+
+		// при вводе значение поля ещё не записано — читаем само поле ввода
+		const control = dialog.fields_dict.discount_amount;
+		const current_amount = () =>
+			Math.max(flt(control.$input ? control.get_input_value() : control.get_value()), 0);
+
+		const update_summary = () => {
+			const amount = current_amount();
+			dialog.fields_dict.summary.$wrapper.html(`<div class="rcb-money">
+				${billing.info_row(__("Total without Discount"), money(subtotal))}
+				${billing.info_row(__("Discount"), `−${money(amount)}`)}
+				<div class="rcb-total">${billing.info_row(__("Total"), money(subtotal - amount))}</div>
+				${amount > limit ? `<div class="rcb-warning">${esc(limit_message())}</div>` : ""}
+			</div>`);
+		};
+		// итог пересчитываем прямо при вводе, не дожидаясь ухода с поля
+		control.$input && control.$input.on("input", () => update_summary());
+		update_summary();
+		dialog.show();
+	};
+
+	// печать: бронь, её счета и платежи; у каждого документа — стандартное окно печати
+	const PRINT_DOCTYPES = ["Room Booking", "Sales Invoice", "Payment Entry"];
+
+	billing.print_dialog = async (room_booking) => {
+		await billing.load_css();
+		const documents = await frappe.xcall("hotel_management.api.get_booking_print_documents", {
+			room_booking,
+		});
+		const esc = billing.esc;
+
+		const groups = PRINT_DOCTYPES.map((doctype) => {
+			const rows = (documents || []).filter((d) => d.doctype === doctype);
+			if (!rows.length) return "";
+			return `<div>
+				<div class="rcr-title">${esc(__(doctype))}</div>
+				<div class="hb-print-list">${rows
+					.map((d) => {
+						const details = [
+							d.party,
+							d.mode_of_payment && __(d.mode_of_payment),
+							d.date && frappe.datetime.str_to_user(d.date),
+						].filter(Boolean);
+						return `<div class="hb-print-row">
+							<div class="hb-print-info">
+								<a href="${frappe.utils.get_form_link(d.doctype, d.name)}">${esc(d.name)}</a>
+								<span class="text-muted">${esc(details.join(" · "))}</span>
+							</div>
+							<span class="hb-print-amount">${billing.money_formatter(d.currency)(d.amount)}</span>
+							<button type="button" class="btn btn-default btn-xs hb-print-btn"
+								data-doctype="${esc(d.doctype)}" data-name="${esc(d.name)}">${esc(__("Print"))}</button>
+						</div>`;
+					})
+					.join("")}</div>
+			</div>`;
+		}).join("");
+
+		const dialog = new frappe.ui.Dialog({
+			title: __("Print"),
+			fields: [{ fieldtype: "HTML", fieldname: "body" }],
+		});
+		dialog.$wrapper.addClass("rc-booking-dialog");
+		dialog.fields_dict.body.$wrapper
+			.html(`<div class="rcb">${groups}</div>`)
+			.on("click", ".hb-print-btn", (e) => {
+				const $button = $(e.currentTarget);
+				billing.open_print($button.attr("data-doctype"), $button.attr("data-name"));
+			});
+		dialog.show();
+	};
+
+	// стандартное окно печати документа (выбор формата печати, бланка, языка) — в новой вкладке
+	billing.open_print = (doctype, name) => {
+		const route = ["print", doctype, name];
+		const url = frappe.router.make_url
+			? frappe.router.make_url(route)
+			: `/app/${route.map((part) => encodeURIComponent(part)).join("/")}`;
+		window.open(url, "_blank");
+	};
+
+	// удалить бронь; её счета сервер отменяет и удаляет вместе с ней
+	billing.delete_booking = (room_booking, rows, on_done) => {
+		const esc = billing.esc;
+		// общий счёт группы остаётся — его пересоздают по остальным броням
+		const invoices = [
+			...new Set(
+				(rows || []).filter((row) => row.sales_invoice && !row.shared).map((row) => row.sales_invoice)
+			),
+		];
+		const message = invoices.length
+			? __("Delete booking {0}? Its Sales Invoices {1} will be cancelled and deleted.", [
+					esc(room_booking).bold(),
+					esc(invoices.join(", ")).bold(),
+			  ])
+			: __("Delete booking {0}?", [esc(room_booking).bold()]);
+
+		frappe.confirm(message, () =>
+			frappe.call({
+				method: "frappe.client.delete",
+				args: { doctype: "Room Booking", name: room_booking },
+				freeze: true,
+				freeze_message: __("Deleting {0}...", [room_booking]),
+				callback: (r) => {
+					if (r.exc) return;
+					frappe.model.clear_doc("Room Booking", room_booking);
+					frappe.show_alert({ message: __("Booking {0} deleted", [room_booking]), indicator: "green" });
+					on_done && on_done();
+				},
+			})
+		);
 	};
 
 	function balance_html(outstanding, paid, money) {

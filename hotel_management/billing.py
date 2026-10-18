@@ -9,6 +9,10 @@
   * доп. товар или услугу оплачивает плательщик строки (payer), а если он не указан —
     заказчик брони, если он среди плательщиков, иначе первый плательщик.
 
+Скидка брони (discount_amount, фиксированная сумма) — скидка на проживание и процентные
+услуги: делится между плательщиками по долям так же, как они, и попадает в счёт
+плательщика как скидка на весь счёт. Поэтому скидка не больше их суммы.
+
 У каждого плательщика свой Sales Invoice. Исключение — организатор групповой брони:
 всё, что он оплачивает во всех бронях группы, собирается в один общий счёт группы.
 
@@ -113,11 +117,29 @@ def get_payer_lines(booking):
 	return lines
 
 
+def get_payer_discounts(booking):
+	"""Скидка брони по плательщикам: {payer: сумма} — по долям, как проживание.
+
+	Доли не зависят от доп. услуг, поэтому услуги одного плательщика не меняют скидку
+	(и сумму) другого, который, может быть, уже заплатил.
+	"""
+	discount = flt(booking.get("discount_amount"))
+	if discount <= 0:
+		return {}
+	return split_amount(discount, booking.payers, booking.precision("amount"))
+
+
 def set_payer_amounts(booking):
-	"""Сумма каждого плательщика — сумма его строк счёта."""
+	"""Сумма каждого плательщика — сумма его строк счёта за вычетом его части скидки.
+
+	Часть скидки не больше доли плательщика в проживании и процентных услугах; ниже нуля
+	сумма не опускается и из-за копеек округления.
+	"""
 	lines = get_payer_lines(booking)
+	discounts = get_payer_discounts(booking)
 	for row in booking.payers:
-		row.amount = flt(sum(flt(line.amount) for line in lines.get(row.payer, [])), row.precision("amount"))
+		total = sum(flt(line.amount) for line in lines.get(row.payer, []))
+		row.amount = max(flt(total - flt(discounts.get(row.payer)), row.precision("amount")), 0.0)
 
 
 # --- состояние счетов -----------------------------------------------------------
@@ -336,7 +358,8 @@ def sync_payer_invoice(booking, row, state):
 	new = None
 	if flt(row.amount) > 0:
 		lines = get_payer_lines(booking).get(row.payer) or []
-		new = make_sales_invoice(row.payer, booking.company, booking.hotel_profile, lines)
+		discount = flt(get_payer_discounts(booking).get(row.payer))
+		new = make_sales_invoice(row.payer, booking.company, booking.hotel_profile, lines, discount)
 
 	frappe.db.set_value("Room Booking Payer", row.name, "sales_invoice", new)
 	row.sales_invoice = new
@@ -383,11 +406,17 @@ def sync_group_invoice(group_booking):
 			)
 
 	lines = []
+	discount = 0.0
 	for name in dict.fromkeys(row.parent for row in rows if flt(row.amount) > 0):
 		booking = frappe.get_doc("Room Booking", name)
 		lines.extend(get_payer_lines(booking).get(group.organizer) or [])
+		discount += flt(get_payer_discounts(booking).get(group.organizer))
 
-	new = make_sales_invoice(group.organizer, group.company, group.hotel_profile, lines) if lines else None
+	new = (
+		make_sales_invoice(group.organizer, group.company, group.hotel_profile, lines, discount)
+		if lines
+		else None
+	)
 	for row in rows:
 		frappe.db.set_value(
 			"Room Booking Payer", row.name, "sales_invoice", new if flt(row.amount) > 0 else None
@@ -399,8 +428,11 @@ def sync_group_invoice(group_booking):
 	return new, bookings
 
 
-def make_sales_invoice(customer, company, hotel_profile, lines):
-	"""Создать и провести Sales Invoice по строкам счёта плательщика."""
+def make_sales_invoice(customer, company, hotel_profile, lines, discount=0.0):
+	"""Создать и провести Sales Invoice по строкам счёта плательщика.
+
+	discount — часть скидки брони, которая приходится на плательщика: скидка на весь счёт.
+	"""
 	profile = frappe.get_cached_doc("Hotel Profile", hotel_profile)
 	if not profile.default_service:
 		frappe.throw(_("Default Service is not set in Hotel Profile"))
@@ -408,6 +440,9 @@ def make_sales_invoice(customer, company, hotel_profile, lines):
 	si = frappe.new_doc("Sales Invoice")
 	si.customer = customer
 	si.company = company
+	if flt(discount) > 0:
+		si.apply_discount_on = "Grand Total"
+		si.discount_amount = flt(discount)
 	for line in lines:
 		item = {
 			"item_code": line.item_code or profile.default_service,
@@ -436,6 +471,27 @@ def cancel_sales_invoice(name, ignore_permissions=False):
 		si.cancel()
 	elif si.docstatus == 0:
 		si.delete(ignore_permissions=ignore_permissions)
+
+
+def delete_sales_invoice(name):
+	"""Отменить и удалить счёт брони (вызывается при удалении брони, оплат по счёту нет).
+
+	Ссылки строк плательщиков и групповой брони на счёт сначала снимаются: иначе их
+	проверка не даст ни отменить, ни удалить счёт. У проведённого счёта остаются его
+	отменённые проводки, из-за которых ERPNext без force удалить его не даёт; сами
+	проводки ERPNext удаляет, только если это включено в Accounts Settings.
+	"""
+	if not (name and frappe.db.exists("Sales Invoice", name)):
+		return
+
+	for doctype in ("Room Booking Payer", "Group Booking"):
+		frappe.db.set_value(doctype, {"sales_invoice": name}, "sales_invoice", None, update_modified=False)
+
+	si = frappe.get_doc("Sales Invoice", name)
+	si.flags.ignore_permissions = True
+	if si.docstatus == 1:
+		si.cancel()
+	frappe.delete_doc("Sales Invoice", name, ignore_permissions=True, force=True)
 
 
 def get_group_organizer(booking):

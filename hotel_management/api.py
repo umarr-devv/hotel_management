@@ -343,6 +343,86 @@ def get_booking_billing(room_booking: str):
 	return billing.add_payer_names(billing.get_billing(booking))
 
 
+@frappe.whitelist()
+def get_booking_print_documents(room_booking: str):
+	"""Документы брони для печати: сама бронь, её проведённые счета и платежи по ним.
+
+	Платёж без ссылки на счёт (переплата, ушедшая в аванс) находится по номеру брони
+	в Reference No — его туда пишет оплата брони.
+	"""
+	booking = frappe.get_doc("Room Booking", room_booking)
+	booking.check_permission("read")
+
+	customer_name = frappe.db.get_value("Customer", booking.customer, "customer_name") or booking.customer
+	documents = [
+		{
+			"doctype": "Room Booking",
+			"name": booking.name,
+			"party": customer_name,
+			"amount": flt(booking.total_amount),
+			"currency": frappe.get_cached_value("Company", booking.company, "default_currency"),
+			"date": getdate(booking.check_in),
+		}
+	]
+
+	invoices = list(dict.fromkeys(row.sales_invoice for row in booking.payers if row.sales_invoice))
+	if invoices:
+		documents.extend(
+			{"doctype": "Sales Invoice", **si}
+			for si in frappe.get_all(
+				"Sales Invoice",
+				filters={"name": ["in", invoices], "docstatus": 1},
+				fields=[
+					"name",
+					"customer_name as party",
+					"grand_total as amount",
+					"currency",
+					"posting_date as date",
+				],
+				order_by="posting_date asc, creation asc",
+			)
+		)
+
+	payments = set(
+		frappe.get_all(
+			"Payment Entry",
+			filters={"docstatus": 1, "party_type": "Customer", "reference_no": booking.name},
+			pluck="name",
+		)
+	)
+	if invoices:
+		payments.update(
+			frappe.get_all(
+				"Payment Entry Reference",
+				filters={
+					"parenttype": "Payment Entry",
+					"docstatus": 1,
+					"reference_doctype": "Sales Invoice",
+					"reference_name": ["in", invoices],
+				},
+				pluck="parent",
+			)
+		)
+	if payments:
+		documents.extend(
+			{"doctype": "Payment Entry", **pe}
+			for pe in frappe.get_all(
+				"Payment Entry",
+				filters={"name": ["in", list(payments)]},
+				fields=[
+					"name",
+					"party_name as party",
+					"paid_amount as amount",
+					"paid_from_account_currency as currency",
+					"posting_date as date",
+					"mode_of_payment",
+				],
+				order_by="posting_date asc, creation asc",
+			)
+		)
+	return documents
+
+
 def update_invoice_bookings_pay_status(doc, method=None):
 	"""Статус оплаты броней отменённого счёта (doc_events на Sales Invoice)."""
 	billing.update_pay_status(billing.get_invoice_bookings(doc.name))

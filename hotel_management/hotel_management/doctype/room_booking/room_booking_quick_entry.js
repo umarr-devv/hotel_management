@@ -10,6 +10,7 @@
 // пересборки статики. Include стоит в комментарии, поэтому первая строка этого файла должна
 // оставаться комментарием.
 // {% include 'hotel_management/public/js/hotel_quick_entry.js' %}
+// {% include 'hotel_management/public/js/hotel_datetime.js' %}
 
 frappe.ui.form.RoomBookingQuickEntryForm = class RoomBookingQuickEntryForm extends (
 	frappe.ui.form.HotelQuickEntryForm
@@ -30,6 +31,15 @@ frappe.ui.form.RoomBookingQuickEntryForm = class RoomBookingQuickEntryForm exten
 	make_dialog() {
 		super.make_dialog();
 		this.dialog.$wrapper.addClass("room-booking-quick-entry");
+	}
+
+	show_dialog() {
+		super.show_dialog();
+		// день, выбранный в календаре, получает время 12:00; даты с шахматки не трогаем —
+		// они подставлены до этого и через календарь не проходят
+		for (const fieldname of ["check_in", "check_out"]) {
+			hotel_management.datetime.watch_day_pick(this.dialog.fields_dict[fieldname]);
+		}
 	}
 
 	get_fields() {
@@ -58,7 +68,7 @@ frappe.ui.form.RoomBookingQuickEntryForm = class RoomBookingQuickEntryForm exten
 				label: __("Check In"),
 				fieldtype: "Datetime",
 				reqd: 1,
-				change: () => this.update_summary(),
+				change: () => this.on_datetime_change("check_in"),
 			},
 			{ fieldtype: "Column Break" },
 			{
@@ -77,7 +87,7 @@ frappe.ui.form.RoomBookingQuickEntryForm = class RoomBookingQuickEntryForm exten
 				label: __("Check Out"),
 				fieldtype: "Datetime",
 				reqd: 1,
-				change: () => this.update_summary(),
+				change: () => this.on_datetime_change("check_out"),
 			},
 			{ fieldtype: "Section Break" },
 			{ fieldname: "summary", fieldtype: "HTML" },
@@ -140,6 +150,15 @@ frappe.ui.form.RoomBookingQuickEntryForm = class RoomBookingQuickEntryForm exten
 		if (room && !names.length) {
 			frappe.show_alert({ message: __("No active rates for this room type"), indicator: "orange" });
 		}
+		this.update_summary();
+	}
+
+	// ------------------------------------------------------------ даты
+
+	async on_datetime_change(fieldname) {
+		const field = this.dialog.fields_dict[fieldname];
+		const noon = hotel_management.datetime.noon_if_day_picked(field, field.get_value());
+		if (noon) await this.dialog.set_value(fieldname, noon);
 		this.update_summary();
 	}
 

@@ -30,6 +30,15 @@
   "docstatus": 0,
   "doctype": "Workflow State",
   "icon": "",
+  "modified": "2026-10-18 12:00:00.000000",
+  "name": "Cleaning",
+  "style": "Danger",
+  "workflow_state_name": "Cleaning"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow State",
+  "icon": "",
   "modified": "2026-08-31 08:37:59.708083",
   "name": "Completed",
   "style": "Success",

@@ -41,11 +41,12 @@
 	const SELECTION_ID = "__selection__";
 	const VIEW_KEY = "room_chessboard_view";
 
-	const STATUSES = ["Booking", "Checked In", "Checked Out", "Completed"];
+	const STATUSES = ["Booking", "Checked In", "Checked Out", "Cleaning", "Completed"];
 	const STATUS_INDICATOR = {
 		Booking: "yellow",
 		"Checked In": "cyan",
 		"Checked Out": "blue",
+		Cleaning: "red",
 		Completed: "green",
 	};
 
@@ -87,6 +88,9 @@
 		chevron: svg('<path d="m6 9 6 6 6-6"/>', "rc-chevron"),
 		bed: svg('<path d="M3 20v-8a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v8M3 16h18M7 10V7a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2v3"/>'),
 		mouse: svg('<rect x="6" y="3" width="12" height="18" rx="6"/><path d="M12 3v6"/><path d="M12 9h6" stroke-width="3"/>'),
+		print: svg('<path d="M6 9V3h12v6"/><rect x="3" y="9" width="18" height="8" rx="2"/><path d="M7 14h10v7H7z"/>'),
+		discount: svg('<path d="M19 5 5 19"/><circle cx="7" cy="7" r="2.5"/><circle cx="17" cy="17" r="2.5"/>'),
+		trash: svg('<path d="M3 6h18M8 6V4h8v2M6 6l1 15h10l1-15M10 11v6M14 11v6"/>'),
 	};
 
 	hotel_management.RoomChessboard = class RoomChessboard {
@@ -904,6 +908,26 @@
 			if (hotel_management.billing.payable(rows).length) {
 				dialog.add_custom_action(`${ICONS.unpaid} ${__("Pay")}`, () => this.pay(doc, rows), "rcb-action");
 			}
+			// скидка и удаление — пока по брони не платили
+			if (hotel_management.billing.can_discount(doc, rows)) {
+				dialog.add_custom_action(
+					`${ICONS.discount} ${__("Discount")}`,
+					() => this.discount(doc, b),
+					"rcb-action"
+				);
+			}
+			dialog.add_custom_action(
+				`${ICONS.print} ${__("Print")}`,
+				() => hotel_management.billing.print_dialog(doc.name),
+				"rcb-action"
+			);
+			if (hotel_management.billing.can_delete(doc, rows)) {
+				dialog.add_custom_action(
+					`${ICONS.trash} ${__("Delete")}`,
+					() => this.delete_booking(doc, rows),
+					"rcb-action rcb-danger"
+				);
+			}
 
 			dialog.show();
 		}
@@ -983,6 +1007,12 @@
 						${
 							percentage_services
 								? info_row(__("Percentage Services"), money(doc.percentage_services_amount))
+								: ""
+						}
+						${flt(doc.discount_amount) ? info_row(__("Discount"), `−${money(doc.discount_amount)}`) : ""}
+						${
+							flt(doc.discount_amount) && doc.discount_reason
+								? `<div class="rcb-services">${esc(doc.discount_reason)}</div>`
 								: ""
 						}
 						<div class="rcb-total">${info_row(__("Total"), money(doc.total_amount))}</div>
@@ -1099,6 +1129,20 @@
 				room: doc.room,
 				before_show: () => this.booking_dialog && this.booking_dialog.hide(),
 				on_done: () => this.refresh_booking(doc.name),
+			});
+		}
+
+		discount(doc, b) {
+			hotel_management.billing.discount_dialog(doc, {
+				currency: b.currency,
+				on_done: () => this.refresh_booking(doc.name),
+			});
+		}
+
+		delete_booking(doc, rows) {
+			hotel_management.billing.delete_booking(doc.name, rows, () => {
+				this.booking_dialog && this.booking_dialog.hide();
+				this.load_bookings_now();
 			});
 		}
 

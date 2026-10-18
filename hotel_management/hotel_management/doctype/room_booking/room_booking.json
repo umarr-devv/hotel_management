@@ -25,10 +25,12 @@
   "rate_per_day",
   "total_hours",
   "total_days",
+  "discount_reason",
   "column_break_fydx",
   "amount",
   "items_and_serivce_amount",
   "percentage_services_amount",
+  "discount_amount",
   "total_amount",
   "items_and_services_tab",
   "section_break_revz",
@@ -138,7 +140,7 @@
    "fieldname": "check_out",
    "fieldtype": "Datetime",
    "label": "Check Out",
-   "read_only_depends_on": "eval:doc.pay_status=='Paid' || doc.status=='Checked Out' || doc.status=='Completed'",
+   "read_only_depends_on": "eval:doc.pay_status=='Paid' || doc.status=='Checked Out' || doc.status=='Cleaning' || doc.status=='Completed'",
    "reqd": 1
   },
   {
@@ -151,7 +153,7 @@
    "fieldtype": "Select",
    "label": "Status",
    "no_copy": 1,
-   "options": "Booking\nChecked In\nChecked Out\nCompleted\nCancelled",
+   "options": "Booking\nChecked In\nChecked Out\nCleaning\nCompleted\nCancelled",
    "read_only": 1
   },
   {
@@ -223,6 +225,26 @@
    "fieldtype": "Currency",
    "label": "Percentage Services Amount",
    "read_only": 1
+  },
+  {
+   "allow_on_submit": 1,
+   "description": "Discount on accommodation and percentage services, split between payers by share; can be changed until the booking has payments",
+   "fieldname": "discount_amount",
+   "fieldtype": "Currency",
+   "label": "Discount Amount",
+   "no_copy": 1,
+   "non_negative": 1,
+   "read_only_depends_on": "eval:doc.pay_status && doc.pay_status!='Unpaid'"
+  },
+  {
+   "allow_on_submit": 1,
+   "depends_on": "eval:doc.discount_amount",
+   "fieldname": "discount_reason",
+   "fieldtype": "Small Text",
+   "label": "Discount Reason",
+   "mandatory_depends_on": "eval:doc.discount_amount",
+   "no_copy": 1,
+   "read_only_depends_on": "eval:doc.pay_status && doc.pay_status!='Unpaid'"
   },
   {
    "allow_on_submit": 1,
@@ -303,7 +325,7 @@
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2026-10-08 14:00:00.000000",
+ "modified": "2026-10-18 12:00:00.000000",
  "modified_by": "Administrator",
  "module": "Hotel Management",
  "name": "Room Booking",

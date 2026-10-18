@@ -28,7 +28,7 @@ frappe.query_reports["Hotel Unpaid Bookings"] = {
 			fieldname: "status",
 			label: __("Status"),
 			fieldtype: "Select",
-			options: ["", "Booking", "Checked In", "Checked Out", "Completed"].join("\n"),
+			options: ["", "Booking", "Checked In", "Checked Out", "Cleaning", "Completed"].join("\n"),
 		},
 		{
 			fieldname: "only_checked_out",

@@ -41,7 +41,7 @@ frappe.query_reports["Hotel Arrivals and Departures"] = {
 			fieldname: "status",
 			label: __("Status"),
 			fieldtype: "Select",
-			options: ["", "Booking", "Checked In", "Checked Out", "Completed"].join("\n"),
+			options: ["", "Booking", "Checked In", "Checked Out", "Cleaning", "Completed"].join("\n"),
 		},
 	],
 

@@ -4,12 +4,13 @@
 import frappe
 from frappe import _
 from frappe.model.document import Document
-from frappe.utils import flt, get_datetime, time_diff_in_hours
+from frappe.utils import cstr, flt, get_datetime, time_diff_in_hours
 
 from hotel_management.billing import (
 	OUTDATED,
 	add_payer_names,
 	cancel_sales_invoice,
+	delete_sales_invoice,
 	get_billing,
 	get_currency_precision,
 	get_invoice_states,
@@ -22,7 +23,7 @@ from hotel_management.hotel_management.doctype.group_booking.group_booking impor
 from hotel_management.utils import hours_to_days, is_room_active
 
 # от этих полей и строк зависят суммы брони и её плательщиков
-PRICING_FIELDS = ("room", "room_rate", "check_in", "check_out")
+PRICING_FIELDS = ("room", "room_rate", "check_in", "check_out", "discount_amount")
 ITEM_FIELDS = ("item", "price_list", "qty", "rate", "markup", "payer")
 PERCENTAGE_SERVICE_FIELDS = ("item", "percent", "qty")
 PAYER_FIELDS = ("payer", "share")
@@ -51,6 +52,7 @@ class RoomBooking(Document):
 		self.validate_dates()
 		self.set_rate_per_day()
 		self.calculate_totals()
+		self.validate_discount()
 		self.validate_payers()
 		self.validate_paid_payers()
 		self.validate_overlap()
@@ -58,7 +60,7 @@ class RoomBooking(Document):
 
 	def before_update_after_submit(self):
 		# После проведения разрешено только продление/сокращение (check_out),
-		# изменение доп. и процентных услуг и плательщиков. Тариф остаётся зафиксированным.
+		# изменение доп. и процентных услуг, плательщиков и скидки. Тариф остаётся зафиксированным.
 		self.restore_invoice_links()
 		if self.has_value_changed("check_out") and self.status != "Checked In":
 			frappe.throw(_("Check Out can only be changed for a checked in booking"))
@@ -66,10 +68,12 @@ class RoomBooking(Document):
 		# смена статуса по workflow суммы не пересчитывает
 		before = self.get_doc_before_save()
 		if before and not self.pricing_changed(before):
+			self.validate_discount()
 			return
 
 		self.validate_dates()
 		self.calculate_totals()
+		self.validate_discount()
 		self.validate_payers()
 		self.validate_paid_payers()
 		self.validate_overlap()
@@ -82,9 +86,35 @@ class RoomBooking(Document):
 		self.after_pricing_saved()
 
 	def on_trash(self):
+		self.delete_invoices()
 		# удалённая бронь выходит из группы, иначе строка группы не даст её удалить
 		if self.group_booking:
 			frappe.db.delete("Group Booking Room", {"room_booking": self.name})
+
+	def after_delete(self):
+		# группа сама пересчитывает итоги, когда удаляет брони при своём сохранении
+		if self.group_booking and not self.flags.from_group:
+			update_group_totals(self.group_booking, update_modified=True)
+
+	def delete_invoices(self):
+		"""Счета брони удаляются вместе с ней; бронь с оплатами удалить нельзя.
+
+		Общий счёт группы, по которому выставлены и другие брони, остаётся: он становится
+		устаревшим, и его пересоздают по оставшимся броням.
+		"""
+		states = get_invoice_states(row.sales_invoice for row in self.payers)
+		paid = [name for name, state in states.items() if state.has_payments]
+		if paid:
+			frappe.throw(
+				_("Booking {0} cannot be deleted: Sales Invoice {1} already has payments").format(
+					frappe.bold(self.name), frappe.bold(", ".join(paid))
+				),
+				title=_("Booking is paid"),
+			)
+
+		for name in states:
+			if not get_other_invoice_bookings(name, self.name):
+				delete_sales_invoice(name)
 
 	def before_cancel(self):
 		# отменить можно только бронь без оплат: счёт с оплатами отменить нельзя
@@ -270,6 +300,43 @@ class RoomBooking(Document):
 		if get_datetime(self.check_out) <= get_datetime(self.check_in):
 			frappe.throw(_("Check Out must be after Check In"))
 
+	def validate_discount(self):
+		"""Скидка — с причиной и не больше проживания и процентных услуг: она делится между
+		плательщиками по долям, как они. После первой оплаты скидку не меняют.
+		"""
+		discount = flt(self.discount_amount, self.precision("discount_amount"))
+		if discount < 0:
+			frappe.throw(_("Discount cannot be negative"), title=_("Discount"))
+		if not discount:
+			self.discount_reason = None
+		elif not cstr(self.discount_reason).strip():
+			frappe.throw(_("Enter the reason for the discount"), title=_("Discount"))
+
+		limit = flt(flt(self.amount) + flt(self.percentage_services_amount), self.precision("amount"))
+		if discount > limit:
+			frappe.throw(
+				_("Discount {0} cannot exceed the accommodation and percentage services amount {1}").format(
+					frappe.bold(discount), frappe.bold(limit)
+				),
+				title=_("Discount"),
+			)
+
+		before = self.get_doc_before_save()
+		if not before or flt(before.discount_amount, self.precision("discount_amount")) == discount:
+			return
+		paid = [
+			name
+			for name, state in get_invoice_states(row.sales_invoice for row in before.payers).items()
+			if state.has_payments
+		]
+		if paid:
+			frappe.throw(
+				_("Discount cannot be changed: Sales Invoice {0} already has payments").format(
+					frappe.bold(", ".join(paid))
+				),
+				title=_("Booking is paid"),
+			)
+
 	def validate_overlap(self):
 		conflict = get_overlapping_booking(self.room, self.check_in, self.check_out, exclude=self.name)
 		if conflict:
@@ -327,8 +394,12 @@ class RoomBooking(Document):
 			percentage_amount += row.amount
 
 		self.percentage_services_amount = flt(percentage_amount, self.precision("percentage_services_amount"))
+		self.discount_amount = flt(self.discount_amount, self.precision("discount_amount"))
 		self.total_amount = flt(
-			self.amount + self.items_and_serivce_amount + self.percentage_services_amount,
+			self.amount
+			+ self.items_and_serivce_amount
+			+ self.percentage_services_amount
+			- self.discount_amount,
 			self.precision("total_amount"),
 		)
 		set_payer_amounts(self)

@@ -35,11 +35,11 @@ fixtures = [
 	},
 	{
 		"dt": "Workflow Action Master",
-		"filters": [["name", "in", ["Check In", "Check Out", "Complete"]]],
+		"filters": [["name", "in", ["Check In", "Check Out", "Start Cleaning", "Complete"]]],
 	},
 	{
 		"dt": "Workflow State",
-		"filters": [["name", "in", ["Booking", "Checked In", "Checked Out", "Completed"]]],
+		"filters": [["name", "in", ["Booking", "Checked In", "Checked Out", "Cleaning", "Completed"]]],
 	},
 ]
 

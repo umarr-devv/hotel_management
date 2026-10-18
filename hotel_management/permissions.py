@@ -22,6 +22,7 @@ HOTEL_EMPLOYEE = "Hotel Employee"
 
 READ = ("read",)
 READ_REPORT = ("read", "report")
+READ_REPORT_PRINT = (*READ_REPORT, "print")
 WRITE = ("read", "write", "create", "report", "print", "email")
 SUBMIT = (*WRITE, "submit", "cancel", "amend")
 FULL = (*WRITE, "delete", "export", "share")
@@ -60,8 +61,9 @@ _RELATED = {
 	# оплата и документы, которые создаются из броней и расходов
 	"Company": READ,
 	"Mode of Payment": READ,
-	"Sales Invoice": READ_REPORT,
-	"Payment Entry": READ_REPORT,
+	# счета и платежи печатаются из брони
+	"Sales Invoice": READ_REPORT_PRINT,
+	"Payment Entry": READ_REPORT_PRINT,
 	"Purchase Invoice": READ_REPORT,
 }
 RELATED_PERMISSIONS = {

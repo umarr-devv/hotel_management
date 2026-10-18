@@ -28,7 +28,9 @@ def execute(filters=None):
 
 	bookings = get_bookings(filters, from_date, to_date)
 	if filters.get("only_checked_out"):
-		bookings = [booking for booking in bookings if booking.status in ("Checked Out", "Completed")]
+		bookings = [
+			booking for booking in bookings if booking.status in ("Checked Out", "Cleaning", "Completed")
+		]
 	payer_billing = get_payer_billing(bookings)
 
 	rows = []

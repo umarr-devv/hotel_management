@@ -3,8 +3,10 @@
 //
 // Логика формы брони. Раньше это был Client Script «Room Booking Calculation».
 // Расчёты дублируют серверный контроллер, чтобы суммы обновлялись сразу при вводе.
-// Счета плательщиков и оплата — общий модуль hotel_billing.js:
+// Счета плательщиков, оплата, скидка, печать и удаление — общий модуль hotel_billing.js
+// (те же действия, что в карточке брони на шахматке); время 12:00 при выборе дня — hotel_datetime.js:
 // {% include 'hotel_management/public/js/hotel_billing.js' %}
+// {% include 'hotel_management/public/js/hotel_datetime.js' %}
 
 frappe.ui.form.on("Room Booking", {
 	setup(frm) {
@@ -23,8 +25,10 @@ frappe.ui.form.on("Room Booking", {
 		lock_paid_fields(frm);
 		render_billing(frm);
 		add_billing_buttons(frm);
+		add_booking_buttons(frm);
 		add_payer_buttons(frm);
 		show_group(frm);
+		watch_day_pick(frm);
 		// новая бронь из быстрой формы приходит с тарифом, но без цены и сумм
 		if (frm.is_new() && frm.doc.room_rate && !frm.doc.rate_per_day) apply_rate(frm);
 	},
@@ -46,11 +50,15 @@ frappe.ui.form.on("Room Booking", {
 	},
 
 	check_in(frm) {
-		calculate_totals(frm);
+		on_datetime_change(frm, "check_in");
 	},
 
 	check_out(frm) {
-		calculate_totals(frm);
+		on_datetime_change(frm, "check_out");
+	},
+
+	discount_amount(frm) {
+		calculate_total_amount(frm);
 	},
 });
 
@@ -111,6 +119,23 @@ function apply_rate(frm) {
 
 	frm.set_value("rate_per_day", rate);
 	calculate_percentage_services(frm);
+	calculate_totals(frm);
+}
+
+// --- даты ------------------------------------------------------------------
+
+// новая бронь: день, выбранный в календаре, получает время 12:00
+function watch_day_pick(frm) {
+	if (!frm.is_new()) return;
+	["check_in", "check_out"].forEach((field) => hotel_management.datetime.watch_day_pick(frm.fields_dict[field]));
+}
+
+function on_datetime_change(frm, field) {
+	const noon = hotel_management.datetime.noon_if_day_picked(frm.fields_dict[field], frm.doc[field]);
+	if (noon && frm.is_new()) {
+		frm.set_value(field, noon); // снова вызовет этот обработчик — суммы пересчитает он
+		return;
+	}
 	calculate_totals(frm);
 }
 
@@ -195,16 +220,21 @@ function calculate_percentage_services(frm) {
 function calculate_total_amount(frm) {
 	frm.set_value(
 		"total_amount",
-		flt(frm.doc.amount) +
-			flt(frm.doc.items_and_serivce_amount) +
-			flt(frm.doc.percentage_services_amount)
+		flt(
+			flt(frm.doc.amount) +
+				flt(frm.doc.items_and_serivce_amount) +
+				flt(frm.doc.percentage_services_amount) -
+				flt(frm.doc.discount_amount),
+			precision("total_amount")
+		)
 	);
 	calculate_payer_amounts(frm);
 }
 
 // --- плательщики -------------------------------------------------------------
 // Делёж — как в hotel_management/billing.py: копейки от округления получает последний
-// плательщик с долей, услуги без плательщика — заказчик брони или первый плательщик.
+// плательщик с долей, услуги без плательщика — заказчик брони или первый плательщик,
+// скидка делится по долям, как проживание.
 
 function split_amount(amount, rows, prec) {
 	const with_share = rows.filter((row) => row.payer && flt(row.share) > 0);
@@ -238,7 +268,11 @@ function calculate_payer_amounts(frm) {
 	const default_payer = payers.includes(frm.doc.customer) ? frm.doc.customer : payers[0];
 	(frm.doc.items_and_service || []).forEach((row) => add(row.payer || default_payer, row.amount));
 
-	rows.forEach((row) => (row.amount = flt(totals[row.payer] || 0, precision("amount", row))));
+	const discounts = flt(frm.doc.discount_amount) > 0 ? split_amount(frm.doc.discount_amount, rows, prec) : {};
+	rows.forEach((row) => {
+		const amount = flt((totals[row.payer] || 0) - (discounts[row.payer] || 0), precision("amount", row));
+		row.amount = Math.max(amount, 0);
+	});
 	frm.refresh_field("payers");
 }
 
@@ -319,6 +353,29 @@ function add_billing_buttons(frm) {
 	if (hotel_management.billing.payable(rows).length) {
 		frm.add_custom_button(__("Pay"), () =>
 			hotel_management.billing.pay(rows, { room: frm.doc.room, on_done: () => frm.reload_doc() })
+		);
+	}
+}
+
+// те же действия, что в карточке брони на шахматке
+function add_booking_buttons(frm) {
+	if (frm.is_new()) return;
+	const rows = billing_rows(frm);
+	const billing = hotel_management.billing;
+
+	if (billing.can_discount(frm.doc, rows)) {
+		frm.add_custom_button(__("Discount"), () => {
+			if (frm.is_dirty()) {
+				frappe.msgprint(__("Save the booking first"));
+				return;
+			}
+			billing.discount_dialog(frm.doc, { on_done: () => frm.reload_doc() });
+		});
+	}
+	frm.add_custom_button(__("Print"), () => billing.print_dialog(frm.doc.name));
+	if (billing.can_delete(frm.doc, rows)) {
+		frm.add_custom_button(__("Delete"), () =>
+			billing.delete_booking(frm.doc.name, rows, () => frappe.set_route("List", "Room Booking"))
 		);
 	}
 }

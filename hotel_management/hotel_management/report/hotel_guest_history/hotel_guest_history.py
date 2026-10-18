@@ -18,7 +18,7 @@ from hotel_management.hotel_management.report.report_utils import (
 	get_bookings,
 	get_payer_billing,
 	get_period,
-	service_amount,
+	net_revenue,
 	stay_nights,
 )
 
@@ -93,8 +93,9 @@ def add_booking(guest, booking, unpaid):
 	guest.stays += 1
 	guest.nights += stay_nights(booking.check_in, booking.check_out)
 	guest.hours += booking_hours(booking)
-	guest.room_revenue += flt(booking.amount)
-	guest.service_revenue += service_amount(booking)
+	room_revenue, service_revenue = net_revenue(booking)
+	guest.room_revenue += room_revenue
+	guest.service_revenue += service_revenue
 	guest.unpaid_amount += flt(unpaid)
 	if booking.room_type:
 		guest.room_types[booking.room_type] += 1
