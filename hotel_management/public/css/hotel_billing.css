@@ -144,6 +144,32 @@
 	font-weight: 600;
 }
 
+/* кнопки футера: при переносе на несколько строк не слипаются ни по горизонтали, ни по вертикали */
+.rc-booking-dialog .modal-footer {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	justify-content: space-between;
+	gap: 8px;
+}
+
+.rc-booking-dialog .modal-footer .custom-actions,
+.rc-booking-dialog .modal-footer .standard-actions {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 8px;
+	margin: 0;
+}
+
+.rc-booking-dialog .modal-footer .standard-actions {
+	margin-left: auto;
+}
+
+.rc-booking-dialog .modal-footer .btn {
+	margin: 0;
+}
+
 .rc-booking-dialog .rcb-action {
 	display: inline-flex;
 	align-items: center;

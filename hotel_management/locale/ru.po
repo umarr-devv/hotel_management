@@ -1065,12 +1065,8 @@ msgid "Hotel Rooms"
 msgstr "Номерной фонд"
 
 #: hotel_management/workspace_sidebar/hotel.json
-msgid "Reports"
-msgstr "Отчёты"
-
-#: hotel_management/workspace_sidebar/hotel.json
-msgid "Setup"
-msgstr "Справочники"
+msgid "Invoices and Payments"
+msgstr "Счета и оплаты"
 
 #: hotel_management/hotel_management/workspace/hotel/hotel.json
 msgid "Front Desk"
