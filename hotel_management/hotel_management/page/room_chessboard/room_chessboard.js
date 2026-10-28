@@ -37,9 +37,12 @@
 	const API = "hotel_management.hotel_management.page.room_chessboard.room_chessboard";
 	const HOUR = 60 * 60 * 1000;
 	const DAY = 24 * HOUR;
-	const DAY_WIDTH = 112; // ширина колонки дня, px
+	const DAY_WIDTH = 112; // ширина колонки дня при масштабе 100%, px
 	const SELECTION_ID = "__selection__";
 	const VIEW_KEY = "room_chessboard_view";
+	const SCALE_KEY = "room_chessboard_scale";
+	// масштаб — множитель ширины колонки дня
+	const SCALES = ["0.75", "1", "1.25", "1.5", "2"];
 
 	const STATUSES = ["Booking", "Checked In", "Checked Out", "Cleaning", "Completed"];
 	const STATUS_INDICATOR = {
@@ -98,6 +101,7 @@
 			this.page = page;
 			this.wrapper = $(wrapper);
 			this.view = this.load_view();
+			this.scale = this.load_scale();
 			this.month = start_of_month(new Date());
 
 			this.make_layout();
@@ -144,6 +148,21 @@
 					this.view = view;
 					this.save_view();
 					this.set_groups(this.rooms || []);
+				},
+			});
+
+			this.scale_field = this.page.add_field({
+				fieldname: "scale",
+				label: __("Scale"),
+				fieldtype: "Select",
+				options: SCALES.map((value) => ({ value, label: `${Math.round(value * 100)}%` })),
+				default: this.scale,
+				change: () => {
+					const scale = this.scale_field.get_value();
+					if (!SCALES.includes(scale) || scale === this.scale) return;
+					this.scale = scale;
+					this.save_scale();
+					this.fit();
 				},
 			});
 
@@ -308,7 +327,7 @@
 
 		visible_days() {
 			const width = this.$timeline.width() - this.left_width();
-			return Math.max(3, Math.round(width / DAY_WIDTH));
+			return Math.max(3, Math.round(width / (DAY_WIDTH * flt(this.scale))));
 		}
 
 		left_width() {
@@ -1177,6 +1196,23 @@
 		save_view() {
 			try {
 				localStorage.setItem(VIEW_KEY, this.view);
+			} catch (e) {
+				// ignore
+			}
+		}
+
+		load_scale() {
+			try {
+				const v = localStorage.getItem(SCALE_KEY);
+				return SCALES.includes(v) ? v : "1";
+			} catch (e) {
+				return "1";
+			}
+		}
+
+		save_scale() {
+			try {
+				localStorage.setItem(SCALE_KEY, this.scale);
 			} catch (e) {
 				// ignore
 			}

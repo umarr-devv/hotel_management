@@ -74,10 +74,11 @@ def make_purchase_invoice(expense):
 	pi.cash_bank_account = get_cash_bank_account(expense.mode_of_payment, expense.company)
 	pi.remarks = expense.notes or _("Hotel Expense {0}").format(expense.name)
 	for row in expense.items:
-		pi.append(
-			"items",
-			{"item_code": row.item, "qty": flt(row.qty), "rate": flt(row.rate), "warehouse": warehouse},
-		)
+		item = {"item_code": row.item, "qty": flt(row.qty), "rate": flt(row.rate), "warehouse": warehouse}
+		# своё описание позиции заменяет описание товара в закупке
+		if row.description:
+			item["description"] = row.description
+		pi.append("items", item)
 
 	pi.run_method("set_missing_values")
 	pi.run_method("calculate_taxes_and_totals")

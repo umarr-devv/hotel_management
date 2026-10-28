@@ -1668,3 +1668,81 @@ msgstr "Удаление {0}..."
 #: hotel_management/public/js/hotel_billing.js
 msgid "Booking {0} deleted"
 msgstr "Бронь {0} удалена"
+
+# Масштаб шахматки, описание позиции расхода
+
+#: hotel_management/hotel_management/page/room_chessboard/room_chessboard.js
+msgid "Scale"
+msgstr "Масштаб"
+
+# Передача денег
+
+#. Label of the transfer_account (Link) field in DocType 'Hotel Profile'
+#: hotel_management/hotel_management/doctype/hotel_profile/hotel_profile.json
+msgid "Transfer Cash Desk"
+msgstr "Касса передачи"
+
+#: hotel_management/hotel_management/doctype/hotel_profile/hotel_profile.json
+msgid "Account where employees transfer money from the cash desk; the manager approves the transfer"
+msgstr "Счёт, на который сотрудники передают деньги из кассы; передачу утверждает менеджер"
+
+#. Name of a DocType; also a sidebar and workspace link
+#: hotel_management/hotel_management/doctype/hotel_money_transfer/hotel_money_transfer.json
+#: hotel_management/workspace_sidebar/hotel.json
+msgid "Hotel Money Transfer"
+msgstr "Передача денег"
+
+#: hotel_management/hotel_management/doctype/hotel_money_transfer/hotel_money_transfer.json
+msgid "From Account"
+msgstr "Со счёта"
+
+#: hotel_management/hotel_management/doctype/hotel_money_transfer/hotel_money_transfer.json
+msgid "To Account"
+msgstr "На счёт"
+
+#: hotel_management/hotel_management/doctype/hotel_money_transfer/hotel_money_transfer.json
+msgid "Cash desk of the Hotel Profile the money is taken from"
+msgstr "Касса профиля отеля, из которой передаются деньги"
+
+#: hotel_management/hotel_management/doctype/hotel_money_transfer/hotel_money_transfer.json
+msgid "Transfer Cash Desk of the Hotel Profile is suggested"
+msgstr "Подставляется касса передачи профиля отеля"
+
+#: hotel_management/hotel_management/doctype/hotel_money_transfer/hotel_money_transfer.json
+msgid "Company of the From Account"
+msgstr "Компания счёта отправителя"
+
+#: hotel_management/hotel_management/doctype/hotel_money_transfer/hotel_money_transfer.py
+msgid "Account {0} is not a cash desk of Hotel Profile {1}"
+msgstr "Счёт {0} не является кассой профиля отеля {1}"
+
+#: hotel_management/hotel_management/doctype/hotel_money_transfer/hotel_money_transfer.py
+msgid "From Account and To Account must be different"
+msgstr "Счета отправителя и получателя должны различаться"
+
+#: hotel_management/hotel_management/doctype/hotel_money_transfer/hotel_money_transfer.py
+msgid "Account {0} does not belong to Company {1}"
+msgstr "Счёт {0} не принадлежит компании {1}"
+
+#: hotel_management/hotel_management/doctype/hotel_money_transfer/hotel_money_transfer.py
+msgid "Account {0} is not a cash or bank account"
+msgstr "Счёт {0} не является счётом кассы или банка"
+
+#: hotel_management/hotel_management/doctype/hotel_money_transfer/hotel_money_transfer.py
+msgid "Hotel Money Transfer {0}"
+msgstr "Передача денег {0}"
+
+#. Workflow action of 'Hotel Money Transfer'
+#: hotel_management/fixtures/workflow_action_master.json
+msgid "Send for Approval"
+msgstr "Отправить на утверждение"
+
+#. Workflow action of 'Hotel Money Transfer'
+#: hotel_management/fixtures/workflow_action_master.json
+msgid "Approve"
+msgstr "Утвердить"
+
+#. Workflow state of 'Hotel Money Transfer'
+#: hotel_management/fixtures/workflow_state.json
+msgid "Approved"
+msgstr "Утверждено"

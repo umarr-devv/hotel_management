@@ -6,7 +6,8 @@
 Карта прав — источник правды для двух ролей приложения:
   * Hotel Manager — всё в модуле Hotel Management и связанные документы ERPNext;
   * Hotel Employee — бронирования (в том числе групповые) и расходы, справочники отеля только на просмотр,
-    связанные документы — сколько нужно, чтобы создавать брони и расходы.
+    связанные документы — сколько нужно, чтобы создавать брони и расходы; передачи денег —
+    создаёт и отправляет на утверждение, утверждает (проводит) только менеджер.
 
 Права на DocType модуля лежат в их JSON (те же строки, что в MODULE_PERMISSIONS), но
 если на сайте права DocType уже меняли в Role Permission Manager (есть Custom DocPerm),
@@ -33,6 +34,7 @@ MODULE_PERMISSIONS = {
 	"Room Booking": {HOTEL_MANAGER: FULL_SUBMIT, HOTEL_EMPLOYEE: SUBMIT},
 	"Group Booking": {HOTEL_MANAGER: FULL, HOTEL_EMPLOYEE: WRITE},
 	"Hotel Expense": {HOTEL_MANAGER: FULL_SUBMIT, HOTEL_EMPLOYEE: SUBMIT},
+	"Hotel Money Transfer": {HOTEL_MANAGER: FULL_SUBMIT, HOTEL_EMPLOYEE: WRITE},
 	"Hotel Room": {HOTEL_MANAGER: FULL, HOTEL_EMPLOYEE: READ_REPORT},
 	"Room Type": {HOTEL_MANAGER: FULL, HOTEL_EMPLOYEE: READ_REPORT},
 	"Hotel Floor": {HOTEL_MANAGER: FULL, HOTEL_EMPLOYEE: READ_REPORT},
@@ -65,6 +67,8 @@ _RELATED = {
 	"Sales Invoice": READ_REPORT_PRINT,
 	"Payment Entry": READ_REPORT_PRINT,
 	"Purchase Invoice": READ_REPORT,
+	# проводка утверждённой передачи денег
+	"Journal Entry": READ_REPORT_PRINT,
 }
 RELATED_PERMISSIONS = {
 	doctype: {HOTEL_MANAGER: perms, HOTEL_EMPLOYEE: perms} for doctype, perms in _RELATED.items()

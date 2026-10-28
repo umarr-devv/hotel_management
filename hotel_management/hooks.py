@@ -31,15 +31,47 @@ fixtures = [
 	},
 	{
 		"dt": "Workflow",
-		"filters": [["name", "in", ["Room Booking"]]],
+		"filters": [["name", "in", ["Room Booking", "Hotel Money Transfer"]]],
 	},
 	{
 		"dt": "Workflow Action Master",
-		"filters": [["name", "in", ["Check In", "Check Out", "Start Cleaning", "Complete"]]],
+		"filters": [
+			[
+				"name",
+				"in",
+				[
+					"Check In",
+					"Check Out",
+					"Start Cleaning",
+					"Complete",
+					"Send for Approval",
+					"Approve",
+					"Reject",
+					"Cancel",
+				],
+			]
+		],
 	},
 	{
 		"dt": "Workflow State",
-		"filters": [["name", "in", ["Booking", "Checked In", "Checked Out", "Cleaning", "Completed"]]],
+		"filters": [
+			[
+				"name",
+				"in",
+				[
+					"Booking",
+					"Checked In",
+					"Checked Out",
+					"Cleaning",
+					"Completed",
+					"Draft",
+					"Pending",
+					"Approved",
+					"Rejected",
+					"Cancelled",
+				],
+			]
+		],
 	},
 ]
 

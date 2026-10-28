@@ -14,7 +14,7 @@ frappe.ui.form.HotelExpenseQuickEntryForm = class HotelExpenseQuickEntryForm ext
 	frappe.ui.form.HotelQuickEntryForm
 ) {
 	static FIELDS = ["supplier", "mode_of_payment", "notes", "company", "hotel_profile"];
-	static ITEM_FIELDS = ["item", "qty", "rate"];
+	static ITEM_FIELDS = ["item", "description", "qty", "rate"];
 	// для precision(): строки диалога — простые объекты без doctype
 	static ITEM_DOC = { doctype: "Hotel Expense Item" };
 	static PAYMENT_MODE_QUERY =
@@ -114,6 +114,13 @@ frappe.ui.form.HotelExpenseQuickEntryForm = class HotelExpenseQuickEntryForm ext
 						in_list_view: 1,
 						columns: 1,
 						read_only: 1,
+					},
+					{
+						fieldname: "description",
+						label: __("Description"),
+						fieldtype: "Small Text",
+						in_list_view: 1,
+						columns: 2,
 					},
 				],
 			},

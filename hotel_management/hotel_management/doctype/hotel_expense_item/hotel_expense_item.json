@@ -11,7 +11,9 @@
   "column_break_qty",
   "qty",
   "rate",
-  "amount"
+  "amount",
+  "section_break_description",
+  "description"
  ],
  "fields": [
   {
@@ -76,13 +78,24 @@
    "label": "Amount",
    "options": "currency",
    "read_only": 1
+  },
+  {
+   "fieldname": "section_break_description",
+   "fieldtype": "Section Break"
+  },
+  {
+   "columns": 2,
+   "fieldname": "description",
+   "fieldtype": "Small Text",
+   "in_list_view": 1,
+   "label": "Description"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2026-10-07 18:00:00.000000",
+ "modified": "2026-10-28 12:00:00.000000",
  "modified_by": "Administrator",
  "module": "Hotel Management",
  "name": "Hotel Expense Item",
