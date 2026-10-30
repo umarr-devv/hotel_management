@@ -368,7 +368,7 @@ class RoomBooking(Document):
 		self.total_hours = flt(
 			time_diff_in_hours(self.check_out, self.check_in), self.precision("total_hours")
 		)
-		# тариф суточный: платятся начатые сутки (25 ч — 2 суток)
+		# тариф суточный: ровно 24 ч — уже вторые сутки (23:59 — 1, 24:00 — 2)
 		self.total_days = hours_to_days(self.total_hours)
 		self.amount = flt(self.rate_per_day * self.total_days, self.precision("amount"))
 

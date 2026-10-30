@@ -575,7 +575,7 @@
 				[__("Check In"), fmt(b.check_in)],
 				[__("Check Out"), fmt(b.check_out)],
 				[__("Total Hours"), flt(b.total_hours, 1)],
-				[__("Total Days"), Math.ceil(flt(b.total_hours) / 24)],
+				[__("Total Days"), hours_to_days(b.total_hours)],
 				[__("Guests"), b.guests],
 				[__("Status"), __(b.status)],
 				[__("Pay Status"), __(b.pay_status || "Unpaid")],
@@ -959,7 +959,7 @@
 					d.getHours()
 				)}:${pad2(d.getMinutes())}`;
 			};
-			const days = Math.ceil(flt(doc.total_hours) / 24);
+			const days = hours_to_days(doc.total_hours);
 			const link = (doctype, name) =>
 				name
 					? `<a href="/app/${frappe.router.slug(doctype)}/${encodeURIComponent(name)}">${esc(name)}</a>`
@@ -1227,6 +1227,11 @@
 	// названия действий workflow без повторов, в исходном порядке
 	function unique_actions(transitions) {
 		return [...new Set((transitions || []).map((t) => t.action))];
+	}
+
+	// оплачиваемые сутки, как hours_to_days на сервере: 23:59 — 1 сутки, 24:00 — 2
+	function hours_to_days(hours) {
+		return flt(hours) > 0 ? Math.floor(flt(hours) / 24) + 1 : 0;
 	}
 
 	// Даты в Frappe — «наивные» строки во временной зоне системы. Разбираем их как локальное

@@ -155,8 +155,8 @@ function calculate_totals(frm) {
 		frm.set_value("total_days", 0);
 		frm.set_value("amount", 0);
 	} else {
-		// тариф суточный: платятся начатые сутки (25 ч — 2 суток), как на сервере
-		const days = Math.ceil(hours / 24);
+		// тариф суточный: ровно 24 ч — уже вторые сутки (23:59 — 1, 24:00 — 2), как на сервере
+		const days = Math.floor(hours / 24) + 1;
 		frm.set_value("total_hours", hours);
 		frm.set_value("total_days", days);
 		frm.set_value("amount", flt(frm.doc.rate_per_day * days, precision("amount")));

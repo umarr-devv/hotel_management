@@ -33,8 +33,8 @@ def is_room_active(room):
 
 
 def hours_to_days(hours):
-	"""Оплачиваемые сутки брони: часы / 24 с округлением вверх (25 ч — 2 суток)."""
-	return math.ceil(flt(hours) / 24) if flt(hours) > 0 else 0
+	"""Оплачиваемые сутки брони: каждые полные 24 ч начинают новые сутки (23:59 — 1, 24:00 — 2)."""
+	return math.floor(flt(hours) / 24) + 1 if flt(hours) > 0 else 0
 
 
 def natural_key(value):

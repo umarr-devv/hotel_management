@@ -197,11 +197,11 @@ frappe.ui.form.RoomBookingQuickEntryForm = class RoomBookingQuickEntryForm exten
 		const now = this.current_values();
 		if (Object.keys(values).some((field) => values[field] !== now[field])) return;
 
-		// сумма считается так же, как в контроллере брони: цена за сутки × начатые сутки;
+		// сумма считается так же, как в контроллере брони: цена за сутки × сутки (24:00 — уже 2 суток);
 		// часы сначала округляются до точности поля total_hours, как на сервере
 		const currency = frappe.defaults.get_default("currency");
 		const float_precision = cint(frappe.boot.sysdefaults.float_precision) || 3;
-		const days = Math.ceil(flt(hours, float_precision) / 24);
+		const days = Math.floor(flt(hours, float_precision) / 24) + 1;
 		const rate = room_rate ? rates[room_rate] : undefined;
 
 		const parts = [`${__("Days")}: <b>${days}</b>`, `${__("Hours")}: <b>${flt(hours, 1)}</b>`];
